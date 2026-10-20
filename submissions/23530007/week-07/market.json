@@ -1,6 +1,6 @@
 {
  "name": "YMS's Furniture",
- "description": "Sells lamps, chairs and bookshelves. The price is negotiated; a model decides every ask.",
+ "description": "Lamps, chairs and bookshelves at small margins. Opening asks are at most 30 % over our floor (2 % while the shop is quiet), any offer at or above the floor is accepted from your second offer, and every receipt is signed with the shop's Ed25519 key. A model writes every ask; the code keeps the floor and answers if the model is slow.",
  "items": [
   {
    "id": "lamp",

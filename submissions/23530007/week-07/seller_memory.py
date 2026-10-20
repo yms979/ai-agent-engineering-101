@@ -17,6 +17,14 @@ START_MARGIN and kept between MIN_MARGIN and MAX_MARGIN. After each trade the ma
   the buyer walked away or the shop rejected                 -> down by STEP_DOWN (too dear)
 The reserve is never crossed; that check stays in seller.py.
 
+Launch pricing (demand). The market lists a shop with its reviews, and buyers pick shops with many
+verified Round 2 reviews, so a shop with few visits stays without visits (Round 2 at first: 1 visit
+for yms979 against 157 for corner-store). While the shop had fewer than LAUNCH_VISITS negotiations
+in the last LAUNCH_WINDOW seconds, the opening ask is at most reserve x LAUNCH_MARGIN and the
+target (an offer at or above it is a sale) is the reserve itself: every visitor should leave with a
+quick deal and a good review. Once visits come, the margin rule above is back. Every trade records
+the mode it was priced in, so the price before and after can be compared from seller_memory.json.
+
 Signing: the receipt data Part is {shop, item, price, task} plus sig_seller, the base64 Ed25519
 signature with shop_key.pem over the canonical JSON (keys sorted, no spaces, UTF-8), price a whole
 number. The key is read when signing, so it is always the file the kit registered.
@@ -38,6 +46,9 @@ START_MARGIN, MIN_MARGIN, MAX_MARGIN = 1.15, 1.05, 1.30
 STEP_UP, STEP_DOWN = 0.02, 0.03
 RECENT = 20
 LOYALTY = ((3, 0.05), (1, 0.03))   # (deals with the code, discount): 1-2 deals 3 %, 3 or more 5 %
+LAUNCH_WINDOW = int(os.environ.get("SELLER_LAUNCH_WINDOW", "3600"))
+LAUNCH_VISITS = int(os.environ.get("SELLER_LAUNCH_VISITS", "4"))
+LAUNCH_MARGIN = 1.02
 _lock = threading.Lock()
 
 
@@ -77,8 +88,26 @@ class SellerMemory:
     def margin(self, item_id: str) -> float:
         return self.data["margin"].get(item_id, START_MARGIN)
 
+    def visits(self, window: int = LAUNCH_WINDOW) -> int:
+        """Negotiations (any outcome) that ended in the last `window` seconds."""
+        since = time.time() - window
+        return sum(1 for t in self.data["trades"] if t["t"] >= since)
+
+    def launch(self) -> bool:
+        return self.visits() < LAUNCH_VISITS
+
+    def mode(self) -> str:
+        return "launch" if self.launch() else "normal"
+
+    def floor_margin(self) -> float:
+        """The target as a multiple of the reserve: the reserve itself in launch pricing."""
+        return 1.0 if self.launch() else MIN_MARGIN
+
     def opening_ask(self, item: dict) -> int:
-        return max(item["reserve"], math.ceil(item["reserve"] * self.margin(item["id"])))
+        m = self.margin(item["id"])
+        if self.launch():
+            m = min(m, LAUNCH_MARGIN)
+        return max(item["reserve"], math.ceil(item["reserve"] * m))
 
     def max_ask(self, item: dict) -> int:
         return math.ceil(item["reserve"] * MAX_MARGIN)
@@ -122,8 +151,9 @@ class SellerMemory:
     def record(self, item_id: str, outcome: str, open_ask: int, price, offers: int, context_id: str = "",
                last_ask=None, last_offer=None):
         with _lock:
+            mode = self.mode()     # before this trade is counted as a visit
             self.data["trades"].append({"t": int(time.time()), "item": item_id, "outcome": outcome,
-                                        "open_ask": open_ask, "price": price, "offers": offers})
+                                        "open_ask": open_ask, "price": price, "offers": offers, "mode": mode})
             m = self.margin(item_id)
             if outcome == "deal" and offers <= 1:
                 m = min(MAX_MARGIN, m + STEP_UP)

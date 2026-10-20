@@ -45,6 +45,14 @@ Prices the buyer is happy with (market reviews rate the price against the buyer'
   - returning customers: every receipt comes with a member code; a buyer who sends it again gets
     LOYALTY's discount (3 % after one deal, 5 % after three) off the opening ask and the target
 None of this goes below the reserve; that check stays in code.
+
+More visits (Round 2 at first: 1 visit to this shop, 157 to corner-store; buyers pick by reviews):
+  - launch pricing while the shop is quiet: open at most 2 % over the reserve and sell at any offer at
+    or above it (seller_memory.py), so every visitor gets a quick deal to review
+  - a harness answer later than DEADLINE seconds is not waited for: the code answers by its rules
+  - from the LAST_CHANCE-th offer on, the counter may go down to the reserve, said to be our floor;
+    a rejection says the floor too, so a buyer whose budget is below it knows why there was no deal
+  - the closing message states the facts of the trade (opening ask, offers, signed receipt)
 """
 import argparse
 import asyncio
@@ -78,6 +86,8 @@ HOLDS = os.environ.get("SELLER_HOLDS", "0") == "1"           # week-06 one-buyer
 MAX_UNCLEAR = 3     # unclear first messages on one task before the seller gives up
 MIN_OFFERS_TO_REJECT = 4   # an earlier "reject" from the harness becomes "hold the ask"
 VOLUME_AFTER = 2    # from the second offer on, any offer at or above the reserve is a sale (volume over margin)
+LAST_CHANCE = 3     # from the third offer on, counters may go down to the reserve, announced as our floor
+DEADLINE = float(os.environ.get("SELLER_DEADLINE", "10"))   # seconds the buyer waits for the harness at most
 OPEN_LINE = "We sell at small margins and answer every offer quickly."
 MEMBER = re.compile(r"\bHF-[A-Z]{6}\b")
 # A message that is only a price: "120", "$120", "1,200", "120 dollars", "USD 120." ...
@@ -186,8 +196,12 @@ MARKET = ("Strategy: sell many at a small margin. Open at {suggested} or a littl
 
 def target(deal) -> int:
     """The small-margin price: an offer at or above it is a sale, and counters never go below it.
-    A returning customer's discount comes off it, never below the reserve."""
-    return max(deal["reserve"], math.ceil(deal["reserve"] * MIN_MARGIN * (1 - deal.get("disc", 0.0))))
+    It is the reserve itself in launch pricing (seller_memory.py) and, from the LAST_CHANCE-th offer
+    on, for a buyer still below it. A returning customer's discount comes off it, never below the reserve."""
+    if deal["offers"] >= LAST_CHANCE:
+        return deal["reserve"]
+    m = deal.get("floor_m", MIN_MARGIN)
+    return max(deal["reserve"], math.ceil(deal["reserve"] * m * (1 - deal.get("disc", 0.0))))
 
 
 class Seller(AgentExecutor):
@@ -197,6 +211,16 @@ class Seller(AgentExecutor):
         self.lapsed = set() # tasks whose hold lapsed; their messages are refused
         self.unclear = {}   # task id -> unclear first messages so far
         self.memory = SellerMemory()
+
+    async def think(self, prompt: str, tid: str):
+        """The harness's answer, or None if it fails or takes longer than DEADLINE seconds. Then the code
+        answers by its own rules, so the buyer is not kept waiting (replies took up to 29 s; a buyer that
+        gives up leaves no deal and a bad review). A late harness call finishes in its thread, unused."""
+        try:
+            return await asyncio.wait_for(asyncio.to_thread(decide, "seller", prompt), DEADLINE)
+        except asyncio.TimeoutError:
+            log("seller", f"task {tid} harness took over {DEADLINE:.0f} s; the code answers instead")
+            return None
 
     def remember(self, task_id, deal, outcome, price=None):
         """Log a finished negotiation in seller_memory.json and move the item's margin."""
@@ -280,8 +304,8 @@ class Seller(AgentExecutor):
         if item is not None:
             log("seller", f"task {tid} exact name match: {item['id']}")
             market, prev = self.market_line(item, ctx)
-            answer = await asyncio.to_thread(decide, "seller", OPEN.format(name=item["name"], reserve=item["reserve"],
-                                                                   desc=item["description"], market=market)) or {}
+            answer = await self.think(OPEN.format(name=item["name"], reserve=item["reserve"],
+                                                  desc=item["description"], market=market), tid) or {}
             ask = as_int(answer.get("ask"))
             pitch = pitch_of(answer)
         else:
@@ -289,8 +313,11 @@ class Seller(AgentExecutor):
             log("seller", f"task {tid} search: {len(self.cat.items)} items -> {len(candidates)} candidates "
                           f"{[c['id'] for c in candidates]}")
             if candidates:
-                answer = await asyncio.to_thread(decide, "seller", PICK.format(shop=self.cat.name, text=text[:400],
-                                                      candidates="\n".join(line(c) for c in candidates))) or {}
+                answer = await self.think(PICK.format(shop=self.cat.name, text=text[:400],
+                                                      candidates="\n".join(line(c) for c in candidates)), tid)
+                if answer is None:     # no answer in time: the search's best match, at the memory's ask
+                    log("seller", f"task {tid} no pick from the harness; taking the best search match {candidates[0]['id']}")
+                    answer = {"item": candidates[0]["id"]}
                 picked = {c["id"]: c for c in candidates}.get(answer.get("item"))
                 if answer.get("item") and picked is None:
                     log("seller", f"task {tid} harness picked {answer.get('item')!r}, not a candidate; asking instead")
@@ -301,8 +328,8 @@ class Seller(AgentExecutor):
                     await self.unclear_first(up, say, task_id, reply)
                     return
             else:
-                answer = await asyncio.to_thread(decide, "seller", CLARIFY.format(shop=self.cat.name, kinds=", ".join(self.cat.kinds()),
-                                                         text=text[:300])) or {}
+                answer = await self.think(CLARIFY.format(shop=self.cat.name, kinds=", ".join(self.cat.kinds()),
+                                                         text=text[:300]), tid) or {}
                 await self.unclear_first(up, say, task_id, no_digits(answer.get("reply")) or NOT_SURE)
                 return
 
@@ -330,8 +357,11 @@ class Seller(AgentExecutor):
         if prev and prev.get("item") == item["id"] and prev.get("last_ask") and prev["last_ask"] < ask:
             log("seller", f"task {tid} returning buyer: opening at the last ask {prev['last_ask']} instead of {ask}")
             ask = max(item["reserve"], prev["last_ask"])
+        mode = self.memory.mode()
+        log("seller", f"task {tid} {mode} pricing ({self.memory.visits()} visits in the last hour), "
+                      f"opening ask {ask}")
         self.open[task_id] = {"item": item, "reserve": item["reserve"], "ask": ask, "open_ask": ask, "ctx": ctx,
-                              "member": code, "disc": disc,
+                              "member": code, "disc": disc, "floor_m": self.memory.floor_margin(),
                               "history": [("seller asked", ask)], "offers": 0, "last": time.time()}
         log("seller", f"task {tid} -> input-required, {item['id']} ask {ask}")
         desc = "" if item["name"] == item["id"] else f" ({item['id']}: {item['description']})"
@@ -371,11 +401,11 @@ class Seller(AgentExecutor):
         else:                          # free text: the harness reads the offer
             offer_line, offer_field = FREE_OFFER_LINE.format(text=text[:600]), FREE_OFFER_FIELD
 
-        answer = await asyncio.to_thread(decide, "seller", REPLY.format(name=deal["item"]["name"], reserve=deal["reserve"],
+        answer = await self.think(REPLY.format(name=deal["item"]["name"], reserve=deal["reserve"],
                                                ask=deal["ask"], offer_line=offer_line, offer_field=offer_field,
                                                strategy=STRATEGY.format(target=target(deal),
                                                                         sales=self.memory.summary(deal["item"]["id"])),
-                                               history=compact(deal["history"], "seller"))) or {}
+                                               history=compact(deal["history"], "seller")), tid) or {}
         if self.open.get(task_id) is not deal:   # canceled or lapsed while the harness was thinking
             log("seller", f"task {tid} ended while the harness was deciding; answer dropped")
             return
@@ -416,7 +446,9 @@ class Seller(AgentExecutor):
             self.remember(task_id, deal, "rejected")
             del self.open[task_id]
             log("seller", f"task {tid} -> rejected")
-            await up.reject(say(f"No deal at {offer}."))
+            await up.reject(say(f"Our floor for the {deal['item']['name']} is {deal['reserve']} and we never sell "
+                                f"below it, so there is no deal. Thank you for negotiating; you are welcome back "
+                                f"any time. No deal at {offer}."))
             return
 
         if action != "counter" or price is None:   # unreadable answer: hold the current ask
@@ -441,15 +473,22 @@ class Seller(AgentExecutor):
             self.remember(task_id, deal, "rejected")
             del self.open[task_id]
             log("seller", f"task {tid} -> rejected after {MAX_OFFERS} offers (releases the hold)")
-            await up.reject(say(f"No deal after {MAX_OFFERS} offers."))
+            await up.reject(say(f"Our floor for the {deal['item']['name']} is {deal['reserve']} and we never sell "
+                                f"below it. Thank you for negotiating; you are welcome back any time. "
+                                f"No deal after {MAX_OFFERS} offers."))
             return
         deal["ask"] = price
         deal["history"].append(("seller asked", price))
         log("seller", f"task {tid} -> input-required, counter {price}")
         pitch = pitch_of(answer)
         best = price <= floor
-        await up.requires_input(say(f"{pitch + ' ' if pitch else ''}{offer} is too low. "
-                                    + (f"This is my best price: {price}" if best else f"Counteroffer: {price}"), price))
+        if price == deal["reserve"]:      # said plainly, so a buyer below it can leave without guessing
+            end = f"This is our floor, we never sell below it: {price}"
+        elif best:
+            end = f"This is my best price: {price}"
+        else:
+            end = f"Counteroffer: {price}"
+        await up.requires_input(say(f"{pitch + ' ' if pitch else ''}{offer} is too low. " + end, price))
 
     async def close(self, up, say, task_id, deal, offer, why):
         item = deal["item"]
@@ -459,10 +498,14 @@ class Seller(AgentExecutor):
         del self.open[task_id]
         log("seller", f"task {task_id[:8]} -> completed: {item['id']} at {offer} ({why})")
         await up.add_artifact(parts=[new_data_part(receipt)], name="receipt")
-        await up.complete(say(f"Thank you for buying from {self.cat.name}! The receipt is signed by the shop, so "
-                              f"this deal counts. An honest review helps other buyers. Your member code is {code}: "
-                              f"send it with your next order for a returning-customer discount. "
-                              f"Deal: {item['name']} at {offer}"))
+        # the facts of the trade in one sentence, the way buyers write reviews ("opened at 110, deal after
+        # 1 offer, signed receipt"): true by construction, and the buyer can check each against its own log
+        facts = (f"We opened at {deal['open_ask']} and you closed it after {deal['offers']} offer"
+                 f"{'' if deal['offers'] == 1 else 's'}; the receipt carries the agreed price and the shop's "
+                 f"Ed25519 signature.")
+        await up.complete(say(f"Thank you for buying from {self.cat.name}! {facts} An honest review helps other "
+                              f"buyers. Your member code is {code}: send it with your next order for a "
+                              f"returning-customer discount. Deal: {item['name']} at {offer}"))
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         task = context.current_task

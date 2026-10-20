@@ -35,7 +35,7 @@ SHORT_RUN=120           # a run shorter than this counts as short
 CHECK_EVERY=300         # 5 min
 MAX_MISSES=3
 
-export PATH="$HOME/.local/bin:$PATH"       # claude and cloudflared live here
+export PATH="$HERE/.venv/bin:$HOME/.local/bin:$PATH"   # agent.json runs plain "python"; claude and cloudflared are in ~/.local/bin
 export PYTHONUNBUFFERED=1
 
 say() { echo "$(date '+%F %T') [supervisor] $*" | tee -a "$SUPLOG"; }

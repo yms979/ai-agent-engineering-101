@@ -1,0 +1,686 @@
+{
+ "trades": [
+  {
+   "t": 1792495878,
+   "shop": "inextro",
+   "item": "chair",
+   "budget": 225,
+   "outcome": "error (JSONDecodeError)",
+   "price": null,
+   "asks": [],
+   "agreed": null,
+   "honest": true
+  },
+  {
+   "t": 1792495896,
+   "shop": "corner-store",
+   "item": "chair",
+   "budget": 185,
+   "outcome": "deal",
+   "price": 182,
+   "asks": [
+    234,
+    212,
+    190
+   ],
+   "agreed": 182,
+   "honest": true
+  },
+  {
+   "t": 1792495918,
+   "shop": "willow-goods",
+   "item": "bookshelf",
+   "budget": 295,
+   "outcome": "deal",
+   "price": 280,
+   "asks": [
+    338,
+    312,
+    286
+   ],
+   "agreed": 280,
+   "honest": true
+  },
+  {
+   "t": 1792495932,
+   "shop": "corner-store",
+   "item": "chair",
+   "budget": 250,
+   "outcome": "deal",
+   "price": 195,
+   "asks": [
+    234,
+    212
+   ],
+   "agreed": 195,
+   "honest": true
+  },
+  {
+   "t": 1792495954,
+   "shop": "corner-store",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "deal",
+   "price": 110,
+   "asks": [
+    130,
+    118
+   ],
+   "agreed": 110,
+   "honest": true
+  },
+  {
+   "t": 1792495983,
+   "shop": "dragonash",
+   "item": "bookshelf",
+   "budget": 360,
+   "outcome": "deal",
+   "price": 268,
+   "asks": [
+    284,
+    276,
+    268
+   ],
+   "agreed": 268,
+   "honest": true
+  },
+  {
+   "t": 1792496047,
+   "shop": "outseop-26510122",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "error (ConnectError)",
+   "price": null,
+   "asks": [],
+   "agreed": null,
+   "honest": true
+  },
+  {
+   "t": 1792496061,
+   "shop": "corner-store",
+   "item": "lamp",
+   "budget": 140,
+   "outcome": "deal",
+   "price": 115,
+   "asks": [
+    130,
+    118
+   ],
+   "agreed": 115,
+   "honest": true
+  },
+  {
+   "t": 1792496082,
+   "shop": "corner-store",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "deal",
+   "price": 110,
+   "asks": [
+    130,
+    118
+   ],
+   "agreed": 110,
+   "honest": true
+  },
+  {
+   "t": 1792496157,
+   "shop": "danayoou",
+   "item": "lamp",
+   "budget": 90,
+   "outcome": "error (RpcError)",
+   "price": null,
+   "asks": [
+    140,
+    115,
+    105,
+    100,
+    100
+   ],
+   "agreed": 89,
+   "honest": true
+  },
+  {
+   "t": 1792496234,
+   "shop": "ddolcom",
+   "item": "bookshelf",
+   "budget": 360,
+   "outcome": "rejected",
+   "price": null,
+   "asks": [
+    450,
+    320
+   ],
+   "agreed": 250,
+   "honest": true
+  },
+  {
+   "t": 1792496248,
+   "shop": "corner-store",
+   "item": "chair",
+   "budget": 205,
+   "outcome": "deal",
+   "price": 190,
+   "asks": [
+    234,
+    212
+   ],
+   "agreed": 190,
+   "honest": true
+  },
+  {
+   "t": 1792496286,
+   "shop": "corner-store",
+   "item": "chair",
+   "budget": 160,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    234,
+    212,
+    190,
+    180,
+    180,
+    180
+   ],
+   "agreed": 160,
+   "honest": true
+  },
+  {
+   "t": 1792496308,
+   "shop": "grand-furniture",
+   "item": "bookshelf",
+   "budget": 230,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    442,
+    431,
+    421,
+    410
+   ],
+   "agreed": 225,
+   "honest": true
+  },
+  {
+   "t": 1792496346,
+   "shop": "moss-and-oak",
+   "item": "lamp",
+   "budget": 140,
+   "outcome": "deal",
+   "price": 100,
+   "asks": [
+    130,
+    122,
+    114,
+    107,
+    102
+   ],
+   "agreed": 100,
+   "honest": true
+  },
+  {
+   "t": 1792496392,
+   "shop": "moss-and-oak",
+   "item": "bookshelf",
+   "budget": 325,
+   "outcome": "deal",
+   "price": 266,
+   "asks": [
+    338,
+    318,
+    298,
+    279,
+    266
+   ],
+   "agreed": 266,
+   "honest": true
+  },
+  {
+   "t": 1792496436,
+   "shop": "moss-and-oak",
+   "item": "lamp",
+   "budget": 140,
+   "outcome": "deal",
+   "price": 100,
+   "asks": [
+    130,
+    122,
+    114,
+    107,
+    102
+   ],
+   "agreed": 100,
+   "honest": true
+  },
+  {
+   "t": 1792496490,
+   "shop": "moss-and-oak",
+   "item": "bookshelf",
+   "budget": 230,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    338,
+    318,
+    298,
+    279,
+    266,
+    260
+   ],
+   "agreed": 230,
+   "honest": true
+  },
+  {
+   "t": 1792496555,
+   "shop": "outseop-26510122",
+   "item": "lamp",
+   "budget": 105,
+   "outcome": "error (ConnectError)",
+   "price": null,
+   "asks": [],
+   "agreed": null,
+   "honest": true
+  },
+  {
+   "t": 1792496603,
+   "shop": "moss-and-oak",
+   "item": "lamp",
+   "budget": 105,
+   "outcome": "error (RpcError)",
+   "price": null,
+   "asks": [
+    130,
+    122,
+    114,
+    107
+   ],
+   "agreed": 98,
+   "honest": true
+  },
+  {
+   "t": 1792496668,
+   "shop": "outseop-26510122",
+   "item": "lamp",
+   "budget": 110,
+   "outcome": "error (ConnectError)",
+   "price": null,
+   "asks": [],
+   "agreed": null,
+   "honest": true
+  },
+  {
+   "t": 1792496711,
+   "shop": "corner-store",
+   "item": "bookshelf",
+   "budget": 230,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    338,
+    306,
+    275,
+    260,
+    260,
+    260,
+    260
+   ],
+   "agreed": 230,
+   "honest": true
+  },
+  {
+   "t": 1792496874,
+   "shop": "olstjr",
+   "item": "lamp",
+   "budget": 90,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    180,
+    150,
+    120,
+    110,
+    100,
+    100
+   ],
+   "agreed": 90,
+   "honest": true
+  },
+  {
+   "t": 1792496928,
+   "shop": "olstjr",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "deal",
+   "price": 100,
+   "asks": [
+    180,
+    150,
+    120,
+    110
+   ],
+   "agreed": 100,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792496952,
+   "shop": "corner-store",
+   "item": "lamp",
+   "budget": 140,
+   "outcome": "deal",
+   "price": 100,
+   "asks": [
+    130,
+    118,
+    106,
+    100
+   ],
+   "agreed": 100,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792496974,
+   "shop": "corner-store",
+   "item": "bookshelf",
+   "budget": 325,
+   "outcome": "deal",
+   "price": 260,
+   "asks": [
+    338,
+    306,
+    275,
+    260
+   ],
+   "agreed": 260,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792496990,
+   "shop": "corner-store",
+   "item": "chair",
+   "budget": 185,
+   "outcome": "deal",
+   "price": 180,
+   "asks": [
+    234,
+    212,
+    190
+   ],
+   "agreed": 180,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792497145,
+   "shop": "olstjr",
+   "item": "bookshelf",
+   "budget": 230,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    380,
+    330,
+    300
+   ],
+   "agreed": 230,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792497162,
+   "shop": "corner-store",
+   "item": "chair",
+   "budget": 250,
+   "outcome": "deal",
+   "price": 200,
+   "asks": [
+    234,
+    212
+   ],
+   "agreed": 200,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792497191,
+   "shop": "corner-store",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "deal",
+   "price": 100,
+   "asks": [
+    130,
+    118,
+    106,
+    100
+   ],
+   "agreed": 100,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792497358,
+   "shop": "11im",
+   "item": "chair",
+   "budget": 205,
+   "outcome": "deal",
+   "price": 180,
+   "asks": [
+    213,
+    196,
+    183,
+    180,
+    180
+   ],
+   "agreed": 180,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792497440,
+   "shop": "grand-furniture",
+   "item": "chair",
+   "budget": 250,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    306,
+    298,
+    291,
+    284,
+    277,
+    270
+   ],
+   "agreed": 180,
+   "honest": true,
+   "signed": true
+  },
+  {
+   "t": 1792497528,
+   "shop": "11im",
+   "item": "chair",
+   "budget": 205,
+   "outcome": "deal",
+   "price": 180,
+   "asks": [
+    213,
+    200,
+    185,
+    180
+   ],
+   "agreed": 180,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792497685,
+   "shop": "11im",
+   "item": "chair",
+   "budget": 225,
+   "outcome": "deal",
+   "price": 180,
+   "asks": [
+    213,
+    195,
+    185,
+    180
+   ],
+   "agreed": 180,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792497722,
+   "shop": "dragonash",
+   "item": "bookshelf",
+   "budget": 325,
+   "outcome": "deal",
+   "price": 260,
+   "asks": [
+    282,
+    275,
+    268,
+    265
+   ],
+   "agreed": 260,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792497785,
+   "shop": "11im",
+   "item": "bookshelf",
+   "budget": 270,
+   "outcome": "deal",
+   "price": 260,
+   "asks": [
+    315,
+    285,
+    265
+   ],
+   "agreed": 260,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792497829,
+   "shop": "dragonash",
+   "item": "lamp",
+   "budget": 90,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    108,
+    105,
+    102,
+    101,
+    100
+   ],
+   "agreed": 90,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792497876,
+   "shop": "bright-living",
+   "item": "bookshelf",
+   "budget": 295,
+   "outcome": "rejected",
+   "price": null,
+   "asks": [
+    390,
+    374,
+    358,
+    343,
+    327,
+    312,
+    296
+   ],
+   "agreed": 260,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792497982,
+   "shop": "bjeon01",
+   "item": "chair",
+   "budget": 160,
+   "outcome": "error (JSONDecodeError)",
+   "price": null,
+   "asks": [],
+   "agreed": null,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792498102,
+   "shop": "11im",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "deal",
+   "price": 100,
+   "asks": [
+    117,
+    105,
+    102,
+    100
+   ],
+   "agreed": 100,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792498282,
+   "shop": "kimauve",
+   "item": "bookshelf",
+   "budget": 270,
+   "outcome": "deal",
+   "price": 260,
+   "asks": [
+    273,
+    260
+   ],
+   "agreed": 260,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1792498308,
+   "shop": "kimauve",
+   "item": "bookshelf",
+   "budget": 325,
+   "outcome": "deal",
+   "price": 260,
+   "asks": [
+    273,
+    260
+   ],
+   "agreed": 260,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  }
+ ],
+ "dishonest": {},
+ "seen_tasks": [
+  "3e82d39f-93ef-4fbb-8211-51992064ceb4",
+  "9f269200-5a6d-4719-bbfe-d91294037d7b",
+  "bf0980ec-ba9a-45a6-a315-86d9aa446d08",
+  "1d36b83f-8340-4cd9-a512-9dca2e109ec6",
+  "e588ca52-97de-4405-b52c-00d7622e8f90",
+  "98098ca7-81dd-4924-aeba-0203d5e2f1b7",
+  "c176b88e-e211-4efb-b98c-5da5b8069467"
+ ]
+}

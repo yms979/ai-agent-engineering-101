@@ -1,0 +1,155 @@
+{
+ "trades": [
+  {
+   "t": 1792496590,
+   "item": "bookshelf",
+   "outcome": "deal",
+   "open_ask": 299,
+   "price": 273,
+   "offers": 3
+  },
+  {
+   "t": 1792496602,
+   "item": "lamp",
+   "outcome": "deal",
+   "open_ask": 115,
+   "price": 115,
+   "offers": 1
+  },
+  {
+   "t": 1792496833,
+   "item": "lamp",
+   "outcome": "deal",
+   "open_ask": 117,
+   "price": 102,
+   "offers": 4
+  },
+  {
+   "t": 1792496843,
+   "item": "chair",
+   "outcome": "lapsed",
+   "open_ask": 225,
+   "price": null,
+   "offers": 2
+  },
+  {
+   "t": 1792496851,
+   "item": "bookshelf",
+   "outcome": "deal",
+   "open_ask": 299,
+   "price": 265,
+   "offers": 3
+  },
+  {
+   "t": 1792496887,
+   "item": "lamp",
+   "outcome": "deal",
+   "open_ask": 117,
+   "price": 105,
+   "offers": 2
+  },
+  {
+   "t": 1792496915,
+   "item": "chair",
+   "outcome": "canceled",
+   "open_ask": 225,
+   "price": null,
+   "offers": 1
+  },
+  {
+   "t": 1792497358,
+   "item": "chair",
+   "outcome": "canceled",
+   "open_ask": 190,
+   "price": null,
+   "offers": 1
+  },
+  {
+   "t": 1792497384,
+   "item": "lamp",
+   "outcome": "deal",
+   "open_ask": 117,
+   "price": 100,
+   "offers": 3
+  }
+ ],
+ "margin": {
+  "bookshelf": 1.15,
+  "lamp": 1.17,
+  "chair": 1.06
+ },
+ "contexts": {
+  "341d0af1-5755-4835-be93-c67134ef3e72": {
+   "item": "bookshelf",
+   "outcome": "deal",
+   "price": 273,
+   "last_ask": 273,
+   "last_offer": 273,
+   "t": 1792496590
+  },
+  "60c1c350-0e7b-4b0a-bb9d-42a92316b09c": {
+   "item": "lamp",
+   "outcome": "deal",
+   "price": 115,
+   "last_ask": 115,
+   "last_offer": 115,
+   "t": 1792496602
+  },
+  "976239f7-a457-48f6-9361-34da8059df37": {
+   "item": "lamp",
+   "outcome": "deal",
+   "price": 102,
+   "last_ask": 102,
+   "last_offer": 102,
+   "t": 1792496833
+  },
+  "3ec1a538-bc05-4a84-a8f9-d5139e6ff64e": {
+   "item": "chair",
+   "outcome": "lapsed",
+   "price": null,
+   "last_ask": 189,
+   "last_offer": 185,
+   "t": 1792496843
+  },
+  "b452ed72-2e9c-4f87-aaa8-b2241ea2a567": {
+   "item": "bookshelf",
+   "outcome": "deal",
+   "price": 265,
+   "last_ask": 273,
+   "last_offer": 265,
+   "t": 1792496851
+  },
+  "53aca20d-408b-4e62-981a-546d133cbc07": {
+   "item": "lamp",
+   "outcome": "deal",
+   "price": 105,
+   "last_ask": 105,
+   "last_offer": 105,
+   "t": 1792496887
+  },
+  "03d81b70-9dd7-4327-9a49-3ae8eff44759": {
+   "item": "chair",
+   "outcome": "canceled",
+   "price": null,
+   "last_ask": 201,
+   "last_offer": 127,
+   "t": 1792496915
+  },
+  "fd9b14b0-64d2-47e0-b6a4-cc205695d25d": {
+   "item": "chair",
+   "outcome": "canceled",
+   "price": null,
+   "last_ask": 189,
+   "last_offer": 120,
+   "t": 1792497358
+  },
+  "27f136ea-520a-412a-9c44-e4ec7e439b1b": {
+   "item": "lamp",
+   "outcome": "deal",
+   "price": 100,
+   "last_ask": 103,
+   "last_offer": 100,
+   "t": 1792497384
+  }
+ }
+}

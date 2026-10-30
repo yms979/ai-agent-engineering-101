@@ -1,2 +1,5 @@
 2026-10-30 08:05:14 watching upstream main from 5b398056d0b11d3fbd0b943ff6080f388832d8ec
 2026-10-30 08:05:15 watching the market from round 2
+2026-10-30 08:15:08 !! market round 1 -> 2; board of round 1 saved to logs/board-round1-final-20261030-0815.json
+2026-10-30 08:15:11 sent 1 alert(s) via: none
+2026-10-30 08:15:23 (the two lines above were a test with a simulated round 1 -> 2; that snapshot was deleted)

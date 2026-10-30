@@ -9,17 +9,20 @@
 #     (merge, never rebase; aborted on a conflict); lines marked !! when they touch weeks/week-08/,
 #     scripts/check_week08.py or the kit, and a kit change stops the kit so run_market.sh restarts it on the new one,
 #   - the market round (/api/board "current"): on a change, saves the board of the round that just ended
-#     to logs/board-round<N>-final-<time>.json, the "before" side of the price analysis.
+#     to logs/board-round<N>-final-<time>.json, the "before" side of the price analysis,
+#   - health: run_market.sh not running, or no market result line in the kit log for 30 min; and recovery.
+# Every !! line is also sent to the user once, through notify.py (mail and/or ntfy push).
 set -u
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$HERE/../../.." && pwd)
 MARKET=https://market.ourolabs.ai
-STATE=$HERE/.market/watch.state               # gitignored: "<upstream hash> <round>"
+STATE=$HERE/.market/watch.state               # gitignored: "<upstream hash> <round> <health>"
 LOG=$HERE/logs/round-watch.log
 CRON_LINE="*/15 * * * * $HERE/watch_round.sh >/dev/null 2>&1"
 
-say() { echo "$(date '+%F %T') $*" >> "$LOG"; }
+ALERTS=()
+say() { echo "$(date '+%F %T') $*" >> "$LOG"; case "$*" in '!!'*) ALERTS+=("${*#!! }") ;; esac; }
 
 case "${1:-}" in
     install) ( crontab -l 2>/dev/null | grep -vF "$HERE/watch_round.sh"; echo "$CRON_LINE" ) | crontab -
@@ -28,7 +31,7 @@ case "${1:-}" in
 esac
 
 mkdir -p "$HERE/.market" "$HERE/logs"
-read -r old_hash old_round 2>/dev/null < "$STATE" || { old_hash=""; old_round=""; }
+read -r old_hash old_round old_health 2>/dev/null < "$STATE" || { old_hash=""; old_round=""; old_health=""; }
 
 hash=$(git -C "$REPO" ls-remote upstream refs/heads/main 2>/dev/null | cut -f1)
 if [ -n "$hash" ] && [ "$hash" != "$old_hash" ]; then
@@ -60,7 +63,8 @@ if [ -n "$hash" ] && [ "$hash" != "$old_hash" ]; then
     fi
 fi
 
-round=$(curl -fsS -m 20 "$MARKET/api/board" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["current"])' 2>/dev/null)
+board=$(curl -fsS -m 20 "$MARKET/api/board" 2>/dev/null)
+round=$(echo "$board" | python3 -c 'import json,sys; print(json.load(sys.stdin)["current"])' 2>/dev/null)
 if [ -n "$round" ] && [ "$round" != "$old_round" ]; then
     if [ -n "$old_round" ]; then
         snap=$HERE/logs/board-round$old_round-final-$(date '+%Y%m%d-%H%M').json
@@ -71,4 +75,34 @@ if [ -n "$round" ] && [ "$round" != "$old_round" ]; then
     fi
 fi
 
-echo "${hash:-$old_hash} ${round:-$old_round}" > "$STATE"
+health=ok; why=""
+pid=$(cat "$HERE/.market/supervisor.pid" 2>/dev/null)
+if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
+    health=down; why="run_market.sh is not running; start it with run_market.sh start"
+else
+    last=$(grep -h '\[market\] ledger #' "$HERE/logs/market-kit.log" 2>/dev/null | tail -1 | cut -c1-8)
+    if [ -n "$last" ]; then                       # none yet right after a log rotation: skip
+        age=$(( ( $(date +%s) - $(date -d "$last" +%s) + 86400 ) % 86400 ))
+        [ "$age" -gt 1800 ] && { health=stalled; why="no market result in the kit log for $((age / 60)) min; see run_market.sh status"; }
+    fi
+fi
+if [ "$health" != "${old_health:-ok}" ]; then
+    if [ "$health" = ok ]; then say "!! recovered: the kit reports market results again"; else say "!! $health: $why"; fi
+fi
+
+if [ ${#ALERTS[@]} -gt 0 ]; then
+    status=$(echo "$board" | python3 -c '
+import json, sys
+b = json.load(sys.stdin)
+def row(L):
+    return next((x for x in L if x["name"] == "yms979"), None)
+s, u = row(b["shops"]), row(b["buyers"])
+shop = "%s deals, profit %s, stars %s, alive %s" % (s["deals"], s["profit"], s["stars"], s["alive"]) if s else "not on the board"
+buyer = "%s deals, alive %s" % (u["deals"], u["alive"]) if u else "not on the board"
+print("round %s; shop yms979: %s; buyer yms979: %s" % (b["current"], shop, buyer))' 2>/dev/null)
+    body=$(printf '%s\n' "${ALERTS[@]}"; echo; echo "${status:-market board not reachable}"; echo "log: $LOG")
+    sent=$("$HERE/.venv/bin/python" "$HERE/notify.py" "[yms979] ${ALERTS[0]:0:80}" "$body" 2>/dev/null)
+    say "sent ${#ALERTS[@]} alert(s) via: ${sent:-none}"
+fi
+
+echo "${hash:-$old_hash} ${round:-$old_round} $health" > "$STATE"

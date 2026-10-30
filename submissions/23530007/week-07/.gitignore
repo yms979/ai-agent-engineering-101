@@ -2,3 +2,4 @@
 __pycache__/
 *.pem
 .market/
+logs/*.log.1

@@ -5,11 +5,11 @@
 #   watch_round.sh install  add the cron line        watch_round.sh remove   remove it
 #
 # Each check
-#   - upstream main (the course repo): new commits are fetched and listed; lines marked !! when they touch
-#     weeks/week-08/, scripts/check_week08.py or the kit (a KIT_VERSION change needs a kit restart),
+#   - upstream main (the course repo): new commits are fetched, listed and merged into the current branch
+#     (merge, never rebase; aborted on a conflict); lines marked !! when they touch weeks/week-08/,
+#     scripts/check_week08.py or the kit, and a kit change stops the kit so run_market.sh restarts it on the new one,
 #   - the market round (/api/board "current"): on a change, saves the board of the round that just ended
 #     to logs/board-round<N>-final-<time>.json, the "before" side of the price analysis.
-# Only the remote-tracking ref upstream/main is updated; the working tree is never touched.
 set -u
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -38,8 +38,22 @@ if [ -n "$hash" ] && [ "$hash" != "$old_hash" ]; then
         files=$(git -C "$REPO" diff --name-only "$old_hash" "$hash")
         echo "$files" | grep -qE '^weeks/week-08/' && say "!! weeks/week-08/ changed (assignment spec): $(echo "$files" | grep '^weeks/week-08/' | tr '\n' ' ')"
         echo "$files" | grep -qE '^scripts/check_week08\.py$' && say "!! scripts/check_week08.py changed (CI check)"
-        if echo "$files" | grep -qE '^scripts/market_kit\.py$'; then
-            say "!! the kit changed, $(git -C "$REPO" show "$hash:scripts/market_kit.py" | grep -m1 '^KIT_VERSION'); merge upstream/main and restart the kit"
+        # apply it: merge (never rebase; history is grading evidence), abort and leave things as they were on a conflict
+        if git -C "$REPO" merge -q --no-edit upstream/main >/dev/null 2>&1; then
+            say "merged upstream/main into $(git -C "$REPO" branch --show-current)"
+            if echo "$files" | grep -qE '^scripts/market_kit\.py$'; then
+                ver=$(grep -m1 '^KIT_VERSION' "$REPO/scripts/market_kit.py")
+                if [ -f "$HERE/market_kit.py" ]; then
+                    say "!! the course kit changed ($ver) but this folder runs its own market_kit.py; port the change by hand"
+                else
+                    kit=$(pgrep -f "market_kit.py join --dir $HERE" | head -1)
+                    [ -n "$kit" ] && kill -TERM "$kit"
+                    say "!! the kit changed ($ver); stopped kit pid ${kit:-none}, run_market.sh starts it again on the new kit"
+                fi
+            fi
+        else
+            git -C "$REPO" merge --abort >/dev/null 2>&1
+            say "!! merging upstream/main failed and was aborted; nothing changed, merge by hand"
         fi
     else
         say "watching upstream main from $hash"

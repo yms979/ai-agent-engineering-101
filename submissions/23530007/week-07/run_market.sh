@@ -14,7 +14,7 @@
 #     (the kit does not notice a dead seller or tunnel by itself).
 #
 # Claim code: MARKET_OWNER, or the file ~/.config/ai-agent-market/owner (outside git, chmod 600).
-# Kit log: logs/market-kit.log (written by the kit). This loop: logs/market-supervisor.log.
+# Kit log: logs/market-kit.log (written by the kit; rotated chunks kept in logs/archive/). This loop: logs/market-supervisor.log.
 set -u
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -40,7 +40,18 @@ export PYTHONUNBUFFERED=1
 
 say() { echo "$(date '+%F %T') [supervisor] $*" | tee -a "$SUPLOG"; }
 
-shop_url() { grep -oE 'others reach it through the kit at https://[a-z0-9-]+\.trycloudflare\.com' "$RUN_OUT" 2>/dev/null | tail -1 | awk '{print $NF}'; }
+# the first URL, or the one kit v3's watchdog registered after replacing a dead tunnel
+shop_url() { grep -oE '(others reach it through the kit at|registered again as .+ at) https://[a-z0-9-]+\.trycloudflare\.com' "$RUN_OUT" 2>/dev/null | tail -1 | awk '{print $NF}'; }
+
+# kit v3 moves market-kit.log to market-kit.log.1 at 20 MB and overwrites .log.1 at the next move,
+# so keep each one: logs/archive/market-kit-<time>.log.gz (contents unchanged)
+archive_rotated() {
+    local f=$HERE/logs/market-kit.log.1
+    [ -s "$f" ] || return 0
+    mkdir -p "$HERE/logs/archive"
+    local dst; dst=$HERE/logs/archive/market-kit-$(date '+%Y%m%d-%H%M%S').log
+    mv "$f" "$dst" && gzip -9 "$dst" && say "archived a rotated kit log to logs/archive/$(basename "$dst").gz"
+}
 
 shop_answers() { curl -fsS -m 15 -o /dev/null "$1/.well-known/agent-card.json" 2>/dev/null; }
 
@@ -81,6 +92,7 @@ run_loop() {
         local misses=0 next_check=$((SECONDS + CHECK_EVERY))
         while kill -0 "$kit_pid" 2>/dev/null; do
             sleep 5
+            archive_rotated
             [ $SECONDS -ge $next_check ] || continue
             next_check=$((SECONDS + CHECK_EVERY))
             local url; url=$(shop_url)

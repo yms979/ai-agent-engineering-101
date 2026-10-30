@@ -120,20 +120,20 @@ def memory_view(mem, name, item):
             + (f"; {failed.upper()}" if failed else ""))
 
 
+ELSEWHERE_WINDOW = 24 * 3600
+
+
 def best_elsewhere(mem, item, listed, exclude):
-    """Lowest price for `item` I paid or was asked at another shop that is listed now (not dishonest)."""
-    best = None
+    """Lowest price for `item` I actually paid in the last 24 h at another shop that is listed now (not dishonest).
+    Asks do not count: a shop can ask low and never close (myeonggi asked 74 for a lamp, closed 2 of 566 visits),
+    and an all-time low never expires, so an ask-based ceiling stopped every deal for two days."""
+    best, since = None, time.time() - ELSEWHERE_WINDOW
     for t in mem["trades"]:
         if t["item"] != item or t["shop"] == exclude or t["shop"] not in listed or t["shop"] in mem["dishonest"]:
             continue
-        prices = []
-        if t["outcome"] == "deal" and t.get("price"):
-            prices.append(t["price"])
-        if t.get("asks"):
-            prices.append(min(t["asks"]))
-        for p in prices:
-            if best is None or p < best[0]:
-                best = (p, t["shop"])
+        if t["outcome"] == "deal" and t.get("price") and t.get("t", 0) >= since:
+            if best is None or t["price"] < best[0]:
+                best = (t["price"], t["shop"])
     return best
 
 

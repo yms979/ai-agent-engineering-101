@@ -483437,16 +483437,282 @@
    "honest": true,
    "signed": true,
    "void": ""
+  },
+  {
+   "t": 1793346474,
+   "shop": "yeonsong2",
+   "item": "bookshelf",
+   "budget": 230,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    278,
+    265,
+    260
+   ],
+   "agreed": 195,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346512,
+   "shop": "lee-sungsoo",
+   "item": "lamp",
+   "budget": 140,
+   "outcome": "too dear",
+   "price": null,
+   "asks": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+   ],
+   "agreed": 74,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346582,
+   "shop": "yeonsong2",
+   "item": "bookshelf",
+   "budget": 270,
+   "outcome": "rejected",
+   "price": null,
+   "asks": [
+    280,
+    260,
+    260,
+    260
+   ],
+   "agreed": 201,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346620,
+   "shop": "leeuichann",
+   "item": "chair",
+   "budget": 205,
+   "outcome": "rejected",
+   "price": null,
+   "asks": [
+    189,
+    180
+   ],
+   "agreed": 118,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346652,
+   "shop": "thisjonghoon",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "too dear",
+   "price": null,
+   "asks": [
+    105,
+    105,
+    105,
+    105
+   ],
+   "agreed": 74,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346683,
+   "shop": "myeonggi",
+   "item": "chair",
+   "budget": 225,
+   "outcome": "rejected",
+   "price": null,
+   "asks": [
+    180,
+    180
+   ],
+   "agreed": 180,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346715,
+   "shop": "thisjonghoon",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "too dear",
+   "price": null,
+   "asks": [
+    105,
+    105,
+    105,
+    105
+   ],
+   "agreed": 74,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346760,
+   "shop": "thisjonghoon",
+   "item": "lamp",
+   "budget": 125,
+   "outcome": "too dear",
+   "price": null,
+   "asks": [
+    105,
+    105,
+    105,
+    105,
+    105
+   ],
+   "agreed": 74,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346843,
+   "shop": "myeonggi",
+   "item": "chair",
+   "budget": 185,
+   "outcome": "walked away",
+   "price": null,
+   "asks": [
+    180,
+    180,
+    180,
+    180,
+    180,
+    180,
+    180,
+    180
+   ],
+   "agreed": 180,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346858,
+   "shop": "corner-store",
+   "item": "bookshelf",
+   "budget": 325,
+   "outcome": "deal",
+   "price": 295,
+   "asks": [
+    338,
+    306
+   ],
+   "agreed": 295,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346908,
+   "shop": "kcwarni",
+   "item": "lamp",
+   "budget": 90,
+   "outcome": "over budget",
+   "price": null,
+   "asks": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+   ],
+   "agreed": 90,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346921,
+   "shop": "jiseokkk",
+   "item": "bookshelf",
+   "budget": 325,
+   "outcome": "rejected",
+   "price": null,
+   "asks": [],
+   "agreed": null,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793346963,
+   "shop": "thisjonghoon",
+   "item": "lamp",
+   "budget": 140,
+   "outcome": "deal",
+   "price": 102,
+   "asks": [
+    105,
+    105,
+    105,
+    105
+   ],
+   "agreed": 102,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793347006,
+   "shop": "thisjonghoon",
+   "item": "bookshelf",
+   "budget": 295,
+   "outcome": "deal",
+   "price": 260,
+   "asks": [
+    265,
+    265,
+    265,
+    265,
+    265
+   ],
+   "agreed": 260,
+   "honest": true,
+   "signed": true,
+   "void": ""
+  },
+  {
+   "t": 1793347037,
+   "shop": "thisjonghoon",
+   "item": "bookshelf",
+   "budget": 295,
+   "outcome": "deal",
+   "price": 260,
+   "asks": [
+    265,
+    265,
+    265,
+    265
+   ],
+   "agreed": 260,
+   "honest": true,
+   "signed": true,
+   "void": ""
   }
  ],
  "dishonest": {
   "elm-street": "agreed 260, receipt 295 (a bookshelf)"
  },
  "seen_tasks": [
-  "ab02226f-ae15-4632-9626-081ad3321ec7",
-  "f2bfba92-4ab9-4fdc-975a-7f44a6b14f66",
-  "9367e2c6-a805-4161-afd7-a1247336ce50",
-  "137c4ef0-cf81-4625-911e-1d09cf6e6048",
   "155ffa6e-b730-454a-8242-1b6317527102",
   "2cd04761-aa68-4a08-abf8-60f8bda12695",
   "dac381da-5422-475d-89d8-228e620125ce",
@@ -484442,6 +484708,10 @@
   "9281760f-c0dc-4417-998c-9a1d6a671f88",
   "62349ea5-b7fc-43ad-804b-668e91df661c",
   "ffbcf310-0f6d-4950-be02-5e9acee033d1",
-  "be136973-e9e1-4e8c-b57e-1fad522d032a"
+  "be136973-e9e1-4e8c-b57e-1fad522d032a",
+  "965d2a20-d9ec-4420-bc5a-8a31bf585a41",
+  "e7f0de19-40df-4414-a20b-9af6cd1f0f84",
+  "6f8e6500-dcd8-4df4-b363-9d1460a0168d",
+  "dcc55cf3-3d42-4f88-9eeb-3a9698d633a3"
  ]
 }

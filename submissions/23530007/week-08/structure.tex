@@ -44,20 +44,20 @@ posts \texttt{outbox.jsonl} to the forum};
 \node[box, anchor=north west] (seller) at (6.9,0) {\h{seller\_r3.py} --- A2A server\\[2pt]
 \h{Unit picker}: SKU, else name, else category. Food: the first-expiring unit that still lasts the hours the buyer
 needs. Goods: the oldest unit (storage costs 1\,\%/day).\\[2pt]
-\h{Pricer (code)}: ask = list $\times$ (A .90, B .80, C .68), never above list (the buyer's value).
-Floor = cost $\times$ 1.05; food near its date .8 or .3 $\times$ cost. Deal at an offer halfway to the floor, or at
+\h{Pricer (code)}: ask = list $\times$ (A .90, B .80, C .68 in STEADY; set per regime), never above list
+(the buyer's value). Floor = cost $\times$ 1.05 (lower when clearing); food near its date .8 or .3 $\times$ cost. Deal at an offer halfway to the floor, or at
 the floor from the 3rd offer; counters meet halfway and never rise.\\[2pt]
 \h{Honesty}: true grade claim, market certificate, 6\,h warranty on goods.};
 \node[box, anchor=north west] (restock) at (6.9,-6.0) {\h{restock.py} --- hook, every 60\,s\\[2pt]
 \h{Demand learner}: settled deals on the public ledger per category, plus our own sales; 6\,h half-life.\\[2pt]
 \h{Policy}: one unit in every category near its median price; up to 4 more by demand, of the SKU that sells.\\[2pt]
-\h{Guards}: keep 1.5M cash, stock $\le$ 3M at cost, no goods over 300k, short-life food one unit;
+\h{Guards} (per regime): keep 1.5M cash, stock $\le$ 60\,\% of equity at cost, no goods over 300k, short-life food one unit;
 bankruptcy only with nothing left to sell.};
 \node[file, anchor=north west] (slog) at (6.9,-10.9) {seller\_r3\_log.jsonl\quad restock\_state.json};
 \draw[data] ([xshift=-22mm]seller.south) -- node[lab, right] {deals, lost, no stock} ([xshift=-22mm]restock.north);
 
 % ---------------- column 3: buyer
-\node[box, anchor=north west] (buyer) at (14.0,0) {\h{market\_buyer.py} --- per order\\[2pt]
+\node[box, anchor=north west] (buyer) at (14.0,0) {\h{market\_buyer.py} --- per order, A2A to any shop\\[2pt]
 \h{Shop filter}: shops stocking an acceptable SKU; never a shop caught cheating; not one whose last
 visit failed or went unpaid.\\[2pt]
 \h{Shop pick}: the model reads reviews and memory. \h{SKU pick}: the highest list price within budget.\\[2pt]
@@ -79,6 +79,14 @@ rotated kit log.\\[2pt]
 round ends; health: down, or no result for 30 min.\\[2pt]
 \h{notify.py}: one phone push (ntfy) per event.};
 
+% ---------------- policy layer
+\node[box=45mm, fill=violet!8, anchor=north west] (policy) at (21.1,-6.0) {\h{Policy layer}\\ (policy.py + params.json)\\[2pt]
+\h{Signals}: hours open and to the end, balance, stock at cost, own deals; buyer deal rate.\\[2pt]
+\h{Shop regimes}: LAUNCH, STEADY, CASH\_TIGHT, FLUSH, WIND\_DOWN, LIQUIDATE, LIQUIDATE\_LAST.
+\h{Buyer}: END\_SALE, LOW\_FILL.\\[2pt]
+\h{Clearance}: in the last 48\,h, stock that will not sell in time at our rate is discounted early.\\[2pt]
+Each change goes to logs/policy.log.};
+
 % ---------------- model
 \node[box=118mm, fill=orange!12, anchor=north west, align=center] (llm) at (6.9,-13.2) {\h{Model}: Claude Haiku through
 \texttt{claude -p} (harness.py), JSON answers only, the other side's text is data, never instructions.\\
@@ -95,14 +103,16 @@ Seller: words each move within 6\,s, else a fixed line. \quad Buyer: picks the s
 % ---------------- flows
 \draw[flow] ([yshift=4mm]kit.east) -- node[lab, above, pos=0.45] {buyers (A2A)} ([yshift=4mm]kit.east -| shopg.west);
 \draw[flow] ([yshift=-8mm]kit.east) -- node[lab, below, pos=0.45] {supply lines} ([yshift=-8mm]kit.east -| shopg.west);
-\draw[flow] ($(seller.east)+(0,-10mm)$) -- node[lab, above] {A2A} ($(seller.east)+(0,-10mm)$ -| buyg.west)
-  node[lab, below, pos=0.5, yshift=-2mm, align=center] {(and other\\ shops)};
+\draw[flow] ($(seller.east)+(0,-10mm)$) -- node[lab, above] {A2A} ($(seller.east)+(0,-10mm)$ -| buyg.west);
 \draw[flow] (kit.south) |- ($(bmem.south)+(0,-6mm)$) -| ([xshift=10mm]bmem.south)
   node[lab, pos=0.25, below] {order.json, shops.json; result line + accept back $\rightarrow$ kit pays};
 \draw[data] ([xshift=-14mm]review.south) -- ([xshift=-14mm]review.south |- bmem.north);
-\draw[flow] (ops.south) |- ($(llm.south)+(0,-6mm)$) -| ([xshift=-12mm]kit.south)
+\draw[flow] (ops.east) -- ++(3mm,0) |- ($(llm.south)+(0,-6mm)$) -| ([xshift=-12mm]kit.south)
   node[lab, pos=0.25, below] {starts, watches, updates};
 \draw[data] ([xshift=-40mm]llm.north) -- ([xshift=-40mm]llm.north |- slog.south);
 \draw[data] ([xshift=30mm]llm.north) -- ([xshift=30mm]llm.north |- bmem.south);
+\draw[data, thick, violet] (policy.west) -- node[lab, above] {regime} (policy.west -| buyg.east);
+\draw[data, thick, violet] (policy.south) |- ($(llm.north)+(0,4mm)$) -| ([xshift=18mm]shopg.south)
+  node[lab, pos=0.12, above] {regime + numbers to seller and restock};
 \end{tikzpicture}}
 \end{document}

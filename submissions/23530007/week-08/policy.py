@@ -45,6 +45,17 @@ def read_json(path, default):
         return default
 
 
+def write_json(path, data):
+    """Atomic and never raising: the seller and restock both write policy_shop.json, and a half-written or
+    colliding write must neither crash a negotiation nor lose the Round 3 opening time."""
+    try:
+        tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+        tmp.write_text(json.dumps(data), encoding="utf-8")
+        tmp.replace(path)
+    except OSError:
+        pass
+
+
 def now():
     return float(os.environ.get("POLICY_NOW") or time.time())
 
@@ -76,7 +87,11 @@ def merged(cfg, role, regime):
 
 def note(role, regime, sig):
     """Remember the regime; on a change, one line in logs/policy.log."""
-    st = read_json(STATE[role], {})
+    st = read_json(STATE[role], None)
+    if st is None:
+        if STATE[role].exists():
+            return                                      # unreadable right now (another process writing): skip
+        st = {}
     if st.get("regime") != regime:
         LOG.parent.mkdir(exist_ok=True)
         stamp = datetime.fromtimestamp(sig["now"]).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
@@ -84,18 +99,18 @@ def note(role, regime, sig):
         with open(LOG, "a", encoding="utf-8") as f:
             f.write(f"{stamp} [{role}] {st.get('regime', '-')} -> {regime} {json.dumps(shown, ensure_ascii=False)}\n")
     st["regime"] = regime
-    tmp = STATE[role].with_suffix(".tmp")
-    tmp.write_text(json.dumps(st), encoding="utf-8")
-    tmp.replace(STATE[role])
+    write_json(STATE[role], st)
 
 
 def shop_signals(cfg):
     t = now()
     inv = read_json(MARKET_DIR / "inventory.json", {})
-    st = read_json(STATE["shop"], {})
-    if inv.get("round", 0) >= 3 and not st.get("open_ts"):
+    st = read_json(STATE["shop"], None)
+    readable = st is not None or not STATE["shop"].exists()   # None + file present: someone is writing it
+    st = st or {}
+    if inv.get("round", 0) >= 3 and not st.get("open_ts") and readable:
         st["open_ts"] = t
-        STATE["shop"].write_text(json.dumps(st), encoding="utf-8")
+        write_json(STATE["shop"], st)
     units = [u for u in inv.get("units") or [] if u.get("grade") != "expired"]
     deals = 0
     if SALES_LOG.is_file():

@@ -142,9 +142,14 @@ def pick_unit(text, held, now):
     return min(fit, key=lambda u: u.get("supplied_at") or 0)
 
 
-def last_number(text):
+def last_number(text, ref=None):
+    """The offer in a buyer's message: the last number within 20-200 % of our current ask `ref`, else the last
+    one of 100 or more, else the last number. "52000 for 2 units" or "48000? I need it in 3 days" is not an
+    offer of 2 or 3."""
     nums = [int(n.replace(",", "")) for n in NUMBER.findall(SKU.sub(" ", text))]
-    return nums[-1] if nums else None
+    near = [n for n in nums if ref and 0.2 * ref <= n <= 2 * ref]
+    big = [n for n in nums if n >= 100]
+    return (near or big or nums or [None])[-1]
 
 
 def record(**kw):
@@ -237,7 +242,7 @@ class Shop(AgentExecutor):
             return
 
         d["seen"] = now
-        offer = last_number(text)
+        offer = last_number(text, d["ask"])
         if offer is None:
             await up.requires_input(say(f"Please send your offer as a number. Asking {d['ask']}.", d["ask"]))
             return

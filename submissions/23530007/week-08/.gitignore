@@ -3,3 +3,6 @@ __pycache__/
 *.pem
 .market/
 logs/*.log.1
+structure.aux
+structure.log
+review_state.json

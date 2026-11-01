@@ -3,8 +3,8 @@ __pycache__/
 *.pem
 .market/
 logs/*.log.1
-structure.aux
-structure.log
+architecture.aux
+architecture.log
 review_state.json
 policy_shop.json
 policy_buyer.json

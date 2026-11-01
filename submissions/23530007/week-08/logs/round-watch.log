@@ -3,3 +3,9 @@
 2026-10-30 08:15:08 !! market round 1 -> 2; board of round 1 saved to logs/board-round1-final-20261030-0815.json
 2026-10-30 08:15:11 sent 1 alert(s) via: none
 2026-10-30 08:15:23 (the two lines above were a test with a simulated round 1 -> 2; that snapshot was deleted)
+2026-10-30 17:30:03 upstream main moved: 4bd1a6a feat(week-08): Round 3 economy, kit v4 and the midterm rubric, KO/EN;
+2026-10-30 17:30:03 merged upstream/main into week-07
+2026-10-30 17:30:03 !! the kit changed (KIT_VERSION = "4"); stopped kit pid 3962152, run_market.sh starts it again on the new kit
+2026-10-30 17:30:08 sent 1 alert(s) via: ntfy
+2026-10-30 17:45:02 upstream main moved: d4b4d53 docs(week-08): Round 3 runs Tue Nov 3 to Tue Nov 17 23:59, midterm due Nov 17, KO/EN;
+2026-10-30 17:45:02 merged upstream/main into week-07

@@ -6,3 +6,6 @@ logs/*.log.1
 structure.aux
 structure.log
 review_state.json
+policy_shop.json
+policy_buyer.json
+*.tmp

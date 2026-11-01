@@ -38,7 +38,8 @@
      - only shops whose offers hold an acceptable SKU in stock are considered
      - at the chosen shop I ask for the acceptable SKU with the highest list price within my budget
        ("I want to buy <name> (<sku>)", and for food how many hours it must last)
-     - I never pay more than VALUE_SHARE of the list price, so every deal leaves a surplus
+     - I never pay more than value_share of the list price, so every deal leaves a surplus; policy.py sets it
+       by situation: 0.97 normally, 0.85 in the last 12 hours (shops clear stock), 0.99 when few orders close
      - the result line carries "accept": the market's certificate always; food must last
        use_within_hours + 1 h; goods must be grade A or B. The kit pays nothing if the checkout fails it
      - payments.jsonl tells me afterwards when the kit did not pay; that visit counts as failed
@@ -56,6 +57,7 @@ from pathlib import Path
 import harness
 from buyer import RpcError, Seller, next_move, read_ask, receipt, state
 from harness import as_int, decide, log
+from policy import buyer_params
 
 HERE = Path(__file__).resolve().parent
 MEMORY = Path(os.environ.get("BUYER_MEMORY", HERE / "buyer_memory.json"))
@@ -63,7 +65,6 @@ MAX_ROUNDS = 8
 DEADLINE = 240          # the kit and the test stop the buyer at 300 s
 SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed receipt
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
-VALUE_SHARE = 0.97     # Round 3: the most I pay, as a share of the list price (my value)
 RED_FLAGS = re.compile(r"overcharg|higher than (the price )?(we |i )?agreed|receipt (said|was|price)|scam|fake|"
                        r"cheat|dishonest|did not match|didn't match|mismatch|avoid|rip.?off|bait", re.I)
 
@@ -246,11 +247,11 @@ def note_payments(mem, md):
         mem["pay_pos"] = f.tell()
 
 
-def pick_sku(shop, acceptable, catalog, budget):
+def pick_sku(shop, acceptable, catalog, budget, share=0.97):
     """The acceptable SKU in stock at `shop` with the highest list price I can pay for, else the cheapest one."""
     offers = [o for o in shop.get("offers") or [] if o.get("sku") in acceptable and (o.get("qty") or 0) > 0]
     price = lambda o: (catalog.get(o["sku"]) or {}).get("list_price") or 0
-    fits = [o for o in offers if 0 < price(o) * VALUE_SHARE <= budget]
+    fits = [o for o in offers if 0 < price(o) * share <= budget]
     o = max(fits, key=price) if fits else min(offers, key=price, default=None)
     return o and {"sku": o["sku"], "name": o.get("name") or o["sku"], "list_price": price(o)}
 
@@ -280,10 +281,12 @@ def main():
             order = {}
     acceptable = order.get("acceptable") or []
     md = Path(a.order).parent if a.order else HERE / ".market"
+    regime, bp = "STEADY", {}
     if acceptable:
+        regime, bp, _ = buyer_params()
         note_payments(mem, md)
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
-        shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget)]
+        shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, bp["value_share"])]
         if not shops:
             log("buyer", f"no shop has any of the {len(acceptable)} acceptable SKUs for {a.item} in stock")
             save_memory(mem)
@@ -297,17 +300,17 @@ def main():
     item, label, cap, accept = a.item, f"a {a.item}", a.budget, None
     first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
     if acceptable:
-        want = pick_sku(pick, acceptable, catalog, a.budget)
+        want = pick_sku(pick, acceptable, catalog, a.budget, bp["value_share"])
         item, label = want["sku"], f"{want['name']} ({want['sku']})"
-        cap = min(a.budget, int(want["list_price"] * VALUE_SHARE))
+        cap = min(a.budget, int(want["list_price"] * bp["value_share"]))
         hours = order.get("use_within_hours")
         first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else "")
         accept = {"cert": True}
         if order.get("kind") == "food" and hours:
-            accept["min_hours_left"] = hours + 1
+            accept["min_hours_left"] = hours + bp["food_extra_hours"]
         elif order.get("kind") == "goods":
-            accept["grades"] = ["A", "B"]
-        log("buyer", f"{item} list price {want['list_price']}, cap {cap}, accept {accept}")
+            accept["grades"] = bp["goods_grades"]
+        log("buyer", f"{item} list price {want['list_price']}, cap {cap} ({regime}), accept {accept}")
 
     listed = {s["name"] for s in shops}
     elsewhere = best_elsewhere(mem, item, listed, pick["name"])

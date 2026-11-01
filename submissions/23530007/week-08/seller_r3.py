@@ -11,15 +11,17 @@ Which unit. The buyer names a SKU ("I want to buy <name> (G000f6cda)"), else a p
   - goods: the oldest unit first (storage costs 1 % of cost a day)
   Units in an open negotiation are held for it until it ends or idles HOLD_IDLE seconds.
 
-Price, decided in code (the harness only words the message, within DEADLINE seconds, else a fixed line):
-  - the buyer's value is the list price, so the ask never goes above it: ASK_SHARE[grade] x list price
-  - the floor is the unit's cost x 1.05; food near its date gets a lower floor (it is thrown away at cost):
-    under 30 % of its shelf life left 0.8 x cost, under 15 % 0.3 x cost
-  - an offer at or above the current ask is a deal; so is one at least halfway from the floor to the ask,
-    and from the 3rd offer on any offer at or above the floor; otherwise the counter meets the offer halfway
-    and never goes up; after MAX_OFFERS offers the shop says its floor and ends
+Price, decided in code (the harness only words the message, within DEADLINE seconds, else a fixed line).
+The numbers come from policy.py (params.json), by the shop's situation: launch, cash tight, flush, wind-down,
+liquidation in the last hours. A negotiation keeps the numbers it started with.
+  - the buyer's value is the list price, so the ask never goes above it: ask_share[grade] x list price
+  - the floor is the unit's cost x floor_mult (1.05 normally, far lower when liquidating); food near its date
+    gets a lower floor (it is thrown away at cost): under 30 % of shelf life left 0.8 x cost, under 15 % 0.3
+  - an offer at or above the current ask is a deal; so is one at least meet_frac of the way from the floor to
+    the ask, and from the 3rd offer on any offer at or above the floor; otherwise the counter meets the offer
+    halfway and never goes up; after MAX_OFFERS offers the shop says its floor and ends
 Honesty, so the stars hold and policy-checking buyers can pay: the receipt claims the unit's real grade now,
-the market's certificate is always shown, and goods carry WARRANTY_HOURS of warranty (breakage shows up to
+the market's certificate is always shown, and goods carry warranty_hours of warranty (breakage shows up to
 6 hours after a sale; a covered break refunds the price).
 Every sale and every lost negotiation goes to seller_r3_log.jsonl, which restock.py reads.
 """
@@ -42,16 +44,16 @@ from a2a.server.tasks import InMemoryTaskStore, TaskUpdater
 from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
 
 from harness import HARNESS_CMD, decide, log
+from policy import read_json as read_params, PARAMS, shop_params
 from seller_memory import sign_receipt
 
 HERE = Path(__file__).resolve().parent
 NAME = "YMS's Market"
 MARKET_DIR = Path(os.environ.get("MARKET_DIR", HERE / ".market"))
-LOG = HERE / "seller_r3_log.jsonl"
+LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))   # tests point this elsewhere
 RESERVE = {"lamp": 100, "chair": 180, "bookshelf": 260}   # Rounds 0-2: the week-07 items, no stock
-ASK_SHARE = {"A": 0.90, "B": 0.80, "C": 0.68}
 FOOD_CUTS = (0.80, 0.45)                                  # shelf life left for grade A, B (market rule)
-WARRANTY_HOURS = float(os.environ.get("SELLER_WARRANTY_HOURS", "6"))
+POLICY_CACHE = 30                                        # seconds between policy reads
 MAX_OFFERS = 8
 HOLD_IDLE = 120
 DEADLINE = float(os.environ.get("SELLER_DEADLINE", "6"))
@@ -98,15 +100,16 @@ def hours_left(u, now):
     return (u["expires_at"] - now) / 3600 if u.get("expires_at") else None
 
 
-def floor_of(u, now):
+def floor_of(u, now, mult):
     cost = u["cost"]
+    floor = cost * mult
     if u.get("kind") == "food" and u.get("expires_at") and shelf_hours(u["sku"]):
         frac = hours_left(u, now) / shelf_hours(u["sku"])
         if frac < 0.15:
-            return max(1, round(cost * 0.3))
-        if frac < 0.30:
-            return round(cost * 0.8)
-    return round(cost * 1.05)
+            floor = min(floor, cost * 0.3)
+        elif frac < 0.30:
+            floor = min(floor, cost * 0.8)
+    return max(1, round(floor))
 
 
 def round100(x):
@@ -149,6 +152,14 @@ def record(**kw):
 class Shop(AgentExecutor):
     def __init__(self):
         self.open = {}      # task id -> deal
+        self.cached = (0, None)
+
+    def policy(self, now):
+        """(regime, params), read again every POLICY_CACHE seconds."""
+        if now - self.cached[0] > POLICY_CACHE or self.cached[1] is None:
+            regime, p, _ = shop_params()
+            self.cached = (now, (regime, p))
+        return self.cached[1]
 
     def sweep(self, now):
         for tid, d in list(self.open.items()):
@@ -192,18 +203,21 @@ class Shop(AgentExecutor):
                 await up.reject(say("Sorry, we have none of that in stock right now."))
                 return
             grade = grade_now(u, now) or "A"
-            floor = floor_of(u, now)
-            ask = round100(min(u["list_price"], max(floor, u["list_price"] * ASK_SHARE.get(grade, 0.8))))
+            regime, p = self.policy(now)
+            floor = floor_of(u, now, p["floor_mult"])
+            ask = round100(min(u["list_price"], max(floor, u["list_price"] * p["ask_share"].get(grade, 0.8))))
             d = self.open[task.id] = {"unit": u, "grade": grade, "floor": floor, "ask": max(ask, floor),
-                                      "offers": [], "seen": now}
+                                      "offers": [], "seen": now, "regime": regime, "meet": p["meet_frac"],
+                                      "warranty": p["warranty_hours"]}
+            d["first_ask"] = d["ask"]
             hl = hours_left(u, now)
             facts = (f"{u['name']} ({u['sku']}), grade {grade}"
                      + (f", lasts {hl:.0f} more hours" if hl is not None else "")
-                     + (f", {WARRANTY_HOURS:g} h warranty" if u.get("kind") == "goods" and u["unit"] else "")
+                     + (f", {d['warranty']:g} h warranty" if u.get("kind") == "goods" and u["unit"] and d["warranty"] else "")
                      + ", market certificate included")
             line = await self.words("open with an asking price", d, text, "Thanks for asking!")
             log("seller", f"task {task.id[:8]} {u['sku']} unit {u['unit']} grade {grade} cost {u['cost']} "
-                          f"floor {floor} ask {d['ask']}")
+                          f"floor {floor} ask {d['ask']} ({regime})")
             await up.requires_input(say(f"{line} {facts}. Asking {d['ask']}. Send your offer as a number.", d["ask"]))
             return
 
@@ -214,7 +228,7 @@ class Shop(AgentExecutor):
             return
         d["offers"].append(offer)
         n, ask, floor = len(d["offers"]), d["ask"], d["floor"]
-        if offer >= ask or offer >= floor + (ask - floor) / 2 or (n >= 3 and offer >= floor):
+        if offer >= ask or offer >= floor + (ask - floor) * d["meet"] or (n >= 3 and offer >= floor):
             await self.close(up, say, task.id, d, min(offer, ask))
             return
         if n >= MAX_OFFERS:
@@ -234,11 +248,11 @@ class Shop(AgentExecutor):
         rec = sign_receipt(NAME, u["sku"], price, tid)
         if u["unit"]:
             rec.update(unit=u["unit"], claim=d["grade"])
-            if u.get("kind") == "goods" and WARRANTY_HOURS > 0:
-                rec["warranty_hours"] = WARRANTY_HOURS
+            if u.get("kind") == "goods" and d["warranty"] > 0:
+                rec["warranty_hours"] = d["warranty"]
         await up.add_artifact(parts=[new_data_part(rec)], name="receipt")
         record(event="deal", sku=u["sku"], category=u.get("category"), price=price, cost=u["cost"],
-               grade=d["grade"], unit=u["unit"], offers=d["offers"])
+               grade=d["grade"], unit=u["unit"], offers=d["offers"], regime=d["regime"], first_ask=d["first_ask"])
         log("seller", f"task {tid[:8]} deal {u['sku']} at {price} (cost {u['cost']}, floor {d['floor']})")
         del self.open[tid]
         await up.complete(say(f"Deal: {u['name']} at {price}. The receipt is signed; the unit ships with the "
@@ -255,10 +269,11 @@ class Shop(AgentExecutor):
 
 def build(port):
     url = f"http://127.0.0.1:{port}/"
+    warranty = read_params(PARAMS, {}).get("shop", {}).get("base", {}).get("warranty_hours", 0)
     card = AgentCard(
         name=NAME,
         description=("Real stock, honest grades: every unit ships with the market's certificate, goods carry a "
-                     f"{WARRANTY_HOURS:g} h warranty, and asks never go above the list price. Ask for an item by "
+                     f"{warranty:g} h warranty, and asks never go above the list price. Ask for an item by "
                      f"name or SKU. Prices are decided in code; a coding harness ({HARNESS_CMD.split()[0]}) words them."),
         version="3.0.0",
         default_input_modes=["text/plain"],

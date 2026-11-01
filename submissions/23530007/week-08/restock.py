@@ -7,12 +7,16 @@ The market says neither what sells nor who wants what, so this learns it from tw
     counted per category with a half-life of HALF_LIFE hours, so the target follows what sells now
   - the shop's own log (seller_r3_log.jsonl): its deals, and buyers it had to turn away (no stock)
 
-Per category the target stock is 1 unit (be in every order's shop list), plus up to EXTRA more by the
+The limits come from policy.py (params.json) by the shop's situation: launch, cash tight (no expansion),
+flush (deeper stock, dearer goods), wind-down (one unit per category, small stock), liquidation (buy nothing).
+
+Per category the target stock is 1 unit (be in every order's shop list), plus up to `extra` more by the
 category's share of recent market sales and our own sales. A category gets the SKU that sold most in it,
 or, with no sales seen yet, the SKU nearest the category's median price (orders accept 0.5-1.5x a reference
 price, so the median fits most). Limits, so stock never eats the shop:
-  - cash kept back: KEEP_CASH; stock at cost at most MAX_STOCK (unsold stock is a loss, goods pay 1 %/day)
-  - goods listed above MAX_GOODS_PRICE are skipped (one unit ties up too much cash)
+  - cash kept back: keep_cash; stock at cost at most max_stock_share of equity (balance + stock at cost),
+    so stock grows with the shop (unsold stock is a loss, goods pay 1 %/day)
+  - goods listed above max_goods_price are skipped (one unit ties up too much cash)
   - food that keeps under 72 h: at most 1 unit at a time (it is thrown away at cost when it expires)
   - at most 3 units per line, 10 lines per run (the kit's limit); urgent lines first: sold-out categories
     with sales, then categories we do not cover yet
@@ -29,15 +33,13 @@ import urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from policy import shop_params
+
 HERE = Path(__file__).resolve().parent
 MARKET = "https://market.ourolabs.ai"
 STATE = Path(os.environ.get("RESTOCK_STATE", HERE / "restock_state.json"))
-SALES_LOG = HERE / "seller_r3_log.jsonl"
+SALES_LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))
 HALF_LIFE = 6.0              # hours
-KEEP_CASH = 1_500_000
-MAX_STOCK = 3_000_000
-MAX_GOODS_PRICE = 300_000
-EXTRA = 4
 COST_GUESS = 0.6             # cost as a share of list price before a unit arrives (A 55-75 %, B 40-60 %, C 25-45 %)
 
 
@@ -78,7 +80,10 @@ def main():
     ap.add_argument("--state", default=".market")
     md = Path(ap.parse_args().state)
     inv = read_json(md / "inventory.json", {})
-    if inv.get("round", 0) < 3 or inv.get("balance") is None:
+    regime, p, _ = shop_params()
+    if inv.get("round", 0) < 3 or inv.get("balance") is None or not p["buy"]:
+        if inv.get("round", 0) >= 3:
+            print(f"[restock] {regime}: not buying", file=sys.stderr)
         print(json.dumps({"buy": []}))
         return
     catalog = read_json(md / "catalog.json", {})
@@ -130,7 +135,7 @@ def main():
 
     by_cat = defaultdict(list)
     for sku, v in catalog.items():
-        if v["kind"] == "goods" and v["list_price"] > MAX_GOODS_PRICE:
+        if v["kind"] == "goods" and v["list_price"] > p["max_goods_price"]:
             continue
         if v["kind"] == "food" and (v.get("shelf_hours") or 0) < 24:
             continue
@@ -145,7 +150,7 @@ def main():
         if not options:
             continue
         heat = st["cat"].get(cat, 0) / top_cat + st["own_cat"].get(cat, 0) / top_own
-        target = 1 + min(EXTRA, math.floor(EXTRA * heat / 2 + 0.5))
+        target = 1 + min(p["extra"], math.floor(p["extra"] * heat / 2 + 0.5))
         missing = target - have.get(cat, 0)
         if missing <= 0:
             continue
@@ -164,18 +169,19 @@ def main():
         wants.append((priority, cat, v, qty))
 
     wants.sort(key=lambda w: w[0])
+    max_stock = p["max_stock_share"] * (cash + stock_cost)
     buy, spend = [], 0
     for _, cat, v, qty in wants:
         if len(buy) >= 10:
             break
         cost = v["list_price"] * COST_GUESS * qty
-        if cash - spend - cost < KEEP_CASH or stock_cost + spend + cost > MAX_STOCK:
+        if cash - spend - cost < p["keep_cash"] or stock_cost + spend + cost > max_stock:
             continue
         buy.append({"sku": v["sku"], "qty": qty})
         spend += cost
 
     STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
-    print(f"[restock] cash {cash}, stock {len(units)} units at cost {stock_cost}, categories {len(have)}; "
+    print(f"[restock] {regime}: cash {cash}, stock {len(units)} units at cost {stock_cost}, categories {len(have)}; "
           f"market sales seen {sum(st['cat'].values()):.1f}; buying {len(buy)} lines (~{spend:.0f})", file=sys.stderr)
     print(json.dumps({"buy": buy}))
 

@@ -129,3 +129,48 @@
 {"t": 1793542121, "event": "canceled", "sku": "bookshelf", "category": null, "ask": 260, "offers": [149, 172, 195, 218]}
 {"t": 1793542131, "event": "deal", "sku": "lamp", "category": null, "price": 104, "cost": 95, "grade": "A", "unit": null, "offers": [91, 104]}
 {"t": 1793542132, "event": "canceled", "sku": "bookshelf", "category": null, "ask": 304, "offers": []}
+{"t": 1793542305, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [68, 78, 89, 100], "regime": "STEADY", "first_ask": 117}
+{"t": 1793542307, "event": "canceled", "sku": "chair", "category": null, "ask": 211, "offers": []}
+{"t": 1793542308, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [123, 151, 180], "regime": "STEADY", "first_ask": 211}
+{"t": 1793542322, "event": "deal", "sku": "lamp", "category": null, "price": 104, "cost": 95, "grade": "A", "unit": null, "offers": [91, 104], "regime": "STEADY", "first_ask": 117}
+{"t": 1793542327, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [135, 157, 180], "regime": "STEADY", "first_ask": 211}
+{"t": 1793542349, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [123, 151, 180], "regime": "STEADY", "first_ask": 211}
+{"t": 1793542353, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [71, 82, 93, 100], "regime": "STEADY", "first_ask": 117}
+{"t": 1793542371, "event": "deal", "sku": "bookshelf", "category": null, "price": 260, "cost": 248, "grade": "A", "unit": null, "offers": [211, 243, 260], "regime": "STEADY", "first_ask": 304}
+{"t": 1793542372, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [123, 151, 180], "regime": "STEADY", "first_ask": 211}
+{"t": 1793542378, "event": "canceled", "sku": "lamp", "category": null, "ask": 117, "offers": []}
+{"t": 1793542406, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [111, 145, 180], "regime": "STEADY", "first_ask": 211}
+{"t": 1793542406, "event": "canceled", "sku": "chair", "category": null, "ask": 180, "offers": [104, 120, 136, 152]}
+{"t": 1793542424, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [63, 81, 100], "regime": "STEADY", "first_ask": 117}
+{"t": 1793542425, "event": "canceled", "sku": "chair", "category": null, "ask": 180, "offers": [104, 120, 136, 152]}
+{"t": 1793542452, "event": "canceled", "sku": "bookshelf", "category": null, "ask": 304, "offers": []}
+{"t": 1793542466, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [133, 153, 174, 180], "regime": "STEADY", "first_ask": 211}
+{"t": 1793542477, "event": "canceled", "sku": "bookshelf", "category": null, "ask": 304, "offers": []}
+{"t": 1793542490, "event": "canceled", "sku": "bookshelf", "category": null, "ask": 260, "offers": [149, 172, 195, 218]}
+{"t": 1793542509, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [68, 78, 89, 100], "regime": "STEADY", "first_ask": 117}
+{"t": 1793542667, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [84, 100], "regime": "STEADY", "first_ask": 117, "clear": 1.0}
+{"t": 1793542679, "event": "canceled", "sku": "lamp", "category": null, "ask": 100, "offers": [58, 67, 76, 85]}
+{"t": 1793542690, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [111, 145, 180], "regime": "STEADY", "first_ask": 211, "clear": 1.0}
+{"t": 1793542690, "event": "canceled", "sku": "bookshelf", "category": null, "ask": 304, "offers": []}
+{"t": 1793542695, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [120, 138, 157, 180], "regime": "STEADY", "first_ask": 211, "clear": 1.0}
+{"t": 1793542719, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [133, 153, 174, 180], "regime": "STEADY", "first_ask": 211, "clear": 1.0}
+{"t": 1793542731, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [63, 81, 100], "regime": "STEADY", "first_ask": 117, "clear": 1.0}
+{"t": 1793542743, "event": "canceled", "sku": "lamp", "category": null, "ask": 100, "offers": [58, 67, 76, 85]}
+{"t": 1793542752, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [84, 100], "regime": "STEADY", "first_ask": 117, "clear": 1.0}
+{"t": 1793542756, "event": "deal", "sku": "bookshelf", "category": null, "price": 269, "cost": 248, "grade": "A", "unit": null, "offers": [234, 269], "regime": "STEADY", "first_ask": 304, "clear": 1.0}
+{"t": 1793542774, "event": "deal", "sku": "chair", "category": null, "price": 186, "cost": 171, "grade": "A", "unit": null, "offers": [162, 186], "regime": "STEADY", "first_ask": 211, "clear": 1.0}
+{"t": 1793542775, "event": "canceled", "sku": "bookshelf", "category": null, "ask": 304, "offers": []}
+{"t": 1793542777, "event": "deal", "sku": "bookshelf", "category": null, "price": 260, "cost": 248, "grade": "A", "unit": null, "offers": [177, 218, 260], "regime": "STEADY", "first_ask": 304, "clear": 1.0}
+{"t": 1793542805, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [75, 100], "regime": "STEADY", "first_ask": 117, "clear": 1.0}
+{"t": 1793542822, "event": "deal", "sku": "lamp", "category": null, "price": 100, "cost": 95, "grade": "A", "unit": null, "offers": [81, 93, 100], "regime": "STEADY", "first_ask": 117, "clear": 1.0}
+{"t": 1793542834, "event": "lapsed", "sku": "chair", "category": null, "ask": 180, "offers": [96, 138, 159, 160]}
+{"t": 1793542846, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [133, 153, 174, 180], "regime": "STEADY", "first_ask": 211, "clear": 1.0}
+{"t": 1793542857, "event": "canceled", "sku": "chair", "category": null, "ask": 211, "offers": []}
+{"t": 1793542906, "event": "deal", "sku": "chair", "category": null, "price": 180, "cost": 171, "grade": "A", "unit": null, "offers": [146, 168, 180], "regime": "STEADY", "first_ask": 211, "clear": 1.0}
+{"t": 1793542919, "event": "lapsed", "sku": "chair", "category": null, "ask": 211, "offers": []}
+{"t": 1793542931, "event": "deal", "sku": "bookshelf", "category": null, "price": 260, "cost": 248, "grade": "A", "unit": null, "offers": [175, 202, 229, 260], "regime": "STEADY", "first_ask": 304, "clear": 1.0}
+{"t": 1793542936, "event": "canceled", "sku": "lamp", "category": null, "ask": 117, "offers": []}
+{"t": 1793542949, "event": "lapsed", "sku": "chair", "category": null, "ask": 180, "offers": [96, 138, 159, 160]}
+{"t": 1793542952, "event": "deal", "sku": "bookshelf", "category": null, "price": 260, "cost": 248, "grade": "A", "unit": null, "offers": [211, 243, 260], "regime": "STEADY", "first_ask": 304, "clear": 1.0}
+{"t": 1793542957, "event": "canceled", "sku": "chair", "category": null, "ask": 196, "offers": [180]}
+{"t": 1793542970, "event": "deal", "sku": "bookshelf", "category": null, "price": 260, "cost": 248, "grade": "A", "unit": null, "offers": [211, 243, 260], "regime": "STEADY", "first_ask": 304, "clear": 1.0}

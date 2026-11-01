@@ -33,6 +33,17 @@
    view counts them apart and the harness is told to trust them more.
 6. Output: why I picked the shop, then the result line the kit and the market test read:
    {"shop": <card URL>, "receipt": <data Part as received, or null>, "stars": 1-5, "review": "..."}
+7. Round 3 (--order with "acceptable" SKUs). The order names a category; a deal is worth the SKU's list
+   price to me (0 if food does not last use_within_hours, minus the price if goods break without warranty).
+     - only shops whose offers hold an acceptable SKU in stock are considered
+     - at the chosen shop I ask for the acceptable SKU with the highest list price within my budget
+       ("I want to buy <name> (<sku>)", and for food how many hours it must last)
+     - I never pay more than VALUE_SHARE of the list price, so every deal leaves a surplus
+     - the result line carries "accept": the market's certificate always; food must last
+       use_within_hours + 1 h; goods must be grade A or B. The kit pays nothing if the checkout fails it
+     - payments.jsonl tells me afterwards when the kit did not pay; that visit counts as failed
+       (the shop stays out for FAIL_MEMORY), like a connection error
+   Memory keys Round 3 trades by SKU, so "cheaper elsewhere" compares the same product.
 """
 import argparse
 import json
@@ -52,6 +63,7 @@ MAX_ROUNDS = 8
 DEADLINE = 240          # the kit and the test stop the buyer at 300 s
 SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed receipt
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
+VALUE_SHARE = 0.97     # Round 3: the most I pay, as a share of the list price (my value)
 RED_FLAGS = re.compile(r"overcharg|higher than (the price )?(we |i )?agreed|receipt (said|was|price)|scam|fake|"
                        r"cheat|dishonest|did not match|didn't match|mismatch|avoid|rip.?off|bait", re.I)
 
@@ -99,7 +111,7 @@ def failed_last(mem, name):
     if not ts or time.time() - ts[-1].get("t", 0) > FAIL_MEMORY:
         return None
     last = ts[-1]
-    if str(last.get("outcome", "")).startswith("error"):
+    if str(last.get("outcome", "")).startswith(("error", "unpaid")):
         return f"last visit failed: {last['outcome']}"
     if last.get("outcome") == "deal" and last.get("signed") is False:
         return f"last deal did not count: {last.get('void') or 'the receipt had no seller signature'}"
@@ -172,7 +184,7 @@ def choose(shops, mem, item, budget):
     return pick, why, skipped, views
 
 
-def receipt_problems(rec, item, budget, agreed, tid, mem):
+def receipt_problems(rec, items, budget, agreed, tid, mem):
     """Round 2 checks I can make myself: (dishonest reasons, why it will not count or '').
 
     A wrong price, a task that is not mine, or a replayed task id is cheating. A missing signature or
@@ -190,7 +202,7 @@ def receipt_problems(rec, item, budget, agreed, tid, mem):
     if rec.get("task") and rec["task"] in mem.get("seen_tasks", []):
         bad.append(f"receipt task {str(rec['task'])[:8]} was used in an earlier receipt (replay)")
     void = ("the receipt had no seller signature" if not rec.get("sig_seller") else
-            f"the receipt names {rec.get('item')!r}, not {item!r}" if rec.get("item") != item else "")
+            f"the receipt names {rec.get('item')!r}, not one of the order's items" if rec.get("item") not in items else "")
     return bad, void
 
 
@@ -213,11 +225,46 @@ def stars_and_review(outcome, item, price, budget, agreed, lowest_ask, rounds, c
     return 2, f"No deal for the {item}: {outcome}."
 
 
+def note_payments(mem, md):
+    """Round 3: the kit's payments.jsonl, read from where I stopped; an unpaid deal turns that trade into
+    'unpaid: <reason>' (a failed visit)."""
+    p = md / "payments.jsonl"
+    if not p.is_file():
+        return
+    with open(p, encoding="utf-8") as f:
+        f.seek(mem.get("pay_pos", 0))
+        for line in f:
+            try:
+                pay = json.loads(line)
+            except ValueError:
+                continue
+            if pay.get("paid") is False:
+                t = next((t for t in reversed(mem["trades"]) if t.get("order") == pay.get("order")), None)
+                if t:
+                    t["outcome"] = f"unpaid: {pay.get('reason', '')}"[:200]
+                    log("buyer", f"the kit did not pay {t['shop']} for {t['item']}: {pay.get('reason')}")
+        mem["pay_pos"] = f.tell()
+
+
+def pick_sku(shop, acceptable, catalog, budget):
+    """The acceptable SKU in stock at `shop` with the highest list price I can pay for, else the cheapest one."""
+    offers = [o for o in shop.get("offers") or [] if o.get("sku") in acceptable and (o.get("qty") or 0) > 0]
+    price = lambda o: (catalog.get(o["sku"]) or {}).get("list_price") or 0
+    fits = [o for o in offers if 0 < price(o) * VALUE_SHARE <= budget]
+    o = max(fits, key=price) if fits else min(offers, key=price, default=None)
+    return o and {"sku": o["sku"], "name": o.get("name") or o["sku"], "list_price": price(o)}
+
+
+def no_deal(review, stars=3):
+    print(json.dumps({"shop": "", "receipt": None, "stars": stars, "review": review}, ensure_ascii=False), flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--shops", required=True)
     ap.add_argument("--item", required=True)
     ap.add_argument("--budget", type=int, required=True)
+    ap.add_argument("--order", help="Round 3: order.json (category, acceptable SKUs, use_within_hours)")
     a = ap.parse_args()
     start = time.time()
     shops = [s for s in json.load(open(a.shops, encoding="utf-8")) if s.get("url")]
@@ -225,15 +272,47 @@ def main():
     log("buyer", f"harness: {harness.HARNESS_CMD}; {a.item}, budget {a.budget}, {len(shops)} shops, "
                  f"memory {len(mem['trades'])} trades, {len(mem['dishonest'])} dishonest")
 
+    order = {}
+    if a.order:
+        try:
+            order = json.load(open(a.order, encoding="utf-8"))
+        except (OSError, ValueError):
+            order = {}
+    acceptable = order.get("acceptable") or []
+    md = Path(a.order).parent if a.order else HERE / ".market"
+    if acceptable:
+        note_payments(mem, md)
+        catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
+        shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget)]
+        if not shops:
+            log("buyer", f"no shop has any of the {len(acceptable)} acceptable SKUs for {a.item} in stock")
+            save_memory(mem)
+            no_deal(f"No shop had {a.item} in stock.")
+            return
+
     pick, why, skipped, views = choose(shops, mem, a.item, a.budget)
     print(f"WHY: picked {pick['name']} ({views[pick['name']]['text']}; memory: {views[pick['name']]['mem']}). {why}"
           + (f" Not entered: {', '.join(skipped)}." if skipped else ""), flush=True)
 
+    item, label, cap, accept = a.item, f"a {a.item}", a.budget, None
+    first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
+    if acceptable:
+        want = pick_sku(pick, acceptable, catalog, a.budget)
+        item, label = want["sku"], f"{want['name']} ({want['sku']})"
+        cap = min(a.budget, int(want["list_price"] * VALUE_SHARE))
+        hours = order.get("use_within_hours")
+        first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else "")
+        accept = {"cert": True}
+        if order.get("kind") == "food" and hours:
+            accept["min_hours_left"] = hours + 1
+        elif order.get("kind") == "goods":
+            accept["grades"] = ["A", "B"]
+        log("buyer", f"{item} list price {want['list_price']}, cap {cap}, accept {accept}")
+
     listed = {s["name"] for s in shops}
-    elsewhere = best_elsewhere(mem, a.item, listed, pick["name"])
-    cap = a.budget
+    elsewhere = best_elsewhere(mem, item, listed, pick["name"])
     ceiling_note = ""
-    if elsewhere and elsewhere[0] < a.budget:
+    if elsewhere and elsewhere[0] < cap:
         cap = elsewhere[0]
         ceiling_note = f"{elsewhere[1]} offered it for {elsewhere[0]}"
         log("buyer", f"ceiling {cap}: cheaper elsewhere ({ceiling_note}); I will not pay more here")
@@ -241,7 +320,7 @@ def main():
     outcome, price, rec, asks, agreed, history, tid = "no answer", None, None, [], None, [], None
     try:
         seller = Seller(pick["url"])
-        t = seller.send(f"Hi! I'd like to buy a {a.item}. What's your best price?")
+        t = seller.send(first)
         tid, ctx = t.get("id"), t.get("contextId")
         for _ in range(MAX_ROUNDS):
             if state(t) not in ("TASK_STATE_INPUT_REQUIRED", "TASK_STATE_UNKNOWN") or time.time() - start > DEADLINE:
@@ -250,7 +329,7 @@ def main():
             if ask is not None:
                 asks.append(ask)
             action, offer, ask2, say = next_move(
-                "buyer", f"a {a.item}", cap, history, t, chat=True,
+                "buyer", label, cap, history, t, chat=True,
                 ledger=(f"Another shop offered this item for {cap}, so do not pay more than {cap} here."
                         if ceiling_note else ""))
             if ask2 is not None and ask2 not in asks:
@@ -277,26 +356,29 @@ def main():
         log("buyer", f"trade failed: {e!r}")
         outcome = f"error ({type(e).__name__})"
 
-    bad, void = receipt_problems(rec, a.item, a.budget, agreed, tid, mem) if outcome == "deal" else ([], "")
+    bad, void = receipt_problems(rec, {a.item, *acceptable}, a.budget, agreed, tid, mem) if outcome == "deal" else ([], "")
     honest = not bad
     if rec and rec.get("task"):
         mem["seen_tasks"] = (mem.get("seen_tasks", []) + [rec["task"]])[-SEEN_TASKS:]
     if void:
         log("buyer", f"UNSIGNED: {pick['name']}: {void}; remembered, the deal does not count in Round 2")
     lowest = min(asks) if asks else None
-    stars, review = stars_and_review(outcome, a.item, price, a.budget, agreed, lowest,
+    stars, review = stars_and_review(outcome, label if acceptable else a.item, price, cap, agreed, lowest,
                                      len([h for h in history if h[0] == "you offered"]), ceiling_note, honest, void, "; ".join(bad))
     if not honest:
-        mem["dishonest"][pick["name"]] = f"{'; '.join(bad)} (a {a.item})"
+        mem["dishonest"][pick["name"]] = f"{'; '.join(bad)} ({label})"
         log("buyer", f"DISHONEST: {pick['name']}: {'; '.join(bad)}; remembered")
-    mem["trades"].append({"t": int(time.time()), "shop": pick["name"], "item": a.item, "budget": a.budget,
+    mem["trades"].append({"t": int(time.time()), "shop": pick["name"], "item": item, "budget": a.budget,
+                          "order": order.get("order"), "category": a.item if acceptable else None,
                           "outcome": outcome, "price": price, "asks": asks, "agreed": agreed, "honest": honest,
                           "signed": not void, "void": void})
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")
                  + f", {time.time() - start:.0f} s, harness calls {harness.CALLS['n']}")
-    print(json.dumps({"shop": pick["url"], "receipt": rec if outcome == "deal" else None,
-                      "stars": stars, "review": review}, ensure_ascii=False), flush=True)
+    out = {"shop": pick["url"], "receipt": rec if outcome == "deal" else None, "stars": stars, "review": review}
+    if accept:
+        out["accept"] = accept
+    print(json.dumps(out, ensure_ascii=False), flush=True)
 
 
 if __name__ == "__main__":

@@ -12,11 +12,15 @@ Shop regimes, first match wins:
   LIQUIDATE_LAST (end within 2 h) > LIQUIDATE (6 h) > WIND_DOWN (24 h) > LAUNCH (first 12 h and under 100 deals)
   > CASH_TIGHT (balance under 1M) > FLUSH (balance 8M or more) > STEADY
   Unsold stock at the end is a loss of its whole cost, so the last hours sell at any price above zero.
+Sell-through (clearance): within clear_window_hours of the end, a unit whose category will not sell out at our
+current sales rate is discounted by how far short it falls (clearance() below), so slow stock is cleared before
+every shop dumps at the end, while categories that sell keep full prices.
 Buyer regimes: END_SALE (end within 12 h: shops clear stock, pay less) > LOW_FILL (deal rate under 30 %) > STEADY.
 A regime change is written to logs/policy.log with the signals that caused it.
 POLICY_NOW (epoch seconds) overrides the clock and POLICY_DIR the state/log folder, for tests.
 """
 import json
+import math
 import os
 import time
 from datetime import datetime
@@ -27,6 +31,8 @@ PARAMS = HERE / "params.json"
 MARKET_DIR = Path(os.environ.get("MARKET_DIR", HERE / ".market"))
 SALES_LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))
 MEMORY = Path(os.environ.get("BUYER_MEMORY", HERE / "buyer_memory.json"))
+RESTOCK_STATE = Path(os.environ.get("RESTOCK_STATE", HERE / "restock_state.json"))
+HALF_LIFE = 6.0                                         # hours, the same as restock.py
 OUT = Path(os.environ.get("POLICY_DIR", HERE))          # tests point this elsewhere
 LOG = OUT / "logs" / "policy.log"
 STATE = {"shop": OUT / "policy_shop.json", "buyer": OUT / "policy_buyer.json"}
@@ -41,6 +47,24 @@ def read_json(path, default):
 
 def now():
     return float(os.environ.get("POLICY_NOW") or time.time())
+
+
+def category_rates():
+    """Our sales per hour by category. restock.py keeps counts that halve every HALF_LIFE hours; such a count
+    settles at rate x HALF_LIFE / ln 2."""
+    st = read_json(RESTOCK_STATE, {})
+    k = 0.5 ** (max(0.0, now() - st.get("t", now())) / 3600 / HALF_LIFE)
+    return {c: v * k * math.log(2) / HALF_LIFE for c, v in (st.get("own_cat") or {}).items()}
+
+
+def clearance(stock_in_cat, rate, hours_left, window):
+    """1 when the category's stock sells before the end at `rate` per hour, or the end is over `window` hours
+    away; below 1, the share of that stock the time left can sell; 0 for a category we have not sold in."""
+    if hours_left > window:
+        return 1.0
+    if hours_left <= 0 or rate <= 0:
+        return 0.0
+    return min(1.0, hours_left * rate / max(stock_in_cat, 1))
 
 
 def merged(cfg, role, regime):

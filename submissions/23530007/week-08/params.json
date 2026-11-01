@@ -2,7 +2,11 @@
   "end": "2026-11-17T23:59:00+09:00",
   "shop": {
     "base": {
-      "ask_share": {"A": 0.90, "B": 0.80, "C": 0.68},
+      "ask_share": {
+        "A": 0.9,
+        "B": 0.8,
+        "C": 0.68
+      },
       "meet_frac": 0.5,
       "floor_mult": 1.05,
       "warranty_hours": 6,
@@ -10,19 +14,74 @@
       "keep_cash": 1500000,
       "max_stock_share": 0.6,
       "extra": 4,
-      "max_goods_price": 300000
+      "max_goods_price": 300000,
+      "clear_window_hours": 48,
+      "clear_floor": 0.3,
+      "clear_ask_min": 0.6
     },
-    "LAUNCH": {"ask_share": {"A": 0.85, "B": 0.75, "C": 0.62}, "meet_frac": 0.35},
-    "CASH_TIGHT": {"ask_share": {"A": 0.86, "B": 0.76, "C": 0.64}, "keep_cash": 500000, "extra": 1},
-    "FLUSH": {"extra": 8, "max_goods_price": 1000000, "max_stock_share": 0.5},
-    "WIND_DOWN": {"extra": 0, "max_goods_price": 100000, "max_stock_share": 0.2},
-    "LIQUIDATE": {"buy": false, "floor_mult": 0.3, "ask_share": {"A": 0.70, "B": 0.60, "C": 0.50}, "meet_frac": 0.2},
-    "LIQUIDATE_LAST": {"buy": false, "floor_mult": 0.02, "ask_share": {"A": 0.50, "B": 0.40, "C": 0.30}, "meet_frac": 0.0}
+    "LAUNCH": {
+      "ask_share": {
+        "A": 0.85,
+        "B": 0.75,
+        "C": 0.62
+      },
+      "meet_frac": 0.35
+    },
+    "CASH_TIGHT": {
+      "ask_share": {
+        "A": 0.86,
+        "B": 0.76,
+        "C": 0.64
+      },
+      "keep_cash": 500000,
+      "extra": 1
+    },
+    "FLUSH": {
+      "extra": 8,
+      "max_goods_price": 1000000,
+      "max_stock_share": 0.5
+    },
+    "WIND_DOWN": {
+      "extra": 0,
+      "max_goods_price": 100000,
+      "max_stock_share": 0.2
+    },
+    "LIQUIDATE": {
+      "buy": false,
+      "floor_mult": 0.3,
+      "ask_share": {
+        "A": 0.7,
+        "B": 0.6,
+        "C": 0.5
+      },
+      "meet_frac": 0.2
+    },
+    "LIQUIDATE_LAST": {
+      "buy": false,
+      "floor_mult": 0.02,
+      "ask_share": {
+        "A": 0.5,
+        "B": 0.4,
+        "C": 0.3
+      },
+      "meet_frac": 0.0
+    }
   },
   "buyer": {
-    "base": {"value_share": 0.97, "goods_grades": ["A", "B"], "food_extra_hours": 1},
-    "END_SALE": {"value_share": 0.85},
-    "LOW_FILL": {"value_share": 0.99}
+    "base": {
+      "value_share": 0.97,
+      "goods_grades": [
+        "A",
+        "B"
+      ],
+      "food_extra_hours": 1
+    },
+    "END_SALE": {
+      "value_share": 0.85
+    },
+    "LOW_FILL": {
+      "value_share": 0.99
+    }
   },
   "regimes": {
     "launch_hours": 12,

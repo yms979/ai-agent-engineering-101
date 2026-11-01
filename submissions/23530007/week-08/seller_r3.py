@@ -17,6 +17,8 @@ liquidation in the last hours. A negotiation keeps the numbers it started with.
   - the buyer's value is the list price, so the ask never goes above it: ask_share[grade] x list price
   - the floor is the unit's cost x floor_mult (1.05 normally, far lower when liquidating); food near its date
     gets a lower floor (it is thrown away at cost): under 30 % of shelf life left 0.8 x cost, under 15 % 0.3
+  - within clear_window_hours (48) of the end, stock that will not sell in time at our sales rate in its category
+    (policy.clearance c < 1) is cleared early: floor x max(clear_floor, c), ask x max(clear_ask_min, sqrt c)
   - an offer at or above the current ask is a deal; so is one at least meet_frac of the way from the floor to
     the ask, and from the 3rd offer on any offer at or above the floor; otherwise the counter meets the offer
     halfway and never goes up; after MAX_OFFERS offers the shop says its floor and ends
@@ -28,6 +30,7 @@ Every sale and every lost negotiation goes to seller_r3_log.jsonl, which restock
 import argparse
 import asyncio
 import json
+import math
 import os
 import re
 import time
@@ -44,7 +47,7 @@ from a2a.server.tasks import InMemoryTaskStore, TaskUpdater
 from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
 
 from harness import HARNESS_CMD, decide, log
-from policy import read_json as read_params, PARAMS, shop_params
+from policy import read_json as read_params, PARAMS, category_rates, clearance, shop_params
 from seller_memory import sign_receipt
 
 HERE = Path(__file__).resolve().parent
@@ -155,11 +158,20 @@ class Shop(AgentExecutor):
         self.cached = (0, None)
 
     def policy(self, now):
-        """(regime, params), read again every POLICY_CACHE seconds."""
+        """(regime, params, hours to the end, our sales per hour by category), read every POLICY_CACHE seconds."""
         if now - self.cached[0] > POLICY_CACHE or self.cached[1] is None:
-            regime, p, _ = shop_params()
-            self.cached = (now, (regime, p))
+            regime, p, sig = shop_params()
+            self.cached = (now, (regime, p, sig["hours_left"], category_rates()))
         return self.cached[1]
+
+    def clear_factor(self, u, now):
+        """policy.clearance for this unit's category: our stock of it against our sales rate and the time left."""
+        regime, p, hours_left, rates = self.policy(now)
+        if u.get("unit") is None or hours_left > p["clear_window_hours"]:
+            return 1.0
+        inv = read_json(MARKET_DIR / "inventory.json", {})
+        stock = sum(1 for x in inv.get("units", []) if x.get("category") == u.get("category") and x.get("grade") != "expired")
+        return clearance(stock, rates.get(u.get("category"), 0.0), hours_left, p["clear_window_hours"])
 
     def sweep(self, now):
         for tid, d in list(self.open.items()):
@@ -203,12 +215,15 @@ class Shop(AgentExecutor):
                 await up.reject(say("Sorry, we have none of that in stock right now."))
                 return
             grade = grade_now(u, now) or "A"
-            regime, p = self.policy(now)
-            floor = floor_of(u, now, p["floor_mult"])
-            ask = round100(min(u["list_price"], max(floor, u["list_price"] * p["ask_share"].get(grade, 0.8))))
+            regime, p, _, _ = self.policy(now)
+            c = self.clear_factor(u, now)               # 1 = sells in time at full price; below 1 = clear it now
+            mult = min(p["floor_mult"], max(p["clear_floor"], p["floor_mult"] * c))
+            share = p["ask_share"].get(grade, 0.8) * max(p["clear_ask_min"], math.sqrt(c))
+            floor = floor_of(u, now, mult)
+            ask = round100(min(u["list_price"], max(floor, u["list_price"] * share)))
             d = self.open[task.id] = {"unit": u, "grade": grade, "floor": floor, "ask": max(ask, floor),
                                       "offers": [], "seen": now, "regime": regime, "meet": p["meet_frac"],
-                                      "warranty": p["warranty_hours"]}
+                                      "warranty": p["warranty_hours"], "clear": round(c, 2)}
             d["first_ask"] = d["ask"]
             hl = hours_left(u, now)
             facts = (f"{u['name']} ({u['sku']}), grade {grade}"
@@ -217,7 +232,7 @@ class Shop(AgentExecutor):
                      + ", market certificate included")
             line = await self.words("open with an asking price", d, text, "Thanks for asking!")
             log("seller", f"task {task.id[:8]} {u['sku']} unit {u['unit']} grade {grade} cost {u['cost']} "
-                          f"floor {floor} ask {d['ask']} ({regime})")
+                          f"floor {floor} ask {d['ask']} ({regime}" + (f", clearance {c:.2f}" if c < 1 else "") + ")")
             await up.requires_input(say(f"{line} {facts}. Asking {d['ask']}. Send your offer as a number.", d["ask"]))
             return
 
@@ -252,7 +267,8 @@ class Shop(AgentExecutor):
                 rec["warranty_hours"] = d["warranty"]
         await up.add_artifact(parts=[new_data_part(rec)], name="receipt")
         record(event="deal", sku=u["sku"], category=u.get("category"), price=price, cost=u["cost"],
-               grade=d["grade"], unit=u["unit"], offers=d["offers"], regime=d["regime"], first_ask=d["first_ask"])
+               grade=d["grade"], unit=u["unit"], offers=d["offers"], regime=d["regime"], first_ask=d["first_ask"],
+               clear=d["clear"])
         log("seller", f"task {tid[:8]} deal {u['sku']} at {price} (cost {u['cost']}, floor {d['floor']})")
         del self.open[tid]
         await up.complete(say(f"Deal: {u['name']} at {price}. The receipt is signed; the unit ships with the "

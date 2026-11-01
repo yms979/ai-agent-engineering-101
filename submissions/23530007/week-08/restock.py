@@ -20,6 +20,8 @@ price, so the median fits most). Limits, so stock never eats the shop:
   - food that keeps under 72 h: at most 1 unit at a time (it is thrown away at cost when it expires)
   - at most 3 units per line, 10 lines per run (the kit's limit); urgent lines first: sold-out categories
     with sales, then categories we do not cover yet
+Within clear_window_hours of the end a category is only refilled up to what our sales rate in it can sell
+before the end (policy.clearance's rule, seen from the buying side).
 Below the bankruptcy line with (almost) nothing left to sell it files ("bankrupt": true).
 State (ledger position, decayed counts) in restock_state.json; every run logs one line to stderr.
 """
@@ -80,7 +82,7 @@ def main():
     ap.add_argument("--state", default=".market")
     md = Path(ap.parse_args().state)
     inv = read_json(md / "inventory.json", {})
-    regime, p, _ = shop_params()
+    regime, p, sig = shop_params()
     if inv.get("round", 0) < 3 or inv.get("balance") is None or not p["buy"]:
         if inv.get("round", 0) >= 3:
             print(f"[restock] {regime}: not buying", file=sys.stderr)
@@ -154,6 +156,11 @@ def main():
         missing = target - have.get(cat, 0)
         if missing <= 0:
             continue
+        if sig["hours_left"] <= p["clear_window_hours"]:    # near the end: only what will sell before it
+            rate = st["own_cat"].get(cat, 0) * math.log(2) / HALF_LIFE
+            missing = min(missing, math.floor(rate * sig["hours_left"]) - have.get(cat, 0))
+            if missing <= 0:
+                continue
         seen = [v for v in options if st["sku"].get(v["sku"], 0) > 0 or misses.get(v["sku"])]
         if seen:
             v = max(seen, key=lambda v: st["sku"].get(v["sku"], 0) + misses.get(v["sku"], 0))

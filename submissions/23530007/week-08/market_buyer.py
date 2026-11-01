@@ -45,6 +45,10 @@
      - payments.jsonl tells me afterwards when the kit did not pay; that visit counts as failed
        (the shop stays out for FAIL_MEMORY), like a connection error
    Memory keys Round 3 trades by SKU, so "cheaper elsewhere" compares the same product.
+8. Market intelligence for our own shop. After each Round 3 negotiation one line goes to market_intel.jsonl:
+   the other shop's first ask, lowest ask and deal price against the list price, for that SKU and category.
+   The public ledger shows only settled prices; first asks are seen only by a buyer who negotiates, and
+   seller_r3.py prices against them. Only negotiations this buyer had anyway: no probing for prices.
 """
 import argparse
 import json
@@ -61,6 +65,7 @@ from policy import buyer_params
 
 HERE = Path(__file__).resolve().parent
 MEMORY = Path(os.environ.get("BUYER_MEMORY", HERE / "buyer_memory.json"))
+INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))   # read by seller_r3.py
 MAX_ROUNDS = 8
 DEADLINE = 240          # the kit and the test stop the buyer at 300 s
 SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed receipt
@@ -371,6 +376,16 @@ def main():
     if not honest:
         mem["dishonest"][pick["name"]] = f"{'; '.join(bad)} ({label})"
         log("buyer", f"DISHONEST: {pick['name']}: {'; '.join(bad)}; remembered")
+    if acceptable and asks and want.get("list_price"):
+        try:
+            with open(INTEL, "a", encoding="utf-8") as f:
+                f.write(json.dumps({"t": int(time.time()), "shop": pick["name"], "sku": item,
+                                    "category": order.get("category"), "list_price": want["list_price"],
+                                    "first_ask": asks[0], "min_ask": min(asks),
+                                    "price": price if outcome == "deal" else None, "outcome": outcome},
+                                   ensure_ascii=False) + "\n")
+        except OSError:
+            pass
     mem["trades"].append({"t": int(time.time()), "shop": pick["name"], "item": item, "budget": a.budget,
                           "order": order.get("order"), "category": a.item if acceptable else None,
                           "outcome": outcome, "price": price, "asks": asks, "agreed": agreed, "honest": honest,

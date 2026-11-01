@@ -15,6 +15,9 @@ Shop regimes, first match wins:
 Sell-through (clearance): within clear_window_hours of the end, a unit whose category will not sell out at our
 current sales rate is discounted by how far short it falls (clearance() below), so slow stock is cleared before
 every shop dumps at the end, while categories that sell keep full prices.
+Competitor asks: our buyer writes the first ask of every other shop it negotiates with to market_intel.jsonl;
+competitor_ask() gives the median first ask as a share of list price per category, and the seller moves its own
+opening ask toward just under it, within a band around the regime's number.
 Buyer regimes: END_SALE (end within 12 h: shops clear stock, pay less) > LOW_FILL (deal rate under 30 %) > STEADY.
 A regime change is written to logs/policy.log with the signals that caused it.
 POLICY_NOW (epoch seconds) overrides the clock and POLICY_DIR the state/log folder, for tests.
@@ -31,6 +34,7 @@ PARAMS = HERE / "params.json"
 MARKET_DIR = Path(os.environ.get("MARKET_DIR", HERE / ".market"))
 SALES_LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))
 MEMORY = Path(os.environ.get("BUYER_MEMORY", HERE / "buyer_memory.json"))
+INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))
 RESTOCK_STATE = Path(os.environ.get("RESTOCK_STATE", HERE / "restock_state.json"))
 HALF_LIFE = 6.0                                         # hours, the same as restock.py
 OUT = Path(os.environ.get("POLICY_DIR", HERE))          # tests point this elsewhere
@@ -66,6 +70,30 @@ def category_rates():
     st = read_json(RESTOCK_STATE, {})
     k = 0.5 ** (max(0.0, now() - st.get("t", now())) / 3600 / HALF_LIFE)
     return {c: v * k * math.log(2) / HALF_LIFE for c, v in (st.get("own_cat") or {}).items()}
+
+
+def competitor_asks(window_hours):
+    """category -> sorted first asks of other shops as a share of list price, over the last window_hours."""
+    since, out = now() - window_hours * 3600, {}
+    try:
+        with open(INTEL, encoding="utf-8") as f:
+            lines = f.readlines()[-5000:]
+    except OSError:
+        return out
+    for line in lines:
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue
+        if r.get("t", 0) >= since and r.get("category") and r.get("list_price") and r.get("first_ask"):
+            out.setdefault(r["category"], []).append(r["first_ask"] / r["list_price"])
+    return {c: sorted(v) for c, v in out.items()}
+
+
+def competitor_ask(asks, category, min_samples):
+    """Median competitor first ask (share of list) for a category, or None with fewer than min_samples."""
+    v = asks.get(category) or []
+    return v[len(v) // 2] if len(v) >= min_samples else None
 
 
 def clearance(stock_in_cat, rate, hours_left, window):

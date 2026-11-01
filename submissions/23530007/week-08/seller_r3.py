@@ -19,6 +19,9 @@ liquidation in the last hours. A negotiation keeps the numbers it started with.
     gets a lower floor (it is thrown away at cost): under 30 % of shelf life left 0.8 x cost, under 15 % 0.3
   - within clear_window_hours (48) of the end, stock that will not sell in time at our sales rate in its category
     (policy.clearance c < 1) is cleared early: floor x max(clear_floor, c), ask x max(clear_ask_min, sqrt c)
+  - competitors' first asks, seen by our own buyer (market_intel.jsonl): with 3+ in the category over 6 h, the
+    opening ask moves to 2 points under their median share of list, at most 5 points from the regime's number
+    (only down while clearing); the floor never moves for it
   - an offer at or above the current ask is a deal; so is one at least meet_frac of the way from the floor to
     the ask, and from the 3rd offer on any offer at or above the floor; otherwise the counter meets the offer
     halfway and never goes up; after MAX_OFFERS offers the shop says its floor and ends
@@ -47,7 +50,8 @@ from a2a.server.tasks import InMemoryTaskStore, TaskUpdater
 from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
 
 from harness import HARNESS_CMD, decide, log
-from policy import read_json as read_params, PARAMS, category_rates, clearance, shop_params
+from policy import (read_json as read_params, PARAMS, category_rates, clearance, competitor_ask, competitor_asks,
+                    shop_params)
 from seller_memory import sign_receipt
 
 HERE = Path(__file__).resolve().parent
@@ -161,12 +165,14 @@ class Shop(AgentExecutor):
     def __init__(self):
         self.open = {}      # task id -> deal
         self.cached = (0, None)
+        self.asks = {}                                    # category -> competitors' first asks / list price
 
     def policy(self, now):
         """(regime, params, hours to the end, our sales per hour by category), read every POLICY_CACHE seconds."""
         if now - self.cached[0] > POLICY_CACHE or self.cached[1] is None:
             regime, p, sig = shop_params()
             self.cached = (now, (regime, p, sig["hours_left"], category_rates()))
+            self.asks = competitor_asks(p["intel_window_hours"])
         return self.cached[1]
 
     def clear_factor(self, u, now):
@@ -224,11 +230,16 @@ class Shop(AgentExecutor):
             c = self.clear_factor(u, now)               # 1 = sells in time at full price; below 1 = clear it now
             mult = min(p["floor_mult"], max(p["clear_floor"], p["floor_mult"] * c))
             share = p["ask_share"].get(grade, 0.8) * max(p["clear_ask_min"], math.sqrt(c))
+            comp = competitor_ask(self.asks, u.get("category"), p["intel_min_samples"]) if u.get("unit") else None
+            if comp is not None:                        # just under the competitors' usual first ask, within a band
+                moved = min(share + p["intel_band"], max(share - p["intel_band"], comp - p["intel_undercut"]))
+                share = min(share, moved) if c < 1 else moved
             floor = floor_of(u, now, mult)
             ask = round100(min(u["list_price"], max(floor, u["list_price"] * share)))
             d = self.open[task.id] = {"unit": u, "grade": grade, "floor": floor, "ask": max(ask, floor),
                                       "offers": [], "seen": now, "regime": regime, "meet": p["meet_frac"],
-                                      "warranty": p["warranty_hours"], "clear": round(c, 2)}
+                                      "warranty": p["warranty_hours"], "clear": round(c, 2),
+                                      "comp": None if comp is None else round(comp, 3)}
             d["first_ask"] = d["ask"]
             hl = hours_left(u, now)
             facts = (f"{u['name']} ({u['sku']}), grade {grade}"
@@ -237,7 +248,8 @@ class Shop(AgentExecutor):
                      + ", market certificate included")
             line = await self.words("open with an asking price", d, text, "Thanks for asking!")
             log("seller", f"task {task.id[:8]} {u['sku']} unit {u['unit']} grade {grade} cost {u['cost']} "
-                          f"floor {floor} ask {d['ask']} ({regime}" + (f", clearance {c:.2f}" if c < 1 else "") + ")")
+                          f"floor {floor} ask {d['ask']} ({regime}" + (f", clearance {c:.2f}" if c < 1 else "")
+                          + (f", competitors ask {comp:.2f} of list" if comp is not None else "") + ")")
             await up.requires_input(say(f"{line} {facts}. Asking {d['ask']}. Send your offer as a number.", d["ask"]))
             return
 
@@ -273,7 +285,7 @@ class Shop(AgentExecutor):
         await up.add_artifact(parts=[new_data_part(rec)], name="receipt")
         record(event="deal", sku=u["sku"], category=u.get("category"), price=price, cost=u["cost"],
                grade=d["grade"], unit=u["unit"], offers=d["offers"], regime=d["regime"], first_ask=d["first_ask"],
-               clear=d["clear"])
+               clear=d["clear"], comp=d["comp"])
         log("seller", f"task {tid[:8]} deal {u['sku']} at {price} (cost {u['cost']}, floor {d['floor']})")
         del self.open[tid]
         await up.complete(say(f"Deal: {u['name']} at {price}. The receipt is signed; the unit ships with the "

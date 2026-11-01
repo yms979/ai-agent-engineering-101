@@ -17,7 +17,11 @@
       "max_goods_price": 300000,
       "clear_window_hours": 48,
       "clear_floor": 0.3,
-      "clear_ask_min": 0.6
+      "clear_ask_min": 0.6,
+      "intel_window_hours": 6,
+      "intel_min_samples": 3,
+      "intel_undercut": 0.02,
+      "intel_band": 0.05
     },
     "LAUNCH": {
       "ask_share": {

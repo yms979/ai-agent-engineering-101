@@ -23,6 +23,8 @@ price, so the median fits most). Limits, so stock never eats the shop:
 Within clear_window_hours of the end a category is only refilled up to what our sales rate in it can sell
 before the end (policy.clearance's rule, seen from the buying side).
 Below the bankruptcy line with (almost) nothing left to sell it files ("bankrupt": true).
+It also keeps the shop's reputation for policy.py: the average stars of our newest Round 3 reviews on
+/api/shops (the market shows the last 10), in restock_state.json "rep".
 State (ledger position, decayed counts) in restock_state.json; every run logs one line to stderr.
 """
 import argparse
@@ -40,6 +42,7 @@ from policy import shop_params
 HERE = Path(__file__).resolve().parent
 MARKET = "https://market.ourolabs.ai"
 STATE = Path(os.environ.get("RESTOCK_STATE", HERE / "restock_state.json"))
+SHOP_NAME = os.environ.get("SHOP_NAME", "yms979")
 SALES_LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))
 HALF_LIFE = 6.0              # hours
 COST_GUESS = 0.6             # cost as a share of list price before a unit arrives (A 55-75 %, B 40-60 %, C 25-45 %)
@@ -105,6 +108,15 @@ def main():
                 st["sku"][sku] = st["sku"].get(sku, 0) + 1
     except Exception as e:
         print(f"[restock] ledger: {type(e).__name__}: {e}", file=sys.stderr)
+
+    try:                                                    # our reputation, for the seller's prices
+        with urllib.request.urlopen(f"{MARKET}/api/shops", timeout=15) as r:
+            me = next((x for x in json.load(r).get("shops", []) if x.get("name") == SHOP_NAME), {})
+        stars = [v["stars"] for v in me.get("reviews") or []
+                 if (v.get("round") or 0) >= 3 and isinstance(v.get("stars"), (int, float))]
+        st["rep"] = {"avg": sum(stars) / len(stars) if stars else None, "n": len(stars), "t": now}
+    except Exception as e:
+        print(f"[restock] reviews: {type(e).__name__}: {e}", file=sys.stderr)
 
     misses = Counter()                                      # our own sales and turned-away buyers
     if SALES_LOG.is_file():

@@ -18,6 +18,8 @@ every shop dumps at the end, while categories that sell keep full prices.
 Competitor asks: our buyer writes the first ask of every other shop it negotiates with to market_intel.jsonl;
 competitor_ask() gives the median first ask as a share of list price per category, and the seller moves its own
 opening ask toward just under it, within a band around the regime's number.
+Reputation: with rep_min+ Round 3 reviews among our newest (restock.py fetches them), an average under rep_low
+lowers every ask share by rep_step (cheaper, to win stars back) and one at rep_high or more raises it by rep_step.
 Buyer regimes: END_SALE (end within 12 h: shops clear stock, pay less) > LOW_FILL (deal rate under 30 %) > STEADY.
 A regime change is written to logs/policy.log with the signals that caused it.
 POLICY_NOW (epoch seconds) overrides the clock and POLICY_DIR the state/log folder, for tests.
@@ -172,9 +174,15 @@ def shop_params():
         regime = "FLUSH"
     else:
         regime = "STEADY"
+    p = merged(cfg, "shop", regime)
+    rep = read_json(RESTOCK_STATE, {}).get("rep") or {}
+    sig["stars"] = rep.get("avg")
+    if rep.get("avg") is not None and rep.get("n", 0) >= p.get("rep_min", 5) and now() - rep.get("t", 0) < 3600:
+        step = -p["rep_step"] if rep["avg"] < p["rep_low"] else p["rep_step"] if rep["avg"] >= p["rep_high"] else 0
+        p["ask_share"] = {g: round(min(0.98, max(0.3, v + step)), 3) for g, v in p["ask_share"].items()}
     if sig["round"] >= 3:
         note("shop", regime, sig)
-    return regime, merged(cfg, "shop", regime), sig
+    return regime, p, sig
 
 
 def buyer_params():

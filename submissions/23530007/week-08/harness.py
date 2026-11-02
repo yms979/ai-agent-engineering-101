@@ -4,9 +4,16 @@ The harness runs in a fresh empty directory so it picks up no project instructio
 prompt on stdin, and has no tools. Both agents use this module; neither contains a model of its own.
 
   HARNESS_CMD   override the command (default: claude -p with haiku, no tools, no settings)
+
+Circuit breaker (Round 3, nobody watching): when a call gets no JSON on both attempts (timeout, harness missing,
+login expired, rate limit, error text), every agent skips the harness for OPEN_FOR seconds and its code rules
+answer instead. The state is one file shared by the seller and every buyer run; the first call after OPEN_FOR
+tries the harness again and closes the breaker if it answers.
+  HARNESS_BREAKER  the breaker file (default .market/harness_down next to this file)
 """
 import json
 import os
+from pathlib import Path
 import re
 import shlex
 import subprocess
@@ -17,7 +24,32 @@ import time
 HARNESS_CMD = os.environ.get(
     "HARNESS_CMD",
     "claude -p --model haiku --tools '' --setting-sources '' --no-session-persistence")
-TIMEOUT = 90
+TIMEOUT = 45
+BREAKER = Path(os.environ.get("HARNESS_BREAKER", Path(__file__).resolve().parent / ".market" / "harness_down"))
+OPEN_FOR = 600
+
+
+def breaker_open() -> bool:
+    try:
+        return time.time() < float(BREAKER.read_text())
+    except (OSError, ValueError):
+        return False
+
+
+def trip(who: str, why: str) -> None:
+    try:
+        BREAKER.parent.mkdir(exist_ok=True)
+        BREAKER.write_text(str(time.time() + OPEN_FOR))
+    except OSError:
+        pass
+    log(who, f"harness breaker OPEN for {OPEN_FOR} s ({why}); code rules answer until then")
+
+
+def close_breaker() -> None:
+    try:
+        BREAKER.unlink()
+    except OSError:
+        pass
 
 CALLS = {"n": 0}
 
@@ -31,6 +63,8 @@ def decide(who: str, prompt: str) -> dict | None:
 
     One retry if the answer has no JSON object. The caller decides what None means.
     """
+    if breaker_open():
+        return None
     for attempt in (1, 2):
         CALLS["n"] += 1
         with tempfile.TemporaryDirectory() as empty:
@@ -43,12 +77,17 @@ def decide(who: str, prompt: str) -> dict | None:
                 log(who, f"harness call #{CALLS['n']} timed out after {TIMEOUT} s")
             except OSError as e:          # harness not installed / not on PATH: the caller falls back
                 log(who, f"harness could not start: {e!r}")
+                trip(who, "could not start")
                 return None
         log(who, f"harness call #{CALLS['n']} -> {raw[:300]!r}")
         obj = last_json_object(raw)
         if obj is not None:
+            if BREAKER.exists():
+                close_breaker()
+                log(who, "harness answers again; breaker closed")
             return obj
         log(who, f"no JSON object in the answer (attempt {attempt})")
+    trip(who, f"no JSON twice, last answer {raw[:80]!r}")
     return None
 
 

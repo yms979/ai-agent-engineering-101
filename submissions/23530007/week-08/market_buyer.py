@@ -441,7 +441,11 @@ def main():
     if accept:
         out["accept"] = accept
     mfile = md / "mandates.json"
-    if acceptable and outcome == "deal" and honest and not void and pick.get("pubkey") and mfile.is_file():
+    tf = mem.setdefault("tools_fail", {"n": 0, "t": 0})   # breaker: 3 failures in a row -> the kit pays for an hour
+    tools_off = tf["n"] >= 3 and time.time() - tf["t"] < 3600
+    if tools_off and acceptable and outcome == "deal":
+        log("buyer", f"ACP tools off after {tf['n']} failures in a row; the kit pays")
+    if acceptable and outcome == "deal" and honest and not void and pick.get("pubkey") and mfile.is_file() and not tools_off:
         try:                                       # pay through the shop's ACP tools (acp_tools.py)
             m = json.loads(mfile.read_text(encoding="utf-8"))
             if m.get("order") == order.get("order") and m.get("mandates"):
@@ -453,8 +457,14 @@ def main():
                 log("buyer", f"ACP tools: {'paid, ledger #' + str(mr.get('ledger')) if mr else 'not paid'} ({how})")
                 if mr:
                     out["mandate_receipt"] = mr
+                    tf.update(n=0)
+                elif not how.startswith("refused"):     # our own policy refusing is not a failure
+                    tf.update(n=tf["n"] + 1, t=time.time())
+                save_memory(mem)
         except Exception as e:                     # the kit pays the old way
             log("buyer", f"ACP tools failed: {type(e).__name__}: {e}; the kit pays instead")
+            tf.update(n=tf["n"] + 1, t=time.time())
+            save_memory(mem)
     print(json.dumps(out, ensure_ascii=False), flush=True)
 
 

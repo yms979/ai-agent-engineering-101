@@ -195,6 +195,18 @@ def read_ask(t: dict):
     return None, "harness"
 
 
+def code_move(ask, budget, history):
+    """The move when the harness gives none (down, breaker open, unreadable answer): open at 80 % of the ask,
+    then go halfway to min(ask, budget) each round; from the 3rd offer take the ask if it is within budget."""
+    mine = [p for k, p in history if k == "you offered"]
+    target = min(ask, budget)
+    if len(mine) >= 2 and ask <= budget:
+        return ask
+    if not mine:
+        return min(budget, max(1, round(ask * 0.8)))
+    return min(budget, max(mine[-1], round((mine[-1] + target) / 2)))
+
+
 def next_move(who, item, budget, history, t, want="", ledger="", chat=False):
     """Ask the harness for the next move. Returns (action, price, ask); the code guards are applied.
 
@@ -223,6 +235,11 @@ def next_move(who, item, budget, history, t, want="", ledger="", chat=False):
             return out("walk", None, None)
     history.append(("seller asked", ask))
     action, price = answer.get("action"), as_int(answer.get("price"))
+    if not answer or (action not in ("walk", "accept") and price is None):
+        price = code_move(ask, budget, history)
+        log(who, f"no usable move from the harness; code offers {price} (ask {ask}, limit {budget})")
+        history.append(("you offered", price))
+        return out("offer", price, ask)
 
     if action == "walk":
         log(who, "harness walks away")

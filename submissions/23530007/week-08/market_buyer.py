@@ -47,6 +47,10 @@
      - payments.jsonl tells me afterwards when the kit did not pay; that visit counts as failed
        (the shop stays out for FAIL_MEMORY), like a connection error
    Memory keys Round 3 trades by SKU, so "cheaper elsewhere" compares the same product.
+   Broken goods: the kit writes only the item's name and when it broke to broken.jsonl. I match each line to
+   my latest deal for that name within BREAK_WINDOW before it broke, mark that trade broken and count it
+   against the shop (mem["broken"]); the shop view shows "N of M goods broke", and the fallback ranking and
+   the harness see it.
 8. Market intelligence for our own shop. After each Round 3 negotiation one line goes to market_intel.jsonl:
    the other shop's first ask, lowest ask and deal price against the list price, for that SKU and category.
    The public ledger shows only settled prices; first asks are seen only by a buyer who negotiates, and
@@ -72,6 +76,7 @@ MAX_ROUNDS = 8
 DEADLINE = 240          # the kit and the test stop the buyer at 300 s
 SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed receipt
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
+BREAK_WINDOW = 7 * 3600  # goods break up to 6 h after the sale; an hour of slack for the sale's settle time
 RED_FLAGS = re.compile(r"overcharg|higher than (the price )?(we |i )?agreed|receipt (said|was|price)|scam|fake|"
                        r"cheat|dishonest|did not match|didn't match|mismatch|avoid|rip.?off|bait", re.I)
 
@@ -137,8 +142,11 @@ def memory_view(mem, name, item):
     failed = failed_last(mem, name)
     deals = [t for t in ts if t["outcome"] == "deal"]
     same = [t for t in deals if t["item"] == item]
+    goods = [t for t in deals if t.get("kind") == "goods"]
+    broke = sum(1 for t in goods if t.get("broken"))
     return (f"{len(ts)} visits, {len(deals)} deals"
             + (f", paid {', '.join(str(t['price']) for t in same[-3:])} for a {item}" if same else "")
+            + (f"; {broke} of {len(goods)} goods I bought here broke" if broke else "")
             + (f"; {failed.upper()}" if failed else ""))
 
 
@@ -184,7 +192,8 @@ def choose(shops, mem, item, budget):
         # the harness picked nothing usable (or a shop the rules exclude): best reviews, then memory
         def score(s):
             v = views[s["name"]]
-            return (v["avg"] if v["avg"] is not None else 3.5) - v["flags"] + min(v["verified"], 5) * 0.1
+            return ((v["avg"] if v["avg"] is not None else 3.5) - v["flags"] + min(v["verified"], 5) * 0.1
+                    - 0.5 * mem.get("broken", {}).get(s["name"], 0))
         pick = max(allowed, key=score)
         reason = "only shop listed" if len(shops) == 1 else (
             f"the harness chose {(answer or {}).get('shop')!r}, which the rules exclude; best reviewed allowed shop instead"
@@ -233,6 +242,31 @@ def stars_and_review(outcome, item, price, budget, agreed, lowest_ask, rounds, c
     if outcome == "rejected":
         return 2, f"The shop ended the negotiation for the {item} without a deal (lowest ask {lowest_ask})."
     return 2, f"No deal for the {item}: {outcome}."
+
+
+def note_broken(mem, md):
+    """Round 3: broken.jsonl (name, broke_at), read from where I stopped. Each line marks my latest deal for that
+    name sold within BREAK_WINDOW before the break, and counts it against the shop."""
+    p = md / "broken.jsonl"
+    if not p.is_file():
+        return
+    with open(p, encoding="utf-8") as f:
+        f.seek(mem.get("broken_pos", 0))
+        for line in f:
+            try:
+                b = json.loads(line)
+            except ValueError:
+                continue
+            at = b.get("broke_at") or time.time()
+            t = next((t for t in reversed(mem["trades"]) if t.get("outcome") == "deal" and t.get("name") == b.get("name")
+                      and not t.get("broken") and at - BREAK_WINDOW <= t.get("t", 0) <= at), None)
+            if t:
+                t["broken"] = True
+                mem.setdefault("broken", {})[t["shop"]] = mem.get("broken", {}).get(t["shop"], 0) + 1
+                log("buyer", f"BROKEN: {b.get('name')} from {t['shop']} (paid {t.get('price')}), counted against it")
+            else:
+                log("buyer", f"broken item {b.get('name')!r} matches none of my recent deals")
+        mem["broken_pos"] = f.tell()
 
 
 def note_payments(mem, md):
@@ -294,6 +328,7 @@ def main():
     if acceptable:
         regime, bp, _ = buyer_params()
         note_payments(mem, md)
+        note_broken(mem, md)
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
         shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, bp["value_share"])]
         if not shops:
@@ -392,6 +427,7 @@ def main():
             pass
     mem["trades"].append({"t": int(time.time()), "shop": pick["name"], "item": item, "budget": a.budget,
                           "order": order.get("order"), "category": a.item if acceptable else None,
+                          "name": want["name"] if acceptable else None, "kind": order.get("kind"),
                           "outcome": outcome, "price": price, "asks": asks, "agreed": agreed, "honest": honest,
                           "signed": not void, "void": void})
     save_memory(mem)

@@ -1,0 +1,61 @@
+--- ../../../scripts/market_kit.py	2026-10-30 17:30:03.113049874 +0000
++++ market_kit.py	2026-11-02 13:59:11.486978244 +0000
+@@ -1,6 +1,14 @@
+ #!/usr/bin/env python3
+ """Week-07 market kit. Puts your week-06 shop and buyer into the class market.
+ 
++yms979's copy (submissions/23530007/week-08/market_kit.py, kit v4 + three changes for the optional
++"buyer that builds its tools from acp.json"; scripts/market_kit.py stays untouched for CI):
++  1. Round 3: the order's open mandates also go to .market/mandates.json, so market_buyer can sign the
++     closed mandates itself.
++  2. shops.json carries each shop's pubkey, so market_buyer can verify the shop's checkout_jwt.
++  3. If market_buyer's result line carries a "mandate_receipt" (it paid through the shop's ACP tools), the kit
++     uses it; otherwise it pays with acp_pay as before. A buyer-side failure therefore falls back to the kit.
++
+     python scripts/market_kit.py join --dir submissions/<student-id>/week-07 --market <MARKET_URL> --name <nickname> --tunnel
+ 
+ No working week-06 shop or buyer yet? Copy the starter (an unsigned week-06 shop and buyer) first:
+@@ -695,16 +703,21 @@
+     order_file.parent.mkdir(exist_ok=True)
+     order_file.write_text(json.dumps({k: v for k, v in o.items() if k not in ("mandates", "nonce")},
+                                      ensure_ascii=False, indent=1), encoding="utf-8")
++    mandates_file = d / ".market" / "mandates.json"      # yms979 change 1
++    mandates_file.write_text(json.dumps({"order": o["order"], "mandates": o.get("mandates")}, ensure_ascii=False),
++                             encoding="utf-8")
+     if acceptable:                                      # Round 3: what each shop has that fits this order
+         names = catalog_names(market, d)
+         for s in shops:
+             s["offers"] = [{"sku": k, "name": names.get(k, k), "qty": n} for k, n in (s.get("stock") or {}).items()
+                            if k in acceptable]
+     accept = None
++    paid_by_buyer = None
+ 
+     if rnd >= 1 and "market_buyer" in agent:
+         shops_file = d / ".market" / "shops.json"
+-        shops_file.write_text(json.dumps([{k: s[k] for k in ("name", "url", "reviews", "offers") if k in s} for s in shops],
++        shops_file.write_text(json.dumps([{k: s[k] for k in ("name", "url", "pubkey", "reviews", "offers") if k in s}  # change 2
++                                          for s in shops],
+                                          ensure_ascii=False, indent=1), encoding="utf-8")
+         log(f"[kit] {len(shops)} shops in {shops_file.relative_to(d)}, running market_buyer")
+         lines = run_buyer(fill(agent["market_buyer"]["cmd"], shops=shops_file, item=o["item"], budget=o["budget"],
+@@ -720,6 +733,7 @@
+         if isinstance(receipt, dict) and "seller" in receipt and "shop" not in receipt:
+             receipt["shop"] = receipt.pop("seller")
+         stars, review, accept = out.get("stars"), out.get("review"), out.get("accept")
++        paid_by_buyer = out.get("mandate_receipt") if isinstance(out.get("mandate_receipt"), dict) else None  # change 3
+     else:
+         stocked = [s for s in shops if s.get("offers")]
+         shop = random.choice(stocked or shops)
+@@ -752,7 +766,11 @@
+             log("[sign] sig_seller ok, sig_buyer added")
+             if rnd >= 3 and o.get("mandates"):
+                 why = []
+-                mr = acp_pay(o, shop_url, pubkeys[shop_url], receipt, keys["buyer"], accept, why)
++                if paid_by_buyer:                       # change 3: market_buyer paid through the shop's ACP tools
++                    mr = paid_by_buyer
++                    log(f"[acp] paid by market_buyer's ACP tools, settled at ledger #{mr.get('ledger')}")
++                else:
++                    mr = acp_pay(o, shop_url, pubkeys[shop_url], receipt, keys["buyer"], accept, why)
+                 body["mandate_receipt"] = mr
+                 with open(d / ".market" / "payments.jsonl", "a", encoding="utf-8") as f:   # the buyer reads what happened
+                     f.write(json.dumps({"order": o["order"], "shop": shop_url, "item": receipt.get("item"),

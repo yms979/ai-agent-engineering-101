@@ -84,7 +84,9 @@ reference; one per 5.5 min.};
 rotated kit log.\\[2pt]
 \h{watch\_round.sh} (cron, 15 min): merges course updates and restarts on a kit change; saves the board when a
 round ends; health: down, or no result for 30 min.\\[2pt]
-\h{notify.py}: one phone push (ntfy) per event.};
+\h{notify.py}: one phone push (ntfy) per event, and on the first Round 3 order, payment, sale or failure.\\[2pt]
+\h{Unattended}: model breaker (10 min of code rules), tool-payment breaker (the kit pays), course kit updates
+re-patched or replaced.};
 
 % ---------------- policy layer
 \node[box=45mm, fill=violet!8, anchor=north west] (policy) at (21.1,-6.8) {\h{Policy layer}\\ (policy.py + params.json)\\[2pt]

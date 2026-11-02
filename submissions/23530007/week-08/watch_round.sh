@@ -7,7 +7,9 @@
 # Each check
 #   - upstream main (the course repo): new commits are fetched, listed and merged into the current branch
 #     (merge, never rebase; aborted on a conflict); lines marked !! when they touch weeks/week-08/,
-#     scripts/check_week08.py or the kit, and a kit change stops the kit so run_market.sh restarts it on the new one,
+#     scripts/check_week08.py or the kit, and a kit change stops the kit so run_market.sh restarts it on the new one;
+#     with our own market_kit.py the change is ported by re-applying kit.patch (our 3 changes), and if that patch
+#     does not apply the copy is set aside so the course kit runs (tool payment off, the kit pays),
 #   - the market round (/api/board "current"): on a change, saves the board of the round that just ended
 #     to logs/board-round<N>-final-<time>.json, the "before" side of the price analysis,
 #   - health: run_market.sh not running, or no market result line in the kit log for 30 min; and recovery.
@@ -46,13 +48,25 @@ if [ -n "$hash" ] && [ "$hash" != "$old_hash" ]; then
             say "merged upstream/main into $(git -C "$REPO" branch --show-current)"
             if echo "$files" | grep -qE '^scripts/market_kit\.py$'; then
                 ver=$(grep -m1 '^KIT_VERSION' "$REPO/scripts/market_kit.py")
-                if [ -f "$HERE/market_kit.py" ]; then
-                    say "!! the course kit changed ($ver) but this folder runs its own market_kit.py; port the change by hand"
-                else
-                    kit=$(pgrep -f "market_kit.py join --dir $HERE" | head -1)
-                    [ -n "$kit" ] && kill -TERM "$kit"
-                    say "!! the kit changed ($ver); stopped kit pid ${kit:-none}, run_market.sh starts it again on the new kit"
+                if [ -f "$HERE/market_kit.py" ]; then        # our copy: re-apply kit.patch to the new course kit
+                    new=$HERE/.market/market_kit.new.py
+                    cp "$REPO/scripts/market_kit.py" "$new"
+                    if [ -s "$HERE/kit.patch" ] && patch -s -F0 --no-backup-if-mismatch -r - "$new" < "$HERE/kit.patch" >/dev/null 2>&1 \
+                            && "$HERE/.venv/bin/python" -m py_compile "$new" 2>/dev/null; then
+                        cp "$HERE/market_kit.py" "$HERE/.market/market_kit.prev.py"
+                        mv "$new" "$HERE/market_kit.py"
+                        diff -u "$REPO/scripts/market_kit.py" "$HERE/market_kit.py" > "$HERE/kit.patch"
+                        say "!! the course kit changed ($ver); our changes (kit.patch) re-applied to it, restarting the kit"
+                    else
+                        rm -f "$new"
+                        mv "$HERE/market_kit.py" "$HERE/market_kit.py.disabled"
+                        say "!! the course kit changed ($ver); kit.patch does not apply, so the course kit runs now (tool payment off, the kit pays); port market_kit.py.disabled by hand"
+                    fi
                 fi
+                # the kit process only: a pattern match on the command line would also hit this shell
+                kit=$(ps -eo pid,args | awk -v d="$HERE" '$2 ~ /\/python$/ && index($0, "market_kit.py join --dir " d) {print $1}' | head -1)
+                [ -n "$kit" ] && kill -TERM "$kit"
+                say "!! stopped kit pid ${kit:-none}; run_market.sh starts it again on the new kit"
             fi
         else
             git -C "$REPO" merge --abort >/dev/null 2>&1

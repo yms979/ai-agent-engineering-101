@@ -60,6 +60,30 @@ archive_rotated() {
 shop_answers() { curl -fsS -m 15 -o /dev/null "$1/.well-known/agent-card.json" 2>/dev/null; }
 
 # only the end of the run, and only 429 as a status: trade lines carry numbers like "ledger #429"
+# Round 3 firsts: each sends one phone push (notify.py) the first time it shows in the kit's output, ever
+# (.market/notified keeps what was sent, across restarts). Nobody announced when Round 3 opens.
+EVENTS=(
+  "round3|\\[order [^]]*\\].*round 3|Round 3 opened: the first Round 3 order arrived"
+  "paid_tools|ACP tools: paid|Buyer: first purchase paid through our acp.json tools"
+  "paid_kit|\\[acp\\] paid [0-9]|Buyer: first purchase paid (by the kit's checkout code)"
+  "sold|\\[acp\\] settled |Shop: first sale settled"
+  "pay_fail|ACP tools failed|ACP tools: not paid|\\[acp\\] payment (failed|not completed)|\\[acp\\] checkout refused|Buyer: a payment did not go through, see logs/market-kit.log"
+  "settle_fail|\\[acp\\] settle refused|Shop: the market refused to settle one of our sales"
+)
+check_events() {
+    local done_file=$STATE/notified
+    touch "$done_file"
+    for e in "${EVENTS[@]}"; do
+        local key=${e%%|*} rest=${e#*|}
+        local msg=${rest##*|} pat=${rest%|*}
+        grep -qx "$key" "$done_file" && continue
+        local hit; hit=$(grep -m1 -E "$pat" "$RUN_OUT" 2>/dev/null) || continue
+        echo "$key" >> "$done_file"
+        local sent; sent=$("$PY" "$HERE/notify.py" "[yms979] $msg" "$(echo "$hit" | cut -c1-300)" 2>/dev/null)
+        say "event $key: $msg (push: ${sent:-none})"
+    done
+}
+
 rate_limited() { tail -n 30 "$RUN_OUT" | grep -qE 'Too Many Requests|did not print a trycloudflare URL|(status|code|HTTP)[^0-9]{0,3}429'; }
 
 kit_pid=""
@@ -98,6 +122,7 @@ run_loop() {
         while kill -0 "$kit_pid" 2>/dev/null; do
             sleep 5
             archive_rotated
+            [ $((SECONDS % 30)) -lt 5 ] && check_events
             [ $SECONDS -ge $next_check ] || continue
             next_check=$((SECONDS + CHECK_EVERY))
             local url; url=$(shop_url)

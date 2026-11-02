@@ -51,6 +51,10 @@
    my latest deal for that name within BREAK_WINDOW before it broke, mark that trade broken and count it
    against the shop (mem["broken"]); the shop view shows "N of M goods broke", and the fallback ranking and
    the harness see it.
+9. Paying (optional midterm part): for a signed, honest Round 3 deal, acp_tools.pay() reads the shop's
+   acp.json, builds tools from it and lets the model drive the checkout; code keeps the money checks and signs
+   the closed mandates. The result line then carries "mandate_receipt" and our kit copy (market_kit.py) uses
+   it; if this path does not finish, the kit pays as before.
 8. Market intelligence for our own shop. After each Round 3 negotiation one line goes to market_intel.jsonl:
    the other shop's first ask, lowest ask and deal price against the list price, for that SKU and category.
    The public ledger shows only settled prices; first asks are seen only by a buyer who negotiates, and
@@ -436,6 +440,21 @@ def main():
     out = {"shop": pick["url"], "receipt": rec if outcome == "deal" else None, "stars": stars, "review": review}
     if accept:
         out["accept"] = accept
+    mfile = md / "mandates.json"
+    if acceptable and outcome == "deal" and honest and not void and pick.get("pubkey") and mfile.is_file():
+        try:                                       # pay through the shop's ACP tools (acp_tools.py)
+            m = json.loads(mfile.read_text(encoding="utf-8"))
+            if m.get("order") == order.get("order") and m.get("mandates"):
+                from acp_tools import pay
+                r2 = dict(rec)
+                if isinstance(r2.get("price"), float) and r2["price"].is_integer():
+                    r2["price"] = int(r2["price"])       # A2A carries numbers as doubles; the checkout wants an int
+                mr, how = pay(order, m["mandates"], str(pick["url"]).rstrip("/"), pick["pubkey"], r2, accept)
+                log("buyer", f"ACP tools: {'paid, ledger #' + str(mr.get('ledger')) if mr else 'not paid'} ({how})")
+                if mr:
+                    out["mandate_receipt"] = mr
+        except Exception as e:                     # the kit pays the old way
+            log("buyer", f"ACP tools failed: {type(e).__name__}: {e}; the kit pays instead")
     print(json.dumps(out, ensure_ascii=False), flush=True)
 
 

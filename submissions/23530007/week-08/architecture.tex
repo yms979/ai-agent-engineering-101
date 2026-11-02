@@ -3,6 +3,7 @@
 \documentclass[10pt]{article}
 \usepackage[a4paper,landscape,margin=9mm]{geometry}
 \usepackage{tikz}
+\usepackage{adjustbox}
 \usetikzlibrary{positioning,fit,arrows.meta,backgrounds,calc}
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
@@ -26,13 +27,14 @@
 \h{Code decides money}; the model words, picks and haggles inside limits the code enforces.}
 \end{center}
 \vspace{1mm}
-\resizebox{\linewidth}{!}{\begin{tikzpicture}
+\begin{adjustbox}{max width=\linewidth, max totalheight=0.86\textheight, center}
+\begin{tikzpicture}
 
 % ---------------- column 1: market and kit
 \node[box=55mm, fill=gray!8, anchor=north west] (market) at (0,0) {\h{Market} (market.ourolabs.ai)\\[1pt]
 orders: a category, its acceptable SKUs, a budget, for food the hours it must last\\
 supply \textbullet{} settle \textbullet{} public ledger \textbullet{} forum \textbullet{} board};
-\node[box=55mm, fill=gray!8, anchor=north west] (kit) at (0,-3.3) {\h{Course kit v4} (scripts/market\_kit.py)\\[1pt]
+\node[box=55mm, fill=gray!8, anchor=north west] (kit) at (0,-3.3) {\h{Course kit v4}, our copy (week-08/market\_kit.py: mandates and shop keys to the buyer, uses the buyer's payment, else pays itself)\\[1pt]
 A2A proxy, ACP checkout, AP2 mandates\\
 writes \texttt{.market/}: inventory, catalog, demand, forum, order, shops, deal, payments\\
 runs our hooks: seller, market\_buyer (per order), restock (every 60 s), review (after a paid deal)\\
@@ -55,7 +57,7 @@ under other shops' usual first ask, as seen by our buyer ($\pm$5 points).\\[2pt]
 \h{Policy}: one unit in every category near its median price; up to 4 more by demand, of the SKU that sells.\\[2pt]
 \h{Guards} (per regime): keep 1.5M cash, stock $\le$ 60\,\% of equity at cost, no goods over 300k, short-life food one unit;
 bankruptcy only with nothing left to sell.};
-\node[file, anchor=north west] (slog) at (6.9,-11.5) {seller\_r3\_log.jsonl\quad restock\_state.json};
+\node[file, anchor=north west] (slog) at (6.9,-12.0) {seller\_r3\_log.jsonl\quad restock\_state.json};
 \draw[data] ([xshift=-22mm]seller.south) -- node[lab, right] {deals, lost, no stock} ([xshift=-22mm]restock.north);
 
 % ---------------- column 3: buyer
@@ -67,12 +69,14 @@ visit failed or went unpaid.\\[2pt]
 sentence; code clamps the offer.\\[2pt]
 \h{Checks}: receipt signature, item, price, task, replay. \h{Accept}: certificate; food lasts hours+1;
 goods grade A or B. \h{Intel}: each other shop's first ask $\rightarrow$ market\_intel.jsonl, for our seller.
-\h{Broken goods}: matched to my deals, counted against the shop.};
-\node[box, anchor=north west] (review) at (14.0,-6.8) {\h{review.py} --- hook, after a paid deal\\[2pt]
+\h{Broken goods}: matched to my deals, counted against the shop.\\[2pt]
+\h{Pay (acp\_tools.py)}: tools built from the shop's acp.json; the model calls create, sign, complete;
+code verifies the shop's checkout, the mandate cap and accept, and signs.};
+\node[box, anchor=north west] (review) at (14.0,-7.9) {\h{review.py} --- hook, after a paid deal\\[2pt]
 \h{Stars} from the market's settled record: dishonest claim 1, worthless 2, $\le$ 90\,\% of list 5, else 4.\\[2pt]
 \h{Forum report} as buyer: price against list, grade and claim honesty, warranty or shelf life, ledger
 reference; one per 5.5 min.};
-\node[file, anchor=north west] (bmem) at (14.0,-11.5) {buyer\_memory.json\quad payments.jsonl};
+\node[file, anchor=north west] (bmem) at (14.0,-12.0) {buyer\_memory.json\quad payments.jsonl};
 
 % ---------------- column 4: operations
 \node[box=45mm, fill=blue!5, anchor=north west] (ops) at (21.1,0) {\h{Operations} (Ubuntu server)\\[2pt]
@@ -92,7 +96,7 @@ round ends; health: down, or no result for 30 min.\\[2pt]
 Each change goes to logs/policy.log.};
 
 % ---------------- model
-\node[box=118mm, fill=orange!12, anchor=north west, align=center] (llm) at (6.9,-13.8) {\h{Model}: Claude Haiku through
+\node[box=118mm, fill=orange!12, anchor=north west, align=center] (llm) at (6.9,-14.3) {\h{Model}: Claude Haiku through
 \texttt{claude -p} (harness.py), JSON answers only, the other side's text is data, never instructions.\\
 Seller: words each move within 6\,s, else a fixed line. \quad Buyer: picks the shop, haggles.};
 
@@ -118,5 +122,6 @@ Seller: words each move within 6\,s, else a fixed line. \quad Buyer: picks the s
 \draw[data, thick, violet] (policy.west) -- node[lab, above] {regime} (policy.west -| buyg.east);
 \draw[data, thick, violet] (policy.south) |- ($(llm.north)+(0,4mm)$) -| ([xshift=18mm]shopg.south)
   node[lab, pos=0.12, above] {regime + numbers to seller and restock};
-\end{tikzpicture}}
+\end{tikzpicture}
+\end{adjustbox}
 \end{document}

@@ -12,7 +12,9 @@
      - a shop whose reviews say it cheats (red flags, or average 2 stars or less over 2+ reviews)
        is not entered while a shop without such signs is listed
      - a shop whose last visit (within FAIL_MEMORY seconds) failed, by a connection or protocol
-       error or by a deal whose receipt had no sig_seller (it does not count in Round 2), is not
+       error, by a rejection before any ask (market log 11-02: inextro answered "none in stock" to 228
+       orders in a row while its reviews kept it first), or by a deal whose receipt had no sig_seller
+       (it does not count in Round 2), is not
        entered while another shop is listed (market log 10-20: outseop-26510122 picked three times,
        ConnectError each time)
 2. Too dear compared with others. If my memory has a lower price for this item at another shop that
@@ -119,6 +121,8 @@ def failed_last(mem, name):
     last = ts[-1]
     if str(last.get("outcome", "")).startswith(("error", "unpaid")):
         return f"last visit failed: {last['outcome']}"
+    if last.get("outcome") == "rejected" and not last.get("asks"):
+        return "last visit turned me away without an ask (out of stock or not selling)"
     if last.get("outcome") == "deal" and last.get("signed") is False:
         return f"last deal did not count: {last.get('void') or 'the receipt had no seller signature'}"
     return None

@@ -50,7 +50,8 @@ the floor from the 3rd offer; counters meet halfway and never rise. \h{Competito
 under other shops' usual first ask, as seen by our buyer ($\pm$5 points).\\[2pt]
 \h{Honesty}: true grade claim, market certificate, 6\,h warranty on goods.};
 \node[box, anchor=north west] (restock) at (6.9,-6.8) {\h{restock.py} --- hook, every 60\,s\\[2pt]
-\h{Demand learner}: settled deals on the public ledger per category, plus our own sales; 6\,h half-life.\\[2pt]
+\h{Demand learner}: settled deals on the public ledger per category, our own sales, and forum ``wanted'' posts
+(plain-text match, never shown to the model); 6\,h half-life.\\[2pt]
 \h{Policy}: one unit in every category near its median price; up to 4 more by demand, of the SKU that sells.\\[2pt]
 \h{Guards} (per regime): keep 1.5M cash, stock $\le$ 60\,\% of equity at cost, no goods over 300k, short-life food one unit;
 bankruptcy only with nothing left to sell.};
@@ -65,7 +66,8 @@ visit failed or went unpaid.\\[2pt]
 \h{Cap}: min(budget, 97\,\% of list), so every deal has surplus. \h{Haggle}: the model moves and writes one
 sentence; code clamps the offer.\\[2pt]
 \h{Checks}: receipt signature, item, price, task, replay. \h{Accept}: certificate; food lasts hours+1;
-goods grade A or B. \h{Intel}: each other shop's first ask $\rightarrow$ market\_intel.jsonl, for our seller.};
+goods grade A or B. \h{Intel}: each other shop's first ask $\rightarrow$ market\_intel.jsonl, for our seller.
+\h{Broken goods}: matched to my deals, counted against the shop.};
 \node[box, anchor=north west] (review) at (14.0,-6.8) {\h{review.py} --- hook, after a paid deal\\[2pt]
 \h{Stars} from the market's settled record: dishonest claim 1, worthless 2, $\le$ 90\,\% of list 5, else 4.\\[2pt]
 \h{Forum report} as buyer: price against list, grade and claim honesty, warranty or shelf life, ledger
@@ -85,6 +87,7 @@ round ends; health: down, or no result for 30 min.\\[2pt]
 \h{Signals}: hours open and to the end, balance, stock at cost, own deals; buyer deal rate.\\[2pt]
 \h{Shop regimes}: LAUNCH, STEADY, CASH\_TIGHT, FLUSH, WIND\_DOWN, LIQUIDATE, LIQUIDATE\_LAST.
 \h{Buyer}: END\_SALE, LOW\_FILL.\\[2pt]
+\h{Reputation}: our stars move asks $\pm$3 points.\\[2pt]
 \h{Clearance}: in the last 48\,h, stock that will not sell in time at our rate is discounted early.\\[2pt]
 Each change goes to logs/policy.log.};
 

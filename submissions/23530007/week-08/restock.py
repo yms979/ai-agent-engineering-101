@@ -23,6 +23,10 @@ price, so the median fits most). Limits, so stock never eats the shop:
 Within clear_window_hours of the end a category is only refilled up to what our sales rate in it can sell
 before the end (policy.clearance's rule, seen from the buying side).
 Below the bankruptcy line with (almost) nothing left to sell it files ("bankrupt": true).
+Forum demand: a post that asks for something ("구합니다", "찾습니다", "wanted", "looking for", ...) and names a
+category from demand.json (its item, e.g. 김치) counts as half a sale's worth of heat for that category, decaying the
+same way. Matching is plain text in code: forum posts never reach the model, so nothing written there can
+instruct our agents.
 It also keeps the shop's reputation for policy.py: the average stars of our newest Round 3 reviews on
 /api/shops (the market shows the last 10), in restock_state.json "rep".
 State (ledger position, decayed counts) in restock_state.json; every run logs one line to stderr.
@@ -31,6 +35,7 @@ import argparse
 import json
 import math
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -43,6 +48,7 @@ HERE = Path(__file__).resolve().parent
 MARKET = "https://market.ourolabs.ai"
 STATE = Path(os.environ.get("RESTOCK_STATE", HERE / "restock_state.json"))
 SHOP_NAME = os.environ.get("SHOP_NAME", "yms979")
+WANTED = re.compile(r"구합니다|구해요|구함|찾습니다|찾아요|삽니다|사고 ?싶|필요합니다|wanted|\bwtb\b|looking for|need(?:s|ed)? (?:a|some)", re.I)
 SALES_LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))
 HALF_LIFE = 6.0              # hours
 COST_GUESS = 0.6             # cost as a share of list price before a unit arrives (A 55-75 %, B 40-60 %, C 25-45 %)
@@ -97,6 +103,20 @@ def main():
     now = time.time()
     hours = (now - st["t"]) / 3600
     st["cat"], st["sku"], st["own_cat"] = decay(st["cat"], hours), decay(st["sku"], hours), decay(st["own_cat"], hours)
+    st["forum_cat"] = decay(st.get("forum_cat", {}), hours)
+    seen = set(st.get("forum_seen", []))                    # forum demand: "wanted" posts naming a category
+    for post in read_json(md / "forum.json", []):
+        if not isinstance(post, dict) or post.get("id") in seen or post.get("author") == SHOP_NAME:
+            continue
+        seen.add(post.get("id"))
+        text = str(post.get("text") or "")
+        if not WANTED.search(text):
+            continue
+        for d in demand:
+            names = [d.get("item") or ""] + (d.get("item") or "").split("/")
+            if any(len(n) >= 2 and n in text for n in names):
+                st["forum_cat"][d["category"]] = st["forum_cat"].get(d["category"], 0) + 1
+    st["forum_seen"] = list(seen)[-1000:]
     st["t"] = now
 
     try:                                                    # market-wide sales
@@ -157,13 +177,15 @@ def main():
 
     top_cat = max(st["cat"].values(), default=0) or 1
     top_own = max(st["own_cat"].values(), default=0) or 1
+    top_forum = max(st["forum_cat"].values(), default=0) or 1
     wants = []                                              # (priority, category, sku, qty)
     for d in demand:
         cat = d["category"]
         options = by_cat.get(cat)
         if not options:
             continue
-        heat = st["cat"].get(cat, 0) / top_cat + st["own_cat"].get(cat, 0) / top_own
+        heat = (st["cat"].get(cat, 0) / top_cat + st["own_cat"].get(cat, 0) / top_own
+                + 0.5 * st["forum_cat"].get(cat, 0) / top_forum)
         target = 1 + min(p["extra"], math.floor(p["extra"] * heat / 2 + 0.5))
         missing = target - have.get(cat, 0)
         if missing <= 0:

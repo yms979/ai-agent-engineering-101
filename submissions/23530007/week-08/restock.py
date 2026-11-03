@@ -59,7 +59,9 @@ SALES_LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))
 HALF_LIFE = 6.0
 LEAD = 60                    # seconds before a window opens that a run may already send its lines
 GAP_HOURS = 0.4              # until the window after this one: 20 min apart, 3 min open, slots move a little
-MAX_QTY = 20                 # the market's limit per supply line              # hours
+MAX_QTY = 20                 # the market's limit per supply line
+MAX_LINES = 18               # one supply call per 10 s fills a 3-minute window (our kit copy takes 18 per run)
+RECENT = 3600                # seconds of our own sales that set the current rate per category              # hours
 COST_GUESS = 0.6             # cost as a share of list price before a unit arrives (A 55-75 %, B 40-60 %, C 25-45 %)
 
 
@@ -152,6 +154,24 @@ def main():
     except Exception as e:
         print(f"[restock] reviews: {type(e).__name__}: {e}", file=sys.stderr)
 
+    recent = Counter()                                      # our deals and turned-away buyers, last RECENT s
+    if SALES_LOG.is_file():
+        with open(SALES_LOG, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    ev = json.loads(line)
+                except ValueError:
+                    continue
+                if ev.get("t", 0) < now - RECENT:
+                    continue
+                if ev.get("event") == "deal" and ev.get("category"):
+                    recent[ev["category"]] += 1
+                elif ev.get("event") == "no_stock":
+                    for sku in ev.get("skus") or []:
+                        if (catalog.get(sku) or {}).get("category"):
+                            recent[catalog[sku]["category"]] += 1
+    hours_seen = min(1.0, max(0.25, (now - (read_json(HERE / "policy_shop.json", {}).get("open_ts") or now)) / 3600))
+
     misses = Counter()                                      # our own sales and turned-away buyers
     if SALES_LOG.is_file():
         with open(SALES_LOG, encoding="utf-8") as f:
@@ -204,7 +224,8 @@ def main():
         heat = (st["cat"].get(cat, 0) / top_cat + st["own_cat"].get(cat, 0) / top_own
                 + 0.5 * st["forum_cat"].get(cat, 0) / top_forum)
         target = 1 + min(p["extra"], math.floor(p["extra"] * heat / 2 + 0.5))
-        rate = st["own_cat"].get(cat, 0) * math.log(2) / HALF_LIFE      # our sales per hour here
+        rate = max(st["own_cat"].get(cat, 0) * math.log(2) / HALF_LIFE,  # our sales per hour here: the decayed
+                   recent.get(cat, 0) / hours_seen)                   # count, or the last hour if higher
         target = max(target, math.ceil(rate * GAP_HOURS * 1.5))       # last until the next window
         missing = target - have.get(cat, 0)
         if missing <= 0:
@@ -232,7 +253,7 @@ def main():
     max_stock = p["max_stock_share"] * (cash + stock_cost)
     buy, spend = [], 0
     for _, cat, v, qty in wants:
-        if len(buy) >= 10:
+        if len(buy) >= MAX_LINES:
             break
         cost = v["list_price"] * COST_GUESS * qty
         if cash - spend - cost < p["keep_cash"] or stock_cost + spend + cost > max_stock:

@@ -10,7 +10,8 @@ Which unit. The buyer names a SKU ("I want to buy <name> (G000f6cda)"), else a p
     that still last that long; when it does not say, the freshest unit (Round 3, first 30 min: 4 of our 10
     newest reviews were 2 stars for "only 76.5 h of shelf life left; I needed 84 h" after we shipped the
     first-expiring unit to buyers who never said their need). Older units go to buyers who state shorter needs
-    or get the near-date discount
+    or get the near-date discount. A unit under DOOM_HOURS from its date goes out first to anyone (it would be
+    thrown away at cost), with its hours said plainly and an ask of at most DOOM_ASK of list
   - goods: the oldest unit first (storage costs 1 % of cost a day)
   Units in an open negotiation are held for it until it ends or idles HOLD_IDLE seconds.
 
@@ -66,6 +67,8 @@ FOOD_CUTS = (0.80, 0.45)                                  # shelf life left for 
 POLICY_CACHE = 30                                        # seconds between policy reads
 MAX_OFFERS = 8
 HOLD_IDLE = 120
+DOOM_HOURS = 24          # food this close to its date goes out first, said plainly and at <= DOOM_ASK of list
+DOOM_ASK = 0.5
 DEADLINE = float(os.environ.get("SELLER_DEADLINE", "6"))
 SKU = re.compile(r"\bG[0-9a-f]{8}\b")
 NEED = re.compile(r"(\d+(?:\.\d+)?)\s*(?:h\b|hours?|시간)", re.I)
@@ -143,8 +146,11 @@ def pick_unit(text, held, now):
         return None
     if fit[0].get("kind") == "food":
         m = NEED.search(text)
-        if not m:                                   # need unknown: the freshest, so it lasts whatever they need
-            return max(fit, key=lambda u: u["expires_at"])
+        if not m:
+            doomed = [u for u in fit if hours_left(u, now) < DOOM_HOURS]
+            if doomed:                              # its last chance before it is thrown away at cost
+                return min(doomed, key=lambda u: u["expires_at"])
+            return max(fit, key=lambda u: u["expires_at"])   # need unknown: the freshest, so it lasts
         need = float(m.group(1))
         lasting = [u for u in fit if hours_left(u, now) >= need + 1]
         return min(lasting, key=lambda u: u["expires_at"]) if lasting else max(fit, key=lambda u: u["expires_at"])
@@ -235,6 +241,9 @@ class Shop(AgentExecutor):
             c = self.clear_factor(u, now)               # 1 = sells in time at full price; below 1 = clear it now
             mult = min(p["floor_mult"], max(p["clear_floor"], p["floor_mult"] * c))
             share = p["ask_share"].get(grade, 0.8) * max(p["clear_ask_min"], math.sqrt(c))
+            doomed = u.get("kind") == "food" and u.get("unit") and hours_left(u, now) < DOOM_HOURS
+            if doomed:
+                share = min(share, DOOM_ASK)
             comp = competitor_ask(self.asks, u.get("category"), p["intel_min_samples"]) if u.get("unit") else None
             if comp is not None:                        # just under the competitors' usual first ask, within a band
                 moved = min(share + p["intel_band"], max(share - p["intel_band"], comp - p["intel_undercut"]))
@@ -248,7 +257,8 @@ class Shop(AgentExecutor):
             d["first_ask"] = d["ask"]
             hl = hours_left(u, now)
             facts = (f"{u['name']} ({u['sku']}), grade {grade}"
-                     + (f", lasts {hl:.0f} more hours" if hl is not None else "")
+                     + (f", NOTE: only {hl:.0f} hours left before its date, so it is priced down" if doomed else
+                        f", lasts {hl:.0f} more hours" if hl is not None else "")
                      + (f", {d['warranty']:g} h warranty" if u.get("kind") == "goods" and u["unit"] and d["warranty"] else "")
                      + ", market certificate included")
             line = await self.words("open with an asking price", d, text, "Thanks for asking!")

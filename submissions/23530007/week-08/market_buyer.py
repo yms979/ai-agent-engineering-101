@@ -55,6 +55,9 @@
    acp.json, builds tools from it and lets the model drive the checkout; code keeps the money checks and signs
    the closed mandates. The result line then carries "mandate_receipt" and our kit copy (market_kit.py) uses
    it; if this path does not finish, the kit pays as before.
+10. Turned away (Round 3, 11-03: 63 of 212 orders ended on a shop that listed the SKU but had none left, as
+   many as all our deals): a rejection before any ask or a connection error moves on to the next shop, up to
+   MAX_SHOPS per order while a minute is left; each try is remembered as a failed visit.
 8. Market intelligence for our own shop. After each Round 3 negotiation one line goes to market_intel.jsonl:
    the other shop's first ask, lowest ask and deal price against the list price, for that SKU and category.
    The public ledger shows only settled prices; first asks are seen only by a buyer who negotiates, and
@@ -82,6 +85,7 @@ MAX_ROUNDS = 8
 DEADLINE = 240          # the kit and the test stop the buyer at 300 s
 SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed receipt
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
+MAX_SHOPS = 3            # shops tried per order when one turns me away before any ask (stale stock list)
 BREAK_WINDOW = 7 * 3600  # goods break up to 6 h after the sale; an hour of slack for the sale's settle time
 RED_FLAGS = re.compile(r"overcharg|higher than (the price )?(we |i )?agreed|receipt (said|was|price)|scam|fake|"
                        r"cheat|dishonest|did not match|didn't match|mismatch|avoid|rip.?off|bait", re.I)
@@ -350,71 +354,83 @@ def main():
             no_deal(f"No shop had {a.item} in stock.")
             return
 
-    pick, why, skipped, views = choose(shops, mem, a.item, a.budget)
-    print(f"WHY: picked {pick['name']} ({views[pick['name']]['text']}; memory: {views[pick['name']]['mem']}). {why}"
-          + (f" Not entered: {', '.join(skipped)}." if skipped else ""), flush=True)
+    for attempt in range(MAX_SHOPS):              # a shop that turns me away before any ask: try the next one
+        pick, why, skipped, views = choose(shops, mem, a.item, a.budget)
+        print(f"WHY: picked {pick['name']} ({views[pick['name']]['text']}; memory: {views[pick['name']]['mem']}). {why}"
+              + (f" Not entered: {', '.join(skipped)}." if skipped else ""), flush=True)
 
-    item, label, cap, accept = a.item, f"a {a.item}", a.budget, None
-    first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
-    if acceptable:
-        want = pick_sku(pick, acceptable, catalog, a.budget, bp["value_share"])
-        item, label = want["sku"], f"{want['name']} ({want['sku']})"
-        cap = min(a.budget, int(want["list_price"] * bp["value_share"]))
-        hours = order.get("use_within_hours")
-        first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else "")
-        accept = {"cert": True}
-        if order.get("kind") == "food" and hours:
-            accept["min_hours_left"] = hours + bp["food_extra_hours"]
-        elif order.get("kind") == "goods":
-            accept["grades"] = bp["goods_grades"]
-        log("buyer", f"{item} list price {want['list_price']}, cap {cap} ({regime}), accept {accept}")
+        item, label, cap, accept = a.item, f"a {a.item}", a.budget, None
+        first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
+        if acceptable:
+            want = pick_sku(pick, acceptable, catalog, a.budget, bp["value_share"])
+            item, label = want["sku"], f"{want['name']} ({want['sku']})"
+            cap = min(a.budget, int(want["list_price"] * bp["value_share"]))
+            hours = order.get("use_within_hours")
+            first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else "")
+            accept = {"cert": True}
+            if order.get("kind") == "food" and hours:
+                accept["min_hours_left"] = hours + bp["food_extra_hours"]
+            elif order.get("kind") == "goods":
+                accept["grades"] = bp["goods_grades"]
+            log("buyer", f"{item} list price {want['list_price']}, cap {cap} ({regime}), accept {accept}")
 
-    listed = {s["name"] for s in shops}
-    elsewhere = best_elsewhere(mem, item, listed, pick["name"])
-    ceiling_note = ""
-    if elsewhere and elsewhere[0] < cap:
-        cap = elsewhere[0]
-        ceiling_note = f"{elsewhere[1]} offered it for {elsewhere[0]}"
-        log("buyer", f"ceiling {cap}: cheaper elsewhere ({ceiling_note}); I will not pay more here")
+        listed = {s["name"] for s in shops}
+        elsewhere = best_elsewhere(mem, item, listed, pick["name"])
+        ceiling_note = ""
+        if elsewhere and elsewhere[0] < cap:
+            cap = elsewhere[0]
+            ceiling_note = f"{elsewhere[1]} offered it for {elsewhere[0]}"
+            log("buyer", f"ceiling {cap}: cheaper elsewhere ({ceiling_note}); I will not pay more here")
 
-    outcome, price, rec, asks, agreed, history, tid = "no answer", None, None, [], None, [], None
-    try:
-        seller = Seller(pick["url"])
-        t = seller.send(first)
-        tid, ctx = t.get("id"), t.get("contextId")
-        for _ in range(MAX_ROUNDS):
-            if state(t) not in ("TASK_STATE_INPUT_REQUIRED", "TASK_STATE_UNKNOWN") or time.time() - start > DEADLINE:
-                break
-            ask = read_ask(t)[0]
-            if ask is not None:
-                asks.append(ask)
-            action, offer, ask2, say = next_move(
-                "buyer", label, cap, history, t, chat=True,
-                ledger=(f"Another shop offered this item for {cap}, so do not pay more than {cap} here."
-                        if ceiling_note else ""))
-            if ask2 is not None and ask2 not in asks:
-                asks.append(ask2)
-            if action == "walk":
-                break
-            accepting = ask2 is not None and offer >= ask2
-            text = (f"{say + ' ' if say else ''}{'Deal, I will take it at' if accepting else 'I can offer'} {offer}.")
-            agreed = offer
-            t = seller.send(text, tid, ctx)
-            tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
-        if state(t) == "TASK_STATE_COMPLETED":
-            rec = receipt(t)
-            price = as_int(rec.get("price"))
-            outcome = "deal"
-        elif state(t) == "TASK_STATE_REJECTED":
-            outcome = "rejected"
-        else:
-            low = min(asks) if asks else None
-            outcome = "too dear" if ceiling_note and low is not None and low > cap and low <= a.budget else (
-                "over budget" if low is not None and low > cap else "walked away")
-            seller.cancel(tid)
-    except (RpcError, Exception) as e:
-        log("buyer", f"trade failed: {e!r}")
-        outcome = f"error ({type(e).__name__})"
+        outcome, price, rec, asks, agreed, history, tid = "no answer", None, None, [], None, [], None
+        try:
+            seller = Seller(pick["url"])
+            t = seller.send(first)
+            tid, ctx = t.get("id"), t.get("contextId")
+            for _ in range(MAX_ROUNDS):
+                if state(t) not in ("TASK_STATE_INPUT_REQUIRED", "TASK_STATE_UNKNOWN") or time.time() - start > DEADLINE:
+                    break
+                ask = read_ask(t)[0]
+                if ask is not None:
+                    asks.append(ask)
+                action, offer, ask2, say = next_move(
+                    "buyer", label, cap, history, t, chat=True,
+                    ledger=(f"Another shop offered this item for {cap}, so do not pay more than {cap} here."
+                            if ceiling_note else ""))
+                if ask2 is not None and ask2 not in asks:
+                    asks.append(ask2)
+                if action == "walk":
+                    break
+                accepting = ask2 is not None and offer >= ask2
+                text = (f"{say + ' ' if say else ''}{'Deal, I will take it at' if accepting else 'I can offer'} {offer}.")
+                agreed = offer
+                t = seller.send(text, tid, ctx)
+                tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
+            if state(t) == "TASK_STATE_COMPLETED":
+                rec = receipt(t)
+                price = as_int(rec.get("price"))
+                outcome = "deal"
+            elif state(t) == "TASK_STATE_REJECTED":
+                outcome = "rejected"
+            else:
+                low = min(asks) if asks else None
+                outcome = "too dear" if ceiling_note and low is not None and low > cap and low <= a.budget else (
+                    "over budget" if low is not None and low > cap else "walked away")
+                seller.cancel(tid)
+        except (RpcError, Exception) as e:
+            log("buyer", f"trade failed: {e!r}")
+            outcome = f"error ({type(e).__name__})"
+        turned_away = (outcome == "rejected" and not asks) or outcome.startswith("error")
+        others = [s for s in shops if s["name"] != pick["name"]]
+        if turned_away and others and attempt < MAX_SHOPS - 1 and time.time() - start < DEADLINE - 60:
+            mem["trades"].append({"t": int(time.time()), "shop": pick["name"], "item": item, "budget": a.budget,
+                                  "order": order.get("order"), "category": a.item if acceptable else None,
+                                  "outcome": outcome, "price": None, "asks": [], "agreed": None, "honest": True,
+                                  "signed": True, "void": ""})
+            log("buyer", f"{pick['name']} turned me away ({outcome}); trying another shop ({attempt + 2}/{MAX_SHOPS})")
+            shops = others
+            continue
+        break
 
     bad, void = receipt_problems(rec, {a.item, *acceptable}, a.budget, agreed, tid, mem) if outcome == "deal" else ([], "")
     honest = not bad

@@ -20,6 +20,10 @@ price, so the median fits most). Limits, so stock never eats the shop:
   - food that keeps under 72 h: at most 1 unit at a time (it is thrown away at cost when it expires)
   - at most 3 units per line, 10 lines per run (the kit's limit); urgent lines first: sold-out categories
     with sales, then categories we do not cover yet
+Supply windows (rule added when Round 3 opened, 11-03): supply opens once every 20 minutes for 3 minutes
+(inventory.json "restock": open, opens_at, closes_at). Outside a window, more than LEAD seconds before it opens,
+this buys nothing: the kit would spend up to 90 s per line waiting. In a window each category's target also
+covers the next gap: our sales rate there x GAP_HOURS x 1.5, up to MAX_QTY units per line.
 Within clear_window_hours of the end a category is only refilled up to what our sales rate in it can sell
 before the end (policy.clearance's rule, seen from the buying side).
 Below the bankruptcy line with (almost) nothing left to sell it files ("bankrupt": true).
@@ -50,7 +54,10 @@ STATE = Path(os.environ.get("RESTOCK_STATE", HERE / "restock_state.json"))
 SHOP_NAME = os.environ.get("SHOP_NAME", "yms979")
 WANTED = re.compile(r"구합니다|구해요|구함|찾습니다|찾아요|삽니다|사고 ?싶|필요합니다|wanted|\bwtb\b|looking for|need(?:s|ed)? (?:a|some)", re.I)
 SALES_LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))
-HALF_LIFE = 6.0              # hours
+HALF_LIFE = 6.0
+LEAD = 60                    # seconds before a window opens that a run may already send its lines
+GAP_HOURS = 0.4              # until the window after this one: 20 min apart, 3 min open, slots move a little
+MAX_QTY = 20                 # the market's limit per supply line              # hours
 COST_GUESS = 0.6             # cost as a share of list price before a unit arrives (A 55-75 %, B 40-60 %, C 25-45 %)
 
 
@@ -92,7 +99,12 @@ def main():
     md = Path(ap.parse_args().state)
     inv = read_json(md / "inventory.json", {})
     regime, p, sig = shop_params()
-    if inv.get("round", 0) < 3 or inv.get("balance") is None or not p["buy"]:
+    win = inv.get("restock") or {}
+    shut = (not win.get("open") and win.get("opens_at") and win["opens_at"] - time.time() > LEAD)
+    if inv.get("round", 0) < 3 or inv.get("balance") is None or not p["buy"] or shut:
+        if shut:                                       # the ledger is read again on the next run in a window
+            print(f"[restock] supply closed, opens in {win['opens_at'] - time.time():.0f} s; nothing to buy now",
+                  file=sys.stderr)
         if inv.get("round", 0) >= 3:
             print(f"[restock] {regime}: not buying", file=sys.stderr)
         print(json.dumps({"buy": []}))
@@ -187,6 +199,8 @@ def main():
         heat = (st["cat"].get(cat, 0) / top_cat + st["own_cat"].get(cat, 0) / top_own
                 + 0.5 * st["forum_cat"].get(cat, 0) / top_forum)
         target = 1 + min(p["extra"], math.floor(p["extra"] * heat / 2 + 0.5))
+        rate = st["own_cat"].get(cat, 0) * math.log(2) / HALF_LIFE      # our sales per hour here
+        target = max(target, math.ceil(rate * GAP_HOURS * 1.5))       # last until the next window
         missing = target - have.get(cat, 0)
         if missing <= 0:
             continue
@@ -201,7 +215,7 @@ def main():
         else:
             med = d.get("median_price") or 0
             v = min(options, key=lambda v: (abs(v["list_price"] - med), -(v.get("shelf_hours") or 0)))
-        qty = min(3, missing)
+        qty = min(MAX_QTY, missing)
         if v["kind"] == "food" and (v.get("shelf_hours") or 0) < 72:
             qty = max(0, min(qty, 1 - have_sku.get(v["sku"], 0)))
         if qty <= 0:

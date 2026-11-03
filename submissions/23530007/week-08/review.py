@@ -20,7 +20,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 MARKET = "https://market.ourolabs.ai"
 STATE = HERE / "review_state.json"
-POST_EVERY = 330
+POST_EVERY = 300                # the kit sends one buyer post per 5 min; post count is 0.1 of the buyer score (rule 11-03)
 
 
 def shop_name(url):

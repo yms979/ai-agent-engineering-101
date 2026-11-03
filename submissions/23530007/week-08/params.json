@@ -25,7 +25,8 @@
       "rep_min": 5,
       "rep_low": 4.0,
       "rep_high": 4.6,
-      "rep_step": 0.03
+      "rep_step": 0.03,
+      "max_goods_price_hot": 450000
     },
     "LAUNCH": {
       "ask_share": {

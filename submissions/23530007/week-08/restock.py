@@ -16,7 +16,9 @@ or, with no sales seen yet, the SKU nearest the category's median price (orders 
 price, so the median fits most). Limits, so stock never eats the shop:
   - cash kept back: keep_cash; stock at cost at most max_stock_share of equity (balance + stock at cost),
     so stock grows with the shop (unsold stock is a loss, goods pay 1 %/day)
-  - goods listed above max_goods_price are skipped (one unit ties up too much cash)
+  - goods listed above max_goods_price are skipped (one unit ties up too much cash), except up to
+    max_goods_price_hot in a category with at least 30 % of the top category's market sales (Round 3 opened with
+    beds/mattresses at 58 sales in 15 min, mean 209k, up to 392k)
   - food that keeps under 72 h: at most 1 unit at a time (it is thrown away at cost when it expires)
   - at most 3 units per line, 10 lines per run (the kit's limit); urgent lines first: sold-out categories
     with sales, then categories we do not cover yet
@@ -180,8 +182,11 @@ def main():
         return
 
     by_cat = defaultdict(list)
+    top_market = max(st["cat"].values(), default=0) or 1
     for sku, v in catalog.items():
-        if v["kind"] == "goods" and v["list_price"] > p["max_goods_price"]:
+        hot = st["cat"].get(v["category"], 0) / top_market >= 0.3     # a category the market is buying now
+        cap = max(p["max_goods_price"], p.get("max_goods_price_hot", 0)) if hot else p["max_goods_price"]
+        if v["kind"] == "goods" and v["list_price"] > cap:
             continue
         if v["kind"] == "food" and (v.get("shelf_hours") or 0) < 24:
             continue

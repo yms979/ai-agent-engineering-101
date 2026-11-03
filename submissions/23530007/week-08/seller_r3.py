@@ -6,8 +6,11 @@ The kit runs one seller, so this one also covers the rounds before stock exists:
 week-07 items from RESERVE with the same pricing rules. From Round 3 it sells units from stock.
 
 Which unit. The buyer names a SKU ("I want to buy <name> (G000f6cda)"), else a product name or the category.
-  - food: the unit that expires first among those that still last what the buyer said it needs
-    ("... last 12 hours"); if none lasts that long, the freshest one, and the buyer is told how long it lasts
+  - food: when the buyer says how long it needs ("... last 12 hours"), the unit that expires first among those
+    that still last that long; when it does not say, the freshest unit (Round 3, first 30 min: 4 of our 10
+    newest reviews were 2 stars for "only 76.5 h of shelf life left; I needed 84 h" after we shipped the
+    first-expiring unit to buyers who never said their need). Older units go to buyers who state shorter needs
+    or get the near-date discount
   - goods: the oldest unit first (storage costs 1 % of cost a day)
   Units in an open negotiation are held for it until it ends or idles HOLD_IDLE seconds.
 
@@ -140,7 +143,9 @@ def pick_unit(text, held, now):
         return None
     if fit[0].get("kind") == "food":
         m = NEED.search(text)
-        need = float(m.group(1)) if m else 0
+        if not m:                                   # need unknown: the freshest, so it lasts whatever they need
+            return max(fit, key=lambda u: u["expires_at"])
+        need = float(m.group(1))
         lasting = [u for u in fit if hours_left(u, now) >= need + 1]
         return min(lasting, key=lambda u: u["expires_at"]) if lasting else max(fit, key=lambda u: u["expires_at"])
     return min(fit, key=lambda u: u.get("supplied_at") or 0)

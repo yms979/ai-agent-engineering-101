@@ -19,9 +19,6 @@ price, so the median fits most). Limits, so stock never eats the shop:
   - goods listed above max_goods_price are skipped (one unit ties up too much cash), except up to
     max_goods_price_hot in a category with at least 30 % of the top category's market sales (Round 3 opened with
     beds/mattresses at 58 sales in 15 min, mean 209k, up to 392k)
-  - prefer goods and long-life food (shelf life >= long_shelf_hours, 14 days): within a category a long-life SKU
-    wins; short-life food is bought only where our own rate is at least short_food_min_rate per hour (kimchi,
-    ready meals sold fast at the start), and at equal priority after goods and long-life food
   - food already in stock that no longer lasts the category's typical need is not counted as stock, so the
     category gets fresh units (the seller ships those to buyers who do not say their need); the stale ones still
     count against cash and stock limits, and sell to short-need buyers or at the near-date discount
@@ -269,11 +266,6 @@ def main():
         sell_h = max(GAP_HOURS, 1 / max(rate, 0.5))  # until a unit sells, at our rate (at least to the next window)
         lasts = lambda v: v["kind"] != "food" or (v.get("shelf_hours") or 0) * ARRIVAL_SHARE - sell_h >= need
         options = [v for v in options if lasts(v)]  # a typical arrival must still serve the order when it sells
-        long_ok = [v for v in options if v["kind"] != "food" or (v.get("shelf_hours") or 0) >= p["long_shelf_hours"]]
-        if long_ok:                                 # prefer goods and long-life food: no write-offs
-            options = long_ok
-        elif rate < p["short_food_min_rate"]:       # short-life food only where we sell it fast
-            continue
         if not options:
             continue
         seen = [v for v in options if st["sku"].get(v["sku"], 0) > 0 or misses.get(v["sku"])]
@@ -288,8 +280,7 @@ def main():
             qty = max(0, min(qty, max(1, sellable) - have_sku.get(v["sku"], 0)))
         if qty <= 0:
             continue
-        perishable = v["kind"] == "food" and (v.get("shelf_hours") or 0) < p["long_shelf_hours"]
-        priority = (0 if have.get(cat, 0) == 0 and heat > 0 else 1 if have.get(cat, 0) == 0 else 2, perishable, -heat)
+        priority = (0 if have.get(cat, 0) == 0 and heat > 0 else 1 if have.get(cat, 0) == 0 else 2, -heat)
         wants.append((priority, cat, v, qty))
 
     wants.sort(key=lambda w: w[0])

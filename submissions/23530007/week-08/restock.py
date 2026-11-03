@@ -19,6 +19,9 @@ price, so the median fits most). Limits, so stock never eats the shop:
   - goods listed above max_goods_price are skipped (one unit ties up too much cash), except up to
     max_goods_price_hot in a category with at least 30 % of the top category's market sales (Round 3 opened with
     beds/mattresses at 58 sales in 15 min, mean 209k, up to 392k)
+  - food already in stock that no longer lasts the category's typical need is not counted as stock, so the
+    category gets fresh units (the seller ships those to buyers who do not say their need); the stale ones still
+    count against cash and stock limits, and sell to short-need buyers or at the near-date discount
   - food: only SKUs that still serve buyers when they sell: shelf life x 0.6 (a typical arrival) minus the time
     to sell must cover the use_within_hours buyers ask in that category (median of the food orders our buyer saw
     in 24 h, else 72 h; the first orders asked 72 and 360 h); if the best seller fails, a longer-lasting SKU of the
@@ -210,8 +213,11 @@ def main():
             st["log_pos"] = f.tell()
 
     units = [u for u in inv.get("units", []) if u.get("grade") != "expired"]
-    have = Counter(u.get("category") for u in units)
-    have_sku = Counter(u["sku"] for u in units)
+    stale = lambda u: (u.get("kind") == "food" and u.get("expires_at")
+                       and (u["expires_at"] - now) / 3600 < needs.get(u.get("category"), DEFAULT_NEED))
+    fresh = [u for u in units if not stale(u)]             # stale food does not count as stock: buy fresh ones,
+    have = Counter(u.get("category") for u in fresh)       # the seller ships the freshest to buyers who do not
+    have_sku = Counter(u["sku"] for u in fresh)            # say their need (stale units still count for cash)
     stock_cost = sum(u.get("cost") or 0 for u in units)
     cash = inv["balance"]
 
@@ -290,7 +296,8 @@ def main():
         spend += cost
 
     STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
-    print(f"[restock] {regime}: cash {cash}, stock {len(units)} units at cost {stock_cost}, categories {len(have)}; "
+    print(f"[restock] {len(units) - len(fresh)} stale food units not counted as stock; "
+          f"{regime}: cash {cash}, stock {len(units)} units at cost {stock_cost}, categories {len(have)}; "
           f"market sales seen {sum(st['cat'].values()):.1f}; buying {len(buy)} lines (~{spend:.0f})", file=sys.stderr)
     print(json.dumps({"buy": buy}))
 

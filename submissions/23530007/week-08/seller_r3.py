@@ -26,6 +26,8 @@ liquidation in the last hours. A negotiation keeps the numbers it started with.
   - competitors' first asks, seen by our own buyer (market_intel.jsonl): with 3+ in the category over 6 h, the
     opening ask moves to 2 points under their median share of list, at most 5 points from the regime's number
     (only down while clearing); the floor never moves for it
+  - a unit unsold for slow_hours (24) opens slow_ask_cut (10 %) lower with a floor of slow_floor_mult x cost (at
+    cost): its cash goes back into stock that sells, at no loss (goods pay 1 %/day in storage)
   - an offer at or above the current ask is a deal; so is one at least meet_frac of the way from the floor to
     the ask, and from the 3rd offer on any offer at or above the floor; otherwise the counter meets the offer
     halfway and never goes up; after MAX_OFFERS offers the shop says its floor and ends
@@ -249,20 +251,26 @@ class Shop(AgentExecutor):
             regime, p, _, _ = self.policy(now)
             c = self.clear_factor(u, now)               # 1 = sells in time at full price; below 1 = clear it now
             mult = min(p["floor_mult"], max(p["clear_floor"], p["floor_mult"] * c))
+            age = (now - (u.get("supplied_at") or now)) / 3600 if u.get("unit") else 0
+            slow = age >= p.get("slow_hours", 1e9)  # unsold this long: free the cash at no loss (goods pay storage)
+            if slow:
+                mult = min(mult, p["slow_floor_mult"])
             share = p["ask_share"].get(grade, 0.8) * max(p["clear_ask_min"], math.sqrt(c))
-            doomed = u.get("kind") == "food" and u.get("unit") and is_doomed(u, now)
-            if doomed:
-                share = min(share, DOOM_ASK)
             comp = competitor_ask(self.asks, u.get("category"), p["intel_min_samples"]) if u.get("unit") else None
             if comp is not None:                        # just under the competitors' usual first ask, within a band
                 moved = min(share + p["intel_band"], max(share - p["intel_band"], comp - p["intel_undercut"]))
                 share = min(share, moved) if c < 1 else moved
+            doomed = u.get("kind") == "food" and u.get("unit") and is_doomed(u, now)
+            if slow:                                    # after the competitor move, so it cannot undo these cuts
+                share *= p["slow_ask_cut"]
+            if doomed:
+                share = min(share, DOOM_ASK)
             floor = floor_of(u, now, mult)
             ask = round100(min(u["list_price"], max(floor, u["list_price"] * share)))
             d = self.open[task.id] = {"unit": u, "grade": grade, "floor": floor, "ask": max(ask, floor),
                                       "offers": [], "seen": now, "regime": regime, "meet": p["meet_frac"],
                                       "warranty": p["warranty_hours"], "clear": round(c, 2),
-                                      "comp": None if comp is None else round(comp, 3)}
+                                      "comp": None if comp is None else round(comp, 3), "slow": slow}
             d["first_ask"] = d["ask"]
             hl = hours_left(u, now)
             facts = (f"{u['name']} ({u['sku']}), grade {grade}"
@@ -273,7 +281,8 @@ class Shop(AgentExecutor):
             line = await self.words("open with an asking price", d, text, "Thanks for asking!")
             log("seller", f"task {task.id[:8]} {u['sku']} unit {u['unit']} grade {grade} cost {u['cost']} "
                           f"floor {floor} ask {d['ask']} ({regime}" + (f", clearance {c:.2f}" if c < 1 else "")
-                          + (f", competitors ask {comp:.2f} of list" if comp is not None else "") + ")")
+                          + (f", competitors ask {comp:.2f} of list" if comp is not None else "")
+                          + (f", slow: {age:.0f} h in stock" if slow else "") + ")")
             await up.requires_input(say(f"{line} {facts}. Asking {d['ask']}. Send your offer as a number.", d["ask"]))
             return
 
@@ -309,7 +318,7 @@ class Shop(AgentExecutor):
         await up.add_artifact(parts=[new_data_part(rec)], name="receipt")
         record(event="deal", sku=u["sku"], category=u.get("category"), price=price, cost=u["cost"],
                grade=d["grade"], unit=u["unit"], offers=d["offers"], regime=d["regime"], first_ask=d["first_ask"],
-               clear=d["clear"], comp=d["comp"])
+               clear=d["clear"], comp=d["comp"], slow=d["slow"])
         log("seller", f"task {tid[:8]} deal {u['sku']} at {price} (cost {u['cost']}, floor {d['floor']})")
         del self.open[tid]
         await up.complete(say(f"Deal: {u['name']} at {price}. The receipt is signed; the unit ships with the "

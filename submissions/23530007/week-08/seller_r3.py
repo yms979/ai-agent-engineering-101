@@ -67,8 +67,9 @@ FOOD_CUTS = (0.80, 0.45)                                  # shelf life left for 
 POLICY_CACHE = 30                                        # seconds between policy reads
 MAX_OFFERS = 8
 HOLD_IDLE = 120
-DOOM_HOURS = 24          # food this close to its date goes out first, said plainly and at <= DOOM_ASK of list
-DOOM_ASK = 0.5
+DOOM_HOURS = 24          # food this close to its date goes out first, said plainly and at <= DOOM_ASK of list,
+DOOM_SHARE = 0.25        # once under DOOM_SHARE of its shelf life is left too (orders ask 10/25/50/75 % of it):
+DOOM_ASK = 0.5           # a fresh 24 h item is under 24 h from the start and must not go at half price
 DEADLINE = float(os.environ.get("SELLER_DEADLINE", "6"))
 SKU = re.compile(r"\bG[0-9a-f]{8}\b")
 NEED = re.compile(r"(\d+(?:\.\d+)?)\s*(?:h\b|hours?|시간)", re.I)
@@ -113,6 +114,14 @@ def hours_left(u, now):
     return (u["expires_at"] - now) / 3600 if u.get("expires_at") else None
 
 
+def is_doomed(u, now):
+    """Food near its date that few orders can still take: under DOOM_HOURS left and under DOOM_SHARE of its shelf."""
+    if u.get("kind") != "food" or not u.get("expires_at"):
+        return False
+    left, shelf = hours_left(u, now), shelf_hours(u["sku"]) or 0
+    return left < DOOM_HOURS and (not shelf or left / shelf < DOOM_SHARE)
+
+
 def floor_of(u, now, mult):
     cost = u["cost"]
     floor = cost * mult
@@ -147,7 +156,7 @@ def pick_unit(text, held, now):
     if fit[0].get("kind") == "food":
         m = NEED.search(text)
         if not m:
-            doomed = [u for u in fit if hours_left(u, now) < DOOM_HOURS]
+            doomed = [u for u in fit if is_doomed(u, now)]
             if doomed:                              # its last chance before it is thrown away at cost
                 return min(doomed, key=lambda u: u["expires_at"])
             return max(fit, key=lambda u: u["expires_at"])   # need unknown: the freshest, so it lasts
@@ -241,7 +250,7 @@ class Shop(AgentExecutor):
             c = self.clear_factor(u, now)               # 1 = sells in time at full price; below 1 = clear it now
             mult = min(p["floor_mult"], max(p["clear_floor"], p["floor_mult"] * c))
             share = p["ask_share"].get(grade, 0.8) * max(p["clear_ask_min"], math.sqrt(c))
-            doomed = u.get("kind") == "food" and u.get("unit") and hours_left(u, now) < DOOM_HOURS
+            doomed = u.get("kind") == "food" and u.get("unit") and is_doomed(u, now)
             if doomed:
                 share = min(share, DOOM_ASK)
             comp = competitor_ask(self.asks, u.get("category"), p["intel_min_samples"]) if u.get("unit") else None

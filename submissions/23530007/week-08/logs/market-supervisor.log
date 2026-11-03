@@ -29,3 +29,11 @@
 2026-11-02 14:10:07 [supervisor] starting the kit (/home/yooms/ai-agent-engineering-101/submissions/23530007/week-08/market_kit.py)
 2026-11-02 14:17:58 [supervisor] kit exited (code 0) after 471s; last output: 14:17:56 [seller] [14:17:56] [seller] harness call #98 -> '{"say": "Thanks so much for your interest in our grade A bookshelf! We\'d be happy to work with you on this counteroffer, so here\'s a price we think you\'ll love."}' 14:17:57 [buyer] [14:17:57] [buyer] harness call #3 -> '{"action": "offer", "price": 250, "say": "I really like this bookshelf, and I\'m hoping we can meet in the middle on the price."}' 14:17:57 [buyer] [14:17:57] [buyer] -> SendMessage "I really like this bookshelf, and I'm hoping we can meet in the middle on the price. I can offer 250." taskId=6523bf7e 
 2026-11-02 14:18:28 [supervisor] starting the kit (/home/yooms/ai-agent-engineering-101/submissions/23530007/week-08/market_kit.py)
+2026-11-02 14:45:18 [supervisor] archived a rotated kit log to logs/archive/market-kit-20261102-144518.log.gz
+2026-11-03 01:56:28 [supervisor] archived a rotated kit log to logs/archive/market-kit-20261103-015628.log.gz
+2026-11-03 12:02:13 [supervisor] event round3: Round 3 opened: the first Round 3 order arrived (push: ntfy)
+2026-11-03 12:03:12 [supervisor] event paid_tools: Buyer: first purchase paid through our acp.json tools (push: ntfy)
+2026-11-03 12:03:40 [supervisor] event sold: Shop: first sale settled (push: ntfy)
+2026-11-03 12:04:14 [supervisor] event pay_fail: Buyer: a payment did not go through, see logs/market-kit.log (push: ntfy)
+2026-11-03 12:25:27 [supervisor] kit exited (code 0) after 79619s; last output: 12:25:17 [acp] settled 맛있는 햇 부사 사과 가정용(흠과) 중대과 10kg at 18800, ledger #2136637, unit u-2750937734a0 grade C 12:25:21 [seller] [12:25:21] [seller] task cb7e3f5f deal G07ec17d5 at 190000 (cost 169166, floor 177624) 12:25:23 [acp] settled 지누스 얼티마 에어 하이브리드 스프링 침대 매트리스 25cm SS at 190000, ledger #2136645, unit u-878706656ba8 grade A 
+2026-11-03 12:25:57 [supervisor] starting the kit (/home/yooms/ai-agent-engineering-101/submissions/23530007/week-08/market_kit.py)

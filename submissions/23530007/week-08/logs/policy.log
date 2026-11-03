@@ -1,0 +1,2 @@
+2026-11-03 12:01:48 UTC [shop] - -> LAUNCH {"round": 3, "hours_open": 0.0, "hours_left": 339.0, "balance": 5000000, "stock_cost": 0, "units": 0, "deals": 0, "stars": null}
+2026-11-03 12:02:50 UTC [buyer] - -> STEADY {"hours_left": 338.9, "orders": 1, "deal_rate": 1.0}

@@ -6,6 +6,7 @@ yms979's copy (submissions/23530007/week-08/market_kit.py, kit v4 + three change
   1. Round 3: the order's open mandates also go to .market/mandates.json, so market_buyer can sign the
      closed mandates itself.
   2. shops.json carries each shop's pubkey, so market_buyer can verify the shop's checkout_jwt.
+  4. Round 3 supply windows (3 minutes every 20, one supply call per 10 s): up to 18 restock lines per run, not 10.
   3. If market_buyer's result line carries a "mandate_receipt" (it paid through the shop's ACP tools), the kit
      uses it; otherwise it pays with acp_pay as before. A buyer-side failure therefore falls back to the kit.
 
@@ -915,7 +916,7 @@ def restock(agent, d, market, md, inv, demand):
         if stuck and not inv["units"] and bankrupt(market):
             return
         buy = default_restock(inv, demand)
-    for b in buy[:10]:
+    for b in buy[:18]:                                  # yms979 change 4: a 3-minute window takes 18 calls at 1 per 10 s
         if not isinstance(b, dict):
             continue
         for _ in range(3):

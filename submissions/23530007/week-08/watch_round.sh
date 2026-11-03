@@ -120,3 +120,6 @@ print("round %s; shop yms979: %s; buyer yms979: %s" % (b["current"], shop, buyer
 fi
 
 echo "${hash:-$old_hash} ${round:-$old_round} $health" > "$STATE"
+
+# hourly status push for the user (summary.py sends at most once an hour)
+"$HERE/.venv/bin/python" "$HERE/summary.py" >/dev/null 2>&1 || true

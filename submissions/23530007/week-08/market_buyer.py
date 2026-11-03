@@ -59,6 +59,8 @@
    the other shop's first ask, lowest ask and deal price against the list price, for that SKU and category.
    The public ledger shows only settled prices; first asks are seen only by a buyer who negotiates, and
    seller_r3.py prices against them. Only negotiations this buyer had anyway: no probing for prices.
+   Every food order also logs its use_within_hours there ("type": "need"): restock.py buys only food that will
+   still last that long when it sells.
 """
 import argparse
 import json
@@ -331,6 +333,13 @@ def main():
     regime, bp = "STEADY", {}
     if acceptable:
         regime, bp, _ = buyer_params()
+        if order.get("kind") == "food" and order.get("use_within_hours"):
+            try:                                   # for our shop's restock: how long buyers need food to last
+                with open(INTEL, "a", encoding="utf-8") as f:
+                    f.write(json.dumps({"t": int(time.time()), "type": "need", "category": order.get("category"),
+                                        "hours": order["use_within_hours"]}, ensure_ascii=False) + "\n")
+            except OSError:
+                pass
         note_payments(mem, md)
         note_broken(mem, md)
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))

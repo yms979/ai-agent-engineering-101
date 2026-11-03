@@ -230,10 +230,12 @@ def main():
         STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
         return
 
+    med_price = {d["category"]: d.get("median_price") or 0 for d in demand}
+    value = {k: n * med_price.get(k, 0) for k, n in st["cat"].items()}  # market sales in won, not units
     by_cat = defaultdict(list)
-    top_market = max(st["cat"].values(), default=0) or 1
+    top_value = max(value.values(), default=0) or 1
     for sku, v in catalog.items():
-        hot = st["cat"].get(v["category"], 0) / top_market >= 0.3     # a category the market is buying now
+        hot = value.get(v["category"], 0) / top_value >= 0.3           # a category the market is buying now
         cap = max(p["max_goods_price"], p.get("max_goods_price_hot", 0)) if hot else p["max_goods_price"]
         if v["kind"] == "goods" and v["list_price"] > cap:
             continue
@@ -241,7 +243,7 @@ def main():
             continue
         by_cat[v["category"]].append(v)
 
-    top_cat = max(st["cat"].values(), default=0) or 1
+    top_cat = max(value.values(), default=0) or 1                      # a mattress outweighs a kimchi
     top_own = max(st["own_cat"].values(), default=0) or 1
     top_forum = max(st["forum_cat"].values(), default=0) or 1
     wants = []                                              # (priority, category, sku, qty)
@@ -250,9 +252,11 @@ def main():
         options = by_cat.get(cat)
         if not options:
             continue
-        heat = (st["cat"].get(cat, 0) / top_cat + st["own_cat"].get(cat, 0) / top_own
+        heat = (value.get(cat, 0) / top_cat + st["own_cat"].get(cat, 0) / top_own
                 + 0.5 * st["forum_cat"].get(cat, 0) / top_forum)
-        target = 1 + min(p["extra"], math.floor(p["extra"] * heat / 2 + 0.5))
+        selling = st["cat"].get(cat, 0) >= p["cover_min_sales"] or st["own_cat"].get(cat, 0) > 0 \
+            or st["forum_cat"].get(cat, 0) > 0 or hours_seen < 1     # lean: no baseline unit in a dead category
+        target = (1 if selling else 0) + min(p["extra"], math.floor(p["extra"] * heat / 2 + 0.5))
         rate = max(st["own_cat"].get(cat, 0) * math.log(2) / HALF_LIFE,  # our sales per hour here: the decayed
                    recent.get(cat, 0) / hours_seen)                   # count, or the last hour if higher
         target = max(target, math.ceil(rate * GAP_HOURS * 1.5))       # last until the next window

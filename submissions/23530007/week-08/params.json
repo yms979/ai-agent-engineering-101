@@ -14,7 +14,7 @@
       "keep_cash": 1500000,
       "max_stock_share": 0.6,
       "extra": 4,
-      "max_goods_price": 300000,
+      "max_goods_price": 700000,
       "clear_window_hours": 48,
       "clear_floor": 0.3,
       "clear_ask_min": 0.6,
@@ -26,10 +26,11 @@
       "rep_low": 4.0,
       "rep_high": 4.6,
       "rep_step": 0.03,
-      "max_goods_price_hot": 450000,
+      "max_goods_price_hot": 1000000,
       "slow_hours": 24,
       "slow_ask_cut": 0.9,
-      "slow_floor_mult": 1.0
+      "slow_floor_mult": 1.0,
+      "cover_min_sales": 0.5
     },
     "LAUNCH": {
       "ask_share": {

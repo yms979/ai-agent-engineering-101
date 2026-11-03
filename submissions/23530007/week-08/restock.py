@@ -24,7 +24,7 @@ price, so the median fits most). Limits, so stock never eats the shop:
     count against cash and stock limits, and sell to short-need buyers or at the near-date discount
   - food: only SKUs that still serve buyers when they sell: shelf life x 0.6 (a typical arrival) minus the time
     to sell must cover the use_within_hours buyers ask in that category (median of the food orders our buyer saw
-    in 24 h, else 72 h; the first orders asked 72 and 360 h); if the best seller fails, a longer-lasting SKU of the
+    in 24 h, else NEED_SHARE x the SKU's shelf life: orders ask 10/25/50/75 % of it); if the best seller fails, a longer-lasting SKU of the
     category; quantity no more than our rate sells while it still lasts (food is thrown away at cost)
   - at most 3 units per line, 10 lines per run (the kit's limit); urgent lines first: sold-out categories
     with sales, then categories we do not cover yet
@@ -69,8 +69,9 @@ MAX_QTY = 20                 # the market's limit per supply line
 MAX_LINES = 18               # one supply call per 10 s fills a 3-minute window (our kit copy takes 18 per run)
 RECENT = 3600                # seconds of our own sales that set the current rate per category
 ARRIVAL_SHARE = 0.6          # shelf life left at a typical arrival (A >= 80 % 25 %, B 45-80 % 50 %, C < 45 % 25 %)
-DEFAULT_NEED = 72            # hours a food buyer needs until our buyer has seen orders in that category
-                             # (the first ones asked 72 and 360 h)
+NEED_SHARE = 0.25            # a food order's use_within_hours is the category's shelf life x 0.10, 0.25, 0.50 or
+                             # 0.75 (all 28 orders our buyer saw on 11-03); 0.25 is the median, used until our buyer
+                             # has seen orders in the category (a fixed 72 h shut out 24 h categories: ready meals)
 INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))              # hours
 COST_GUESS = 0.6             # cost as a share of list price before a unit arrives (A 55-75 %, B 40-60 %, C 25-45 %)
 
@@ -214,7 +215,8 @@ def main():
 
     units = [u for u in inv.get("units", []) if u.get("grade") != "expired"]
     stale = lambda u: (u.get("kind") == "food" and u.get("expires_at")
-                       and (u["expires_at"] - now) / 3600 < needs.get(u.get("category"), DEFAULT_NEED))
+                       and (u["expires_at"] - now) / 3600
+                       < needs.get(u.get("category"), NEED_SHARE * ((catalog.get(u["sku"]) or {}).get("shelf_hours") or 0)))
     fresh = [u for u in units if not stale(u)]             # stale food does not count as stock: buy fresh ones,
     have = Counter(u.get("category") for u in fresh)       # the seller ships the freshest to buyers who do not
     have_sku = Counter(u["sku"] for u in fresh)            # say their need (stale units still count for cash)
@@ -262,9 +264,9 @@ def main():
             missing = min(missing, math.floor(rate * sig["hours_left"]) - have.get(cat, 0))
             if missing <= 0:
                 continue
-        need = needs.get(cat, DEFAULT_NEED)          # food: buyers need it to last this long after they buy
+        need_of = lambda v: needs.get(cat, NEED_SHARE * (v.get("shelf_hours") or 0))   # food: hours buyers need
         sell_h = max(GAP_HOURS, 1 / max(rate, 0.5))  # until a unit sells, at our rate (at least to the next window)
-        lasts = lambda v: v["kind"] != "food" or (v.get("shelf_hours") or 0) * ARRIVAL_SHARE - sell_h >= need
+        lasts = lambda v: v["kind"] != "food" or (v.get("shelf_hours") or 0) * ARRIVAL_SHARE - sell_h >= need_of(v)
         options = [v for v in options if lasts(v)]  # a typical arrival must still serve the order when it sells
         if not options:
             continue
@@ -276,7 +278,7 @@ def main():
             v = min(options, key=lambda v: (abs(v["list_price"] - med), -(v.get("shelf_hours") or 0)))
         qty = min(MAX_QTY, missing)
         if v["kind"] == "food":                     # no more than sells while it still lasts `need`
-            sellable = math.floor(max(rate, 0.5) * ((v.get("shelf_hours") or 0) * ARRIVAL_SHARE - need))
+            sellable = math.floor(max(rate, 0.5) * ((v.get("shelf_hours") or 0) * ARRIVAL_SHARE - need_of(v)))
             qty = max(0, min(qty, max(1, sellable) - have_sku.get(v["sku"], 0)))
         if qty <= 0:
             continue

@@ -34,6 +34,9 @@ this buys nothing: the kit would spend up to 90 s per line waiting. In a window 
 covers the next gap: our sales rate there x GAP_HOURS x 1.5, up to MAX_QTY units per line.
 Within clear_window_hours of the end a category is only refilled up to what our sales rate in it can sell
 before the end (policy.clearance's rule, seen from the buying side).
+Lines go to goods first, food after (Round 3, first 13 h: goods took 31 % of our supply lines and made 75 % of
+revenue, ~80k margin per line against ~17k for food; supply lines per window are the limit, so goods fill first
+and food gets the lines left). Food is not dropped: it is most of our sales count, reviews and visits.
 Below the bankruptcy line with (almost) nothing left to sell it files ("bankrupt": true).
 Forum demand: a post that asks for something ("구합니다", "찾습니다", "wanted", "looking for", ...) and names a
 category from demand.json (its item, e.g. 김치) counts as half a sale's worth of heat for that category, decaying the
@@ -286,7 +289,8 @@ def main():
             qty = max(0, min(qty, max(1, sellable) - have_sku.get(v["sku"], 0)))
         if qty <= 0:
             continue
-        priority = (0 if have.get(cat, 0) == 0 and heat > 0 else 1 if have.get(cat, 0) == 0 else 2, -heat)
+        priority = (v["kind"] == "food",           # goods first: a goods line earned ~80k margin vs ~17k for food
+                    0 if have.get(cat, 0) == 0 and heat > 0 else 1 if have.get(cat, 0) == 0 else 2, -heat)
         wants.append((priority, cat, v, qty))
 
     wants.sort(key=lambda w: w[0])

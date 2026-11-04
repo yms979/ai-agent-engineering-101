@@ -387,10 +387,9 @@ def main():
         listed = {s["name"] for s in shops}
         elsewhere = best_elsewhere(mem, item, listed, pick["name"])
         ceiling_note = ""
-        if elsewhere and elsewhere[0] < cap:
-            cap = elsewhere[0]
-            ceiling_note = f"{elsewhere[1]} offered it for {elsewhere[0]}"
-            log("buyer", f"ceiling {cap}: cheaper elsewhere ({ceiling_note}); I will not pay more here")
+        if elsewhere and elsewhere[0] < cap:      # a target, not a limit: as a hard cap it lost 245 of 612 orders
+            ceiling_note = f"{elsewhere[1]} offered it for {elsewhere[0]}"   # (shop floors sat above it, below list)
+            log("buyer", f"target {elsewhere[0]}: cheaper elsewhere ({ceiling_note}); I still pay up to {cap}")
 
         outcome, price, rec, asks, agreed, history, tid = "no answer", None, None, [], None, [], None
         try:
@@ -405,7 +404,8 @@ def main():
                     asks.append(ask)
                 action, offer, ask2, say = next_move(
                     "buyer", label, cap, history, t, chat=True,
-                    ledger=(f"Another shop offered this item for {cap}, so do not pay more than {cap} here."
+                    ledger=(f"Another shop sold this item for {elsewhere[0]} recently; aim near that, but this shop "
+                            f"ends the talk after 2 or 3 low offers, so rather pay up to {cap} than lose the deal."
                             if ceiling_note else ""))
                 if ask2 is not None and ask2 not in asks:
                     asks.append(ask2)

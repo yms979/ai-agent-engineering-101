@@ -63,7 +63,9 @@
    The public ledger shows only settled prices; first asks are seen only by a buyer who negotiates, and
    seller_r3.py prices against them. Only negotiations this buyer had anyway: no probing for prices.
    Every food order also logs its use_within_hours there ("type": "need"): restock.py buys only food that will
-   still last that long when it sells.
+   still last that long when it sells. Every Round 3 order logs the list-price range of its acceptable SKUs and
+   whether any shop had one ("type": "order"): restock.py stocks the price tiers orders ask for and nobody serves
+   (11-03: 352 of 410 sofa orders found no shop).
 """
 import argparse
 import json
@@ -348,6 +350,14 @@ def main():
         note_broken(mem, md)
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
         shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, bp["value_share"])]
+        prices = [(catalog.get(k) or {}).get("list_price") or 0 for k in acceptable]
+        try:                                       # for our shop's restock: which prices this order accepts,
+            with open(INTEL, "a", encoding="utf-8") as f:   # and whether any shop could serve it
+                f.write(json.dumps({"t": int(time.time()), "type": "order", "category": order.get("category"),
+                                    "kind": order.get("kind"), "budget": a.budget, "lo": min(prices, default=0),
+                                    "hi": max(prices, default=0), "served": bool(shops)}, ensure_ascii=False) + "\n")
+        except OSError:
+            pass
         if not shops:
             log("buyer", f"no shop has any of the {len(acceptable)} acceptable SKUs for {a.item} in stock")
             save_memory(mem)

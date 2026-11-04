@@ -30,7 +30,11 @@
       "slow_hours": 24,
       "slow_ask_cut": 0.9,
       "slow_floor_mult": 1.0,
-      "cover_min_sales": 0.5
+      "cover_min_sales": 0.5,
+      "tier_value_share": 0.1,
+      "tier_unserved": 10,
+      "tier_count": 3,
+      "tier_max_price": 2000000
     },
     "LAUNCH": {
       "ask_share": {

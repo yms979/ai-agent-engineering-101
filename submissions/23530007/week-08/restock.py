@@ -37,6 +37,8 @@ before the end (policy.clearance's rule, seen from the buying side).
 Lines go to goods first, food after (Round 3, first 13 h: goods took 31 % of our supply lines and made 75 % of
 revenue, ~80k margin per line against ~17k for food; supply lines per window are the limit, so goods fill first
 and food gets the lines left). Food is not dropped: it is most of our sales count, reviews and visits.
+Price tiers (tier_wants): valuable goods categories also get one unit at each of up to 3 price points chosen to
+answer the most orders (sofas: 86 % of our buyer's sofa orders found no shop on 11-03).
 Below the bankruptcy line with (almost) nothing left to sell it files ("bankrupt": true).
 Forum demand: a post that asks for something ("구합니다", "찾습니다", "wanted", "looking for", ...) and names a
 category from demand.json (its item, e.g. 김치) counts as half a sale's worth of heat for that category, decaying the
@@ -109,6 +111,54 @@ def ledger_after(seq):
 def decay(counts, hours):
     k = 0.5 ** (hours / HALF_LIFE)
     return {c: v * k for c, v in counts.items() if v * k > 0.01}
+
+
+def tier_wants(catalog, demand, value, top_cat, units, wants, p, now):
+    """Price tiers in valuable goods categories. An order accepts the category's SKUs priced 0.5-1.5x a reference,
+    so one price point only answers part of a category's orders (11-03: our single 279k mattress fit ~45% of
+    mattress orders; 352 of 410 sofa orders, budgets around 2.7M, found no shop at all). For each goods category
+    worth >= tier_value_share of the top category's market sales, or with >= tier_unserved orders our buyer saw
+    go unserved in 24 h, pick up to tier_count price points that answer the most orders and hold one unit at each:
+    the orders our buyer logged (acceptable price range, unserved ones counted twice) when there are 5+, else
+    reference prices spread like the catalog. Prices up to tier_max_price."""
+    orders = defaultdict(list)
+    try:
+        with open(INTEL, encoding="utf-8") as f:
+            for line in f.readlines()[-20000:]:
+                if '"type": "order"' in line:
+                    r = json.loads(line)
+                    if r.get("t", 0) >= now - 86400 and r.get("kind") == "goods" and r.get("hi"):
+                        orders[r["category"]].append((r["lo"], r["hi"], 1 if r.get("served") else 2))
+    except (OSError, ValueError):
+        pass
+    planned = {w[2]["sku"] for w in wants}             # SKUs already on this run's list
+    out = []
+    for d in demand:
+        cat = d["category"]
+        if d.get("kind") != "goods":
+            continue
+        unserved = sum(1 for o in orders.get(cat, []) if o[2] == 2)
+        if value.get(cat, 0) / top_cat < p["tier_value_share"] and unserved < p["tier_unserved"]:
+            continue
+        skus = [v for v in catalog.values() if v["category"] == cat and v["list_price"] <= p["tier_max_price"]
+                and v["sku"] not in planned]
+        if not skus:
+            continue
+        if len(orders.get(cat, [])) >= 5:
+            refs = orders[cat]
+        else:
+            refs = [(v["list_price"] * 0.5, v["list_price"] * 1.5, 1) for v in catalog.values() if v["category"] == cat]
+        covers = lambda price: {i for i, (lo, hi, _) in enumerate(refs) if lo <= price <= hi}
+        held = [u["list_price"] for u in units if u.get("category") == cat]
+        got = set().union(*[covers(x) for x in held]) if held else set()
+        for _ in range(p["tier_count"]):
+            best = max(skus, key=lambda v: sum(refs[i][2] for i in covers(v["list_price"]) - got))
+            gain = sum(refs[i][2] for i in covers(best["list_price"]) - got)
+            if gain <= 0:
+                break
+            got |= covers(best["list_price"])
+            out.append(((False, 0, -gain), cat, best, 2 if unserved >= 2 * p["tier_unserved"] else 1))
+    return out
 
 
 def main():
@@ -293,6 +343,7 @@ def main():
                     0 if have.get(cat, 0) == 0 and heat > 0 else 1 if have.get(cat, 0) == 0 else 2, -heat)
         wants.append((priority, cat, v, qty))
 
+    wants += tier_wants(catalog, demand, value, top_cat, units, wants, p, now)
     wants.sort(key=lambda w: w[0])
     max_stock = p["max_stock_share"] * (cash + stock_cost)
     buy, spend = [], 0

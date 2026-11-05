@@ -188,7 +188,7 @@ def best_elsewhere(mem, item, listed, exclude):
 
 
 def rivals_above():
-    """Shop names whose owners rank above us on the Players board (cached RIVALS_EVERY s in .market)."""
+    """Shop names of classmates ranked above us on the Players board (cached RIVALS_EVERY s in .market)."""
     path = HERE / ".market" / "rivals.json"
     try:
         c = json.loads(path.read_text())
@@ -199,7 +199,8 @@ def rivals_above():
     try:
         with urllib.request.urlopen(f"{MARKET}/api/board?round=3", timeout=10) as r:
             b = json.load(r)
-        players = sorted(b["players"], key=lambda x: -(x.get("total") or 0))
+        # classmates only (the midterm ranks students; shaun0927 is an outside player, user 11-05)
+        players = sorted((x for x in b["players"] if x.get("student")), key=lambda x: -(x.get("student_total") or 0))
         mine = next((i for i, x in enumerate(players) if x["player"] == ME), len(players))
         above = {x["player"] for x in players[:mine]}
         names = [s["name"] for s in b["shops"] if (s.get("owner") or {}).get("login") in above]

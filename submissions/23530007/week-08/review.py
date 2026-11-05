@@ -23,6 +23,11 @@ MARKET = "https://market.ourolabs.ai"
 STATE = HERE / "review_state.json"
 INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))
 POST_EVERY = 300                # the kit sends one buyer post per 5 min; post count is 0.1 of the buyer score (rule 11-03)
+PROBE_EVERY = 3 * 3600          # while our posts are voted down: one post to see whether that stopped
+LOW_SCORE = 0.45                # a post's score is the Wilson lower bound of its likes; the forum rating is about
+                                # the mean over all our posts (checked 11-05: 7/0 -> 0.646, 6/4 -> 0.313). From
+                                # 11-05 03:00 UTC every post of ours drew ~4 dislikes (others ~1), so each new post
+                                # scored ~0.31 against our ~0.57 mean and pulled the 0.3-weight rating down
 
 
 def shop_name(url):
@@ -60,6 +65,16 @@ def market_line(catalog, sku, now):
             f"가장 싸게 판 가게 {cheap} (중앙값 {sorted(paid[cheap])[len(paid[cheap]) // 2]:.0%})")
 
 
+def voted_down(forum, st):
+    """True while our recent buyer posts score under LOW_SCORE (last 5 with 5+ votes in .market/forum.json);
+    with none of ours in view (the file holds the last 100 posts), the last answer stands."""
+    ours = [x for x in forum if isinstance(x, dict) and x.get("author") == "yms979" and x.get("role") == "buyer"
+            and (x.get("likes") or 0) + (x.get("dislikes") or 0) >= 5 and x.get("score") is not None][-5:]
+    if ours:
+        st["low"] = sum(x["score"] for x in ours) / len(ours) < LOW_SCORE
+    return st.get("low", False)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--deal", required=True)
@@ -88,7 +103,12 @@ def main():
 
     st = json.loads(STATE.read_text()) if STATE.is_file() else {"last_post": 0}
     now = time.time()
-    if now - st["last_post"] >= POST_EVERY or s.get("claim_honest") is False:
+    try:
+        forum = json.loads((path.parent / "forum.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        forum = []
+    every = PROBE_EVERY if voted_down(forum, st) else POST_EVERY
+    if now - st["last_post"] >= every:
         facts = [f"{shop}", f"{name} ({sku})", f"{price:,}원" + (f", 정가 {listp:,}원 대비 {off}% 저렴" if listp else ""),
                  f"등급 {s.get('grade')}" + (f" (주장 {s.get('claim')}, " + ("정직" if s.get("claim_honest") else "불일치!") + ")"
                                             if s.get("claim") else ""),
@@ -102,7 +122,7 @@ def main():
         with open(path.parent / "outbox.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps({"post": post, "refs": refs, "as": "buyer"}, ensure_ascii=False) + "\n")
         st["last_post"] = now
-        STATE.write_text(json.dumps(st))
+    STATE.write_text(json.dumps(st))
     print(json.dumps({"stars": stars, "review": review}, ensure_ascii=False))
 
 

@@ -70,6 +70,7 @@
 import argparse
 import json
 import os
+import random
 import re
 import sys
 import time
@@ -87,6 +88,8 @@ MAX_ROUNDS = 8
 DEADLINE = 240          # the kit and the test stop the buyer at 300 s
 SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed receipt
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
+TOOLS_SHARE = 0.25         # deals paid through the shop's ACP tools (the model drives ~12 s of checkout);
+                           # the kit pays the rest by code, so orders keep flowing
 MAX_SHOPS = 3            # shops tried per order when one turns me away before any ask (stale stock list)
 BREAK_WINDOW = 7 * 3600  # goods break up to 6 h after the sale; an hour of slack for the sale's settle time
 RED_FLAGS = re.compile(r"overcharg|higher than (the price )?(we |i )?agreed|receipt (said|was|price)|scam|fake|"
@@ -179,7 +182,7 @@ def best_elsewhere(mem, item, listed, exclude):
     return best
 
 
-def choose(shops, mem, item, budget):
+def choose(shops, mem, item, budget, ask_model=True):
     views = {}
     for s in shops:
         text, avg, flags, nver = review_view(s)
@@ -197,7 +200,8 @@ def choose(shops, mem, item, budget):
     clean = [s for s in allowed if s["name"] not in flagged]
     allowed = clean or allowed
 
-    answer = decide("buyer", PICK.format(item=item, budget=budget, lines=lines)) if len(shops) > 1 else {}
+    answer = (decide("buyer", PICK.format(item=item, budget=budget, lines=lines))
+              if len(shops) > 1 and ask_model else {})       # retries pick by code: ~5 s a model call
     pick = next((s for s in allowed if s["name"] == (answer or {}).get("shop")), None)
     why = (answer or {}).get("why", "")
     if pick is None:
@@ -365,7 +369,7 @@ def main():
             return
 
     for attempt in range(MAX_SHOPS):              # a shop that turns me away before any ask: try the next one
-        pick, why, skipped, views = choose(shops, mem, a.item, a.budget)
+        pick, why, skipped, views = choose(shops, mem, a.item, a.budget, ask_model=attempt == 0)
         print(f"WHY: picked {pick['name']} ({views[pick['name']]['text']}; memory: {views[pick['name']]['mem']}). {why}"
               + (f" Not entered: {', '.join(skipped)}." if skipped else ""), flush=True)
 
@@ -402,6 +406,15 @@ def main():
                 ask = read_ask(t)[0]
                 if ask is not None:
                     asks.append(ask)
+                if (acceptable and ask is not None and ask <= cap
+                        and ask <= want["list_price"] * bp["quick_accept"]):
+                    # already at or under a typical deal price (median paid ~0.75-0.79 of list): take it now.
+                    # Haggling costs ~5 s a model call; order flow, not a few % of price, held the buyer back
+                    log("buyer", f"ask {ask} is {ask / want['list_price']:.0%} of list: taking it")
+                    agreed = ask
+                    t = seller.send(str(ask), tid, ctx)
+                    tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
+                    continue
                 action, offer, ask2, say = next_move(
                     "buyer", label, cap, history, t, chat=True,
                     ledger=(f"Another shop sold this item for {elsewhere[0]} recently; aim near that, but this shop "
@@ -502,7 +515,9 @@ def main():
     tools_off = tf["n"] >= 3 and time.time() - tf["t"] < 3600
     if tools_off and acceptable and outcome == "deal":
         log("buyer", f"ACP tools off after {tf['n']} failures in a row; the kit pays")
-    if acceptable and outcome == "deal" and honest and not void and pick.get("pubkey") and mfile.is_file() and not tools_off:
+    sampled = random.random() < TOOLS_SHARE
+    if (acceptable and outcome == "deal" and honest and not void and pick.get("pubkey") and mfile.is_file()
+            and not tools_off and sampled):
         try:                                       # pay through the shop's ACP tools (acp_tools.py)
             m = json.loads(mfile.read_text(encoding="utf-8"))
             if m.get("order") == order.get("order") and m.get("mandates"):

@@ -37,15 +37,15 @@
       "tier_max_price": 5000000,
       "sku_hours": 6,
       "sku_miss_weight": 0.5,
-      "sku_lines": 8,
+      "sku_lines": 12,
       "scarce_hours": 3,
       "scarce_asks": 3,
       "scarce_floor_mult": 1.15,
-      "max_goods_lines": 12,
-      "market_top": 10,
-      "market_share": 0.1,
+      "max_goods_lines": 14,
+      "market_top": 15,
+      "market_share": 0.15,
       "sku_max_price": 5000000,
-      "sku_cover_hours": 2
+      "sku_cover_hours": 3
     },
     "LAUNCH": {
       "ask_share": {
@@ -67,7 +67,7 @@
     "FLUSH": {
       "extra": 8,
       "max_goods_price": 1000000,
-      "max_stock_share": 0.5
+      "max_stock_share": 0.75
     },
     "WIND_DOWN": {
       "tier_count": 0,

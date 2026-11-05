@@ -412,7 +412,10 @@ def main():
                 if action == "walk":
                     break
                 accepting = ask2 is not None and offer >= ask2
-                text = (f"{say + ' ' if say else ''}{'Deal, I will take it at' if accepting else 'I can offer'} {offer}.")
+                if accepting or re.search(r"number|numeric", said(t), re.I):
+                    text = str(offer)        # 38 of 38 walk-aways on 11-05 had agreed, but the shop wanted the number
+                else:                        # alone ("send an unconditional numeric offer") and re-quoted until we left
+                    text = f"{say + ' ' if say else ''}I can offer {offer}."
                 agreed = offer
                 t = seller.send(text, tid, ctx)
                 tid, ctx = t.get("id") or tid, t.get("contextId") or ctx

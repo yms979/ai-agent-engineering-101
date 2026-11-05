@@ -75,6 +75,7 @@ import re
 import sys
 import time
 import urllib.request
+from collections import defaultdict
 from pathlib import Path
 
 import harness
@@ -94,6 +95,7 @@ TOOLS_SHARE = 0.25         # deals paid through the shop's ACP tools (the model 
 RIVALS_EVERY = 600         # seconds between Players board reads (user, 11-05: buy from players ranked below us)
 ME = "yms979"
 MARKET = "https://market.ourolabs.ai"
+SLOW_SECS = 60             # median seconds per visit above which a shop is skipped (5+ visits in 24 h)
 LOW_VISITS, LOW_RATE = 30, 0.25   # skip a shop that closed under 25 % of 30+ visits in 24 h (if others remain)
 MAX_SHOPS = 3            # shops tried per order when one turns me away before any ask (stale stock list)
 BREAK_WINDOW = 7 * 3600  # goods break up to 6 h after the sale; an hour of slack for the sale's settle time
@@ -238,6 +240,15 @@ def choose(shops, mem, item, budget, ask_model=True):
     good = [s for s in allowed if seen.get(s["name"], [0, 0])[0] < LOW_VISITS
             or seen[s["name"]][1] / seen[s["name"]][0] >= LOW_RATE]
     allowed = good or allowed
+    # 11-05: yeonsong2 and leeuichann took 30-55 s per answer, so one order there took 3-4 minutes and no new
+    # order came meanwhile (orders/h fell from ~130 to 66). Skip shops whose visits take SLOW_SECS (median).
+    took = defaultdict(list)
+    for t in mem["trades"]:
+        if t.get("t", 0) >= since and t.get("secs") is not None:
+            took[t["shop"]].append(t["secs"])
+    fast = [s for s in allowed if len(took.get(s["name"], [])) < 5
+            or sorted(took[s["name"]])[len(took[s["name"]]) // 2] < SLOW_SECS]
+    allowed = fast or allowed
     rivals = rivals_above()          # buying from a player ranked above us adds to their revenue and book
     lower = [s for s in allowed if s["name"] not in rivals]
     allowed = lower or allowed
@@ -412,6 +423,7 @@ def main():
 
     for attempt in range(MAX_SHOPS):              # a shop that turns me away before any ask: try the next one
         pick, why, skipped, views = choose(shops, mem, a.item, a.budget, ask_model=attempt == 0)
+        t_shop = time.time()
         print(f"WHY: picked {pick['name']} ({views[pick['name']]['text']}; memory: {views[pick['name']]['mem']}). {why}"
               + (f" Not entered: {', '.join(skipped)}." if skipped else ""), flush=True)
 
@@ -510,7 +522,8 @@ def main():
         turned_away = (outcome == "rejected" and not asks) or outcome.startswith("error")
         others = [s for s in shops if s["name"] != pick["name"]]
         if turned_away and others and attempt < MAX_SHOPS - 1 and time.time() - start < DEADLINE - 60:
-            mem["trades"].append({"t": int(time.time()), "shop": pick["name"], "item": item, "budget": a.budget,
+            mem["trades"].append({"t": int(time.time()), "secs": int(time.time() - t_shop), "shop": pick["name"],
+                                  "item": item, "budget": a.budget,
                                   "order": order.get("order"), "category": a.item if acceptable else None,
                                   "outcome": outcome, "price": None, "asks": [], "agreed": None, "honest": True,
                                   "signed": True, "void": ""})
@@ -541,7 +554,8 @@ def main():
                                    ensure_ascii=False) + "\n")
         except OSError:
             pass
-    mem["trades"].append({"t": int(time.time()), "shop": pick["name"], "item": item, "budget": a.budget,
+    mem["trades"].append({"t": int(time.time()), "secs": int(time.time() - t_shop), "shop": pick["name"],
+                          "item": item, "budget": a.budget,
                           "order": order.get("order"), "category": a.item if acceptable else None,
                           "name": want["name"] if acceptable else None, "kind": order.get("kind"),
                           "outcome": outcome, "price": price, "asks": asks, "agreed": agreed, "honest": honest,

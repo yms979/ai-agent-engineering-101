@@ -79,7 +79,7 @@ class Seller:
 
     def __init__(self, base: str, who: str = "buyer"):
         self.who, self.legacy = who, False
-        self.http = httpx.Client(headers={"A2A-Version": "1.0"}, timeout=200)
+        self.http = httpx.Client(headers={"A2A-Version": "1.0"}, timeout=60)   # a shop silent for a minute loses the order; was 200 s
         base = base.rstrip("/")
         try:
             self.card = self.http.get(base + "/.well-known/agent-card.json").json()

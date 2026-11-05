@@ -6,7 +6,7 @@ Reads, incrementally (positions kept in product_memory.json "_pos"):
   - .market/inventory.json: units in stock now; a unit seen for the first time is a purchase (cost, grade, time)
   - seller_r3_log.jsonl: deals (price, cost, task), buyers who left without a deal (canceled, lapsed, lost),
     buyers turned away for lack of stock (no_stock), blocked buyers
-  - the public ledger (/api/ledger, 10 pages a run): stars and breakages of our sales, matched by task id
+  - the public ledger (/api/ledger, up to 60 pages a run; more than 60k entries behind, it jumps to the last 30k): stars and breakages of our sales, matched by task id
 Per SKU it keeps lifetime totals and hourly buckets for the last 48 h, so rates over any recent window can be
 read back with window(). Nothing here decides anything; strategist.py does.
 """
@@ -87,7 +87,11 @@ def update():
     try:                                                 # stars and breakages of our sales, from the ledger
         seq = m["_pos"]["seq"]
         units = {v[1]: v[0] for v in m["_tasks"].values() if v[1]}
-        for _ in range(10):
+        with urllib.request.urlopen(f"{MARKET}/api/ledger?after=-500", timeout=20) as r:   # far behind: jump
+            head = (json.load(r) or [{}])[-1].get("seq")
+        if seq is None or (head and head - seq > 60000):
+            seq = (head or 0) - 30000
+        for _ in range(60):                                  # ~15-20k entries an hour; 60 pages keeps up hourly
             with urllib.request.urlopen(f"{MARKET}/api/ledger?after={seq if seq is not None else -5000}",
                                         timeout=20) as r:
                 page = json.load(r)

@@ -25,6 +25,8 @@ STATE = HERE / "review_state.json"
 INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))
 POST_EVERY = 300                # the kit sends one buyer post per 5 min; post count is 0.1 of the buyer score (rule 11-03)
 PROBE_EVERY = 3 * 3600          # while our posts are voted down: one post to see whether that stopped
+DOWNVOTED_SCORE = 0.31         # what a post of ours scores while it is being downvoted (6 likes, 4 dislikes)
+FORUM_MARGIN = 0.005
 LOW_SCORE = 0.45                # a post's score is the Wilson lower bound of its likes; the forum rating is about
                                 # the mean over all our posts (checked 11-05: 7/0 -> 0.646, 6/4 -> 0.313). From
                                 # 11-05 03:00 UTC every post of ours drew ~4 dislikes (others ~1), so each new post
@@ -103,6 +105,25 @@ def answer_boycotts(forum, outbox):
         VOTES.write_text(json.dumps({"voted": sorted(done | set(new))}))
 
 
+def posting_pays(st):
+    """While voted down, post anyway if our forum rating stays above the next buyer below us (posts are 0.1 of
+    the buyer score). 11-06: after a mass downvote of our old posts the rating sat at 0.361 with the next buyer
+    below at 0.343; a downvoted post scores ~0.31, so ~70 more posts keep the rank and add ~0.01 on posts.
+    Checked against the board at most every 10 minutes (cached in review_state.json)."""
+    if time.time() - st.get("pays_t", 0) > 600:
+        try:
+            with urllib.request.urlopen(f"{MARKET}/api/board?round=3", timeout=15) as r:
+                rows = [x for x in json.load(r)["buyers"] if x.get("all") is not None]
+            me = next(x for x in rows if x["name"] == "yms979")
+            below = max((x.get("forum") or 0 for x in rows if (x.get("forum") or 0) < me["forum"]), default=0)
+            n = max(1, me.get("posts") or 1)
+            st["pays"] = (me["forum"] * n + DOWNVOTED_SCORE) / (n + 1) > below + FORUM_MARGIN
+            st["pays_t"] = time.time()
+        except Exception:
+            return st.get("pays", False)
+    return st.get("pays", False)
+
+
 def voted_down(forum, st):
     """True while our recent buyer posts score under LOW_SCORE (last 5 with 5+ votes in .market/forum.json);
     with none of ours in view (the file holds the last 100 posts), the last answer stands."""
@@ -146,7 +167,7 @@ def main():
     except (OSError, ValueError):
         forum = []
     answer_boycotts(forum, path.parent / "outbox.jsonl")
-    every = PROBE_EVERY if voted_down(forum, st) else POST_EVERY
+    every = PROBE_EVERY if voted_down(forum, st) and not posting_pays(st) else POST_EVERY
     if now - st["last_post"] >= every:
         facts = [f"{shop}", f"{name} ({sku})", f"{price:,}원" + (f", 정가 {listp:,}원 대비 {off}% 저렴" if listp else ""),
                  f"등급 {s.get('grade')}" + (f" (주장 {s.get('claim')}, " + ("정직" if s.get("claim_honest") else "불일치!") + ")"

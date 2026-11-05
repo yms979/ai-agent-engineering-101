@@ -17,6 +17,8 @@
 set -u
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# cron starts with a bare PATH: the strategist calls claude (~/.local/bin), the same as run_market.sh sets
+export PATH="$HERE/.venv/bin:$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 REPO=$(cd "$HERE/../../.." && pwd)
 MARKET=https://market.ourolabs.ai
 STATE=$HERE/.market/watch.state               # gitignored: "<upstream hash> <round> <health>"

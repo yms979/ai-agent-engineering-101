@@ -30,6 +30,7 @@ Everything goes to logs/strategist.log; the memory to strategist_memory.json; th
 import argparse
 import json
 import shlex
+import shutil
 import subprocess
 import tempfile
 import time
@@ -48,7 +49,8 @@ PARAMS = HERE / "params.json"
 GUIDE = HERE / "MARKET_GUIDE.md"
 MARKET = "https://market.ourolabs.ai"
 EVERY = 3600 - 120
-MODEL_CMD = "claude -p --model opus --tools '' --setting-sources '' --no-session-persistence"
+CLAUDE = shutil.which("claude") or str(Path.home() / ".local" / "bin" / "claude")   # cron has a bare PATH
+MODEL_CMD = f"{CLAUDE} -p --model opus --tools '' --setting-sources '' --no-session-persistence"
 MODEL_TIMEOUT = 600
 TOP_SKUS = 45
 MAX_MOVES = 12

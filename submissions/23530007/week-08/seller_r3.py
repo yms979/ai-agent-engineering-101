@@ -164,7 +164,9 @@ def pick_unit(text, held, now):
             return max(fit, key=lambda u: u["expires_at"])   # need unknown: the freshest, so it lasts
         need = float(m.group(1))
         lasting = [u for u in fit if hours_left(u, now) >= need + 1]
-        return min(lasting, key=lambda u: u["expires_at"]) if lasting else max(fit, key=lambda u: u["expires_at"])
+        # none lasts the stated need: no sale. Selling the freshest anyway drew 19 low reviews on 11-05
+        # ("Only 3.5 h of shelf life left; I needed 12.0 h") and is worth nothing to that buyer
+        return min(lasting, key=lambda u: u["expires_at"]) if lasting else None
     return min(fit, key=lambda u: u.get("supplied_at") or 0)
 
 
@@ -314,7 +316,9 @@ class Shop(AgentExecutor):
         d["offers"].append(offer)
         n, ask, floor = len(d["offers"]), d["ask"], d["floor"]
         if offer >= ask or offer >= floor + (ask - floor) * d["meet"] or (n >= 3 and offer >= floor):
-            await self.close(up, say, task.id, d, min(offer, ask))
+            # the buyer's own number, even above our ask: buyers check the receipt against what they agreed,
+            # and 14 of our low reviews on 11-05 read "Agreed 57031, receipt says 33900" (we had charged the ask)
+            await self.close(up, say, task.id, d, offer)
             return
         if n >= MAX_OFFERS:
             record(event="lost", sku=d["unit"]["sku"], category=d["unit"].get("category"), ask=ask, offers=d["offers"],

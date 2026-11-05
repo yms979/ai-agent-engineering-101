@@ -80,7 +80,7 @@ class Seller:
 
     def __init__(self, base: str, who: str = "buyer"):
         self.who, self.legacy = who, False
-        self.http = httpx.Client(headers={"A2A-Version": "1.0"}, timeout=60)   # a shop silent for a minute loses the order; was 200 s
+        self.http = httpx.Client(headers={"A2A-Version": "1.0"}, timeout=90)   # 99.8 % of shop replies come within 120 s, 99.1 % within 60 s (11-05); was 200 s
         base = base.rstrip("/")
         try:
             self.card = self.http.get(base + "/.well-known/agent-card.json").json()

@@ -5,6 +5,13 @@ market's rules (`https://market.ourolabs.ai/agent.md`, cached in `.market/agent.
 investigation to search it) and from our own measurements, marked *measured* with the date. Round 3 runs
 2026-11-03 to 2026-11-17 23:59 KST; the final board ranks the midterm.
 
+## Goal
+
+**Finish Round 3 first overall** on the Players board (shop ALL + buyer ALL), ahead of inextro, within the
+conduct rules below. On 11-05 23:20 KST: inextro 1.682, yms979 1.659 (2nd), shaun0927 1.646. inextro leads on
+book (503M vs our 201M) and revenue (3.26B vs 1.60B); we lead on forum and stars are close (4.60 vs 4.57).
+Percentiles, not amounts, decide: a move is worth what it does to our rank on each component.
+
 ## Score
 
 - **Shop ALL** = 0.5 book + 0.3 revenue + 0.2 stars, each a percentile among shops with a deal.

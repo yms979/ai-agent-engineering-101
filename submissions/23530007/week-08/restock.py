@@ -199,7 +199,7 @@ def sku_wants(catalog, have_sku, p, now, hours_left, market_sku, mkt_units=None,
     HALF_LIFE): on 11-05 the top SKU by value was a 2.32M sofa at ~35 sales/h market-wide that we never held
     (above every price cap), with 2.25M and 2.19M sofas next; prices up to sku_max_price.
     Near-monopolies: a SKU selling >= scarce_min_rate/h market-wide whose stock in all other shops lasts under
-    scarce_market_hours, held by at most scarce_max_shops other shops, is taken at scarce_share of the market rate for scarce_cover_hours, first in line.
+    scarce_market_hours, held by at most scarce_max_shops other shops, is taken at scarce_share of the market rate for scarce_cover_hours, ranked by sales value with the rest.
     Goods only. On 11-05: Zinus Lumi bed frame 10.8/h with 1.8 h of market stock, Downing Lilo chair and Boruneo
     LED bed ~1 h; we held none of them."""
     mkt_units, mkt_shops = mkt_units or {}, mkt_shops or {}
@@ -236,7 +236,10 @@ def sku_wants(catalog, have_sku, p, now, hours_left, market_sku, mkt_units=None,
             if hours_left <= p["clear_window_hours"]:
                 qty = min(qty, math.floor(sold[sku] / p["sku_hours"] * hours_left) - have_sku.get(sku, 0))
             if qty > 0:
-                out.append(((False, -2, -rate * v["list_price"]), v["category"], v, qty))
+                # ranked with the proven SKUs by sales value per hour, not ahead of them: first in line, cheap
+                # near-monopolies filled the goods lines on 11-05 evening and the 2.32M Mate sofa went unbought
+                # (big sales fell from 55/h to 9/h)
+                out.append(((False, -1, -rate * v["list_price"]), v["category"], v, qty))
             continue
         if v["kind"] != "goods":
             continue

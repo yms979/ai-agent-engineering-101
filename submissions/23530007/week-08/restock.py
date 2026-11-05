@@ -80,6 +80,7 @@ NEED_SHARE = 0.25            # a food order's use_within_hours is the category's
                              # 0.75 (all 28 orders our buyer saw on 11-03); 0.25 is the median, used until our buyer
                              # has seen orders in the category (a fixed 72 h shut out 24 h categories: ready meals)
 INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))              # hours
+SURGE_MAX = 0.15             # most cost surge we pay on a SKU (margins run ~20-25 % of list)
 COST_GUESS = 0.6             # cost as a share of list price before a unit arrives (A 55-75 %, B 40-60 %, C 25-45 %)
 
 
@@ -420,8 +421,14 @@ def main():
     wants.sort(key=lambda w: w[0])
     max_stock = p["max_stock_share"] * (cash + stock_cost)
     buy, spend = [], 0
+    surge = {x["sku"]: x.get("units") or 0 for x in inv.get("surge") or [] if x.get("sku")}
     goods_lines = 0
     for _, cat, v, qty in wants:
+        # rule seen 11-05: past 50 units of a SKU bought market-wide in an hour, each unit adds 0.2 % to its cost
+        # (up to +50 %); we paid +13 % on the 424k mattress. Stop where the cost would pass +SURGE_MAX.
+        qty = min(qty, max(0, 50 + round(SURGE_MAX / 0.002) - surge.get(v["sku"], 0)))
+        if qty <= 0:
+            continue
         if len(buy) >= MAX_LINES:
             break
         if v["kind"] == "goods" and goods_lines >= p["max_goods_lines"]:   # food keeps the rest of the lines

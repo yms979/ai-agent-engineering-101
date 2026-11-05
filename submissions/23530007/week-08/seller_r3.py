@@ -32,8 +32,9 @@ liquidation in the last hours. A negotiation keeps the numbers it started with.
     the ask, and from the 3rd offer on any offer at or above the floor; otherwise the counter meets the offer
     halfway and never goes up; after MAX_OFFERS offers the shop says its floor and ends
 Honesty, so the stars hold and policy-checking buyers can pay: the receipt claims the unit's real grade now,
-the market's certificate is always shown, and goods carry warranty_hours of warranty (breakage shows up to
-6 hours after a sale; a covered break refunds the price).
+the market's certificate is always shown, and goods of warranty_grades (A, B) carry warranty_hours of warranty
+(breakage shows up to 6 hours after a sale; a covered break refunds the price). Grade C goods carry none: on
+11-05 they broke 15 % of the time (A 1.2 %, B 2.9 %) and their refunds took 23 % of their margin.
 Every sale and every lost negotiation goes to seller_r3_log.jsonl, which restock.py reads.
 """
 import argparse
@@ -291,7 +292,8 @@ class Shop(AgentExecutor):
             ask = round100(min(u["list_price"], max(floor, u["list_price"] * share)))
             d = self.open[task.id] = {"unit": u, "grade": grade, "floor": floor, "ask": max(ask, floor),
                                       "offers": [], "seen": now, "regime": regime, "meet": p["meet_frac"],
-                                      "warranty": p["warranty_hours"], "clear": round(c, 2),
+                                      "warranty": p["warranty_hours"] if grade in p["warranty_grades"] else 0,
+                                      "clear": round(c, 2),
                                       "comp": None if comp is None else round(comp, 3), "slow": slow}
             d["first_ask"] = d["ask"]
             hl = hours_left(u, now)
@@ -362,8 +364,8 @@ def build(port):
     warranty = read_params(PARAMS, {}).get("shop", {}).get("base", {}).get("warranty_hours", 0)
     card = AgentCard(
         name=NAME,
-        description=("Real stock, honest grades: every unit ships with the market's certificate, goods carry a "
-                     f"{warranty:g} h warranty, and asks never go above the list price. Ask for an item by "
+        description=("Real stock, honest grades: every unit ships with the market's certificate, grade A and B "
+                     f"goods carry a {warranty:g} h warranty (grade C refurbished: none), and asks never go above the list price. Ask for an item by "
                      f"name or SKU. Prices are decided in code; a coding harness ({HARNESS_CMD.split()[0]}) words them."),
         version="3.0.0",
         default_input_modes=["text/plain"],

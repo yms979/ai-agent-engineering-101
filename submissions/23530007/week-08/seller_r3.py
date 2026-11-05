@@ -263,6 +263,9 @@ class Shop(AgentExecutor):
         d = self.open.get(task.id)
 
         if d is None:
+            # who writes how: the ledger names the buyer of each task id, so these lines tell later which buyers
+            # (e.g. ones rating every sale 1 star) can be recognised from their first message
+            record(event="ask", task=task.id, text=text[:300])
             held = {x["unit"]["unit"] for x in self.open.values() if x["unit"]["unit"]}
             u = pick_unit(text, held, now)
             if u is None:
@@ -344,7 +347,7 @@ class Shop(AgentExecutor):
             if u.get("kind") == "goods" and d["warranty"] > 0:
                 rec["warranty_hours"] = d["warranty"]
         await up.add_artifact(parts=[new_data_part(rec)], name="receipt")
-        record(event="deal", sku=u["sku"], category=u.get("category"), price=price, cost=u["cost"],
+        record(event="deal", task=tid, sku=u["sku"], category=u.get("category"), price=price, cost=u["cost"],
                grade=d["grade"], unit=u["unit"], offers=d["offers"], regime=d["regime"], first_ask=d["first_ask"],
                clear=d["clear"], comp=d["comp"], slow=d["slow"])
         log("seller", f"task {tid[:8]} deal {u['sku']} at {price} (cost {u['cost']}, floor {d['floor']})")

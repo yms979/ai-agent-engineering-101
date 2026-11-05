@@ -253,6 +253,14 @@ def choose(shops, mem, item, budget, ask_model=True):
     lower = [s for s in allowed if s["name"] not in rivals]
     allowed = lower or allowed
 
+    # with our own record at 2+ of the allowed shops (5+ visits in 24 h) code picks the best closer: the model's
+    # pick cost ~9 s an order, and order flow is what holds the buyer's deal count back (rank 29, 11-05)
+    known = [s for s in allowed if seen.get(s["name"], [0, 0])[0] >= 5]
+    if len(known) >= 2:
+        pick = max(known, key=lambda s: ((seen[s["name"]][1] + 1) / (seen[s["name"]][0] + 2), views[s["name"]]["avg"] or 0))
+        v = seen[pick["name"]]
+        skipped = [n for n in views if n not in {s["name"] for s in allowed}]
+        return pick, f"code: best closer with us in 24 h ({v[1]} deals of {v[0]} visits)", skipped, views
     answer = (decide("buyer", PICK.format(item=item, budget=budget, lines=lines))
               if len(shops) > 1 and ask_model else {})       # retries pick by code: ~5 s a model call
     pick = next((s for s in allowed if s["name"] == (answer or {}).get("shop")), None)

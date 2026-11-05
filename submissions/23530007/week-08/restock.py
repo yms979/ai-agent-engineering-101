@@ -189,7 +189,7 @@ def tier_wants(catalog, demand, value, top_cat, units, wants, p, now):
     return out
 
 
-def sku_wants(catalog, have_sku, p, now, hours_left, market_sku):
+def sku_wants(catalog, have_sku, p, now, hours_left, market_sku, mkt_units=None, mkt_shops=None):
     """Goods SKUs stocked by their own demand. The category loop buys one SKU per category, and tiers hold one
     unit per price point, so a SKU buyers keep asking for runs out: on 11-04/05 the 1.87M sofa (216k margin a
     unit) turned away 66 buyers in 24 h, the 1.6M and 1.09M mattresses 26 and 17, with 90M of cash idle.
@@ -197,7 +197,13 @@ def sku_wants(catalog, have_sku, p, now, hours_left, market_sku):
     rate x sku_cover_hours, at most sku_lines SKUs (by margin-weighted rate), only goods (no expiry).
     The market's best sellers by value count too, at market_share of their market rate (ledger, half-life
     HALF_LIFE): on 11-05 the top SKU by value was a 2.32M sofa at ~35 sales/h market-wide that we never held
-    (above every price cap), with 2.25M and 2.19M sofas next; prices up to sku_max_price."""
+    (above every price cap), with 2.25M and 2.19M sofas next; prices up to sku_max_price.
+    Near-monopolies: a SKU selling >= scarce_min_rate/h market-wide whose stock in all other shops lasts under
+    scarce_market_hours, held by at most scarce_max_shops other shops, is taken at scarce_share of the market rate for scarce_cover_hours, first in line.
+    Food qualifies too when it lasts (shelf_hours >= 24), covering only to the next window. On 11-05: Hetbahn
+    brown rice 13.8/h with no shop holding any, Zinus Lumi bed frame 10.8/h with 1.8 h of market stock, Downing
+    Lilo chair and Boruneo LED bed ~1 h; we held none of them."""
+    mkt_units, mkt_shops = mkt_units or {}, mkt_shops or {}
     sold, asked = Counter(), Counter()
     since = now - p["sku_hours"] * 3600
     if SALES_LOG.is_file():
@@ -216,10 +222,24 @@ def sku_wants(catalog, have_sku, p, now, hours_left, market_sku):
     mkt = {k: n * math.log(2) / HALF_LIFE for k, n in market_sku.items()}            # market sales per hour
     best = sorted((k for k in mkt if (catalog.get(k) or {}).get("kind") == "goods"),
                   key=lambda k: -mkt[k] * catalog[k]["list_price"])[:p["market_top"]]
+    scarce = {k for k, r in mkt.items() if r >= p["scarce_min_rate"] and k in catalog
+              and mkt_units.get(k, 0) / r < p["scarce_market_hours"] and mkt_shops.get(k, 0) <= p["scarce_max_shops"]
+              and (catalog[k]["kind"] == "goods" or (catalog[k].get("shelf_hours") or 0) >= 24)}
     out = []
-    for sku in set(sold) | set(asked) | set(best):
+    for sku in set(sold) | set(asked) | set(best) | scarce:
         v = catalog.get(sku)
-        if not v or v["kind"] != "goods" or v["list_price"] > p["sku_max_price"]:
+        if not v or v["list_price"] > p["sku_max_price"]:
+            continue
+        if sku in scarce:
+            cover = p["scarce_cover_hours"] if v["kind"] == "goods" else GAP_HOURS * 1.5
+            rate = p["scarce_share"] * mkt[sku]
+            qty = min(MAX_QTY, math.ceil(rate * cover) - have_sku.get(sku, 0))
+            if hours_left <= p["clear_window_hours"]:
+                qty = min(qty, math.floor(sold[sku] / p["sku_hours"] * hours_left) - have_sku.get(sku, 0))
+            if qty > 0:
+                out.append(((v["kind"] == "food", -2, -rate * v["list_price"]), v["category"], v, qty))
+            continue
+        if v["kind"] != "goods":
             continue
         own = (sold[sku] + p["sku_miss_weight"] * asked[sku]) / p["sku_hours"]
         rate = max(own, p["market_share"] * mkt.get(sku, 0))
@@ -282,7 +302,15 @@ def main():
 
     try:                                                    # our reputation, for the seller's prices
         with urllib.request.urlopen(f"{MARKET}/api/shops", timeout=15) as r:
-            me = next((x for x in json.load(r).get("shops", []) if x.get("name") == SHOP_NAME), {})
+            shops = json.load(r).get("shops", [])
+        me = next((x for x in shops if x.get("name") == SHOP_NAME), {})
+        mkt_units, mkt_shops = Counter(), Counter()        # units of each SKU held by the other shops, and by how many
+        for x in shops:
+            if x.get("name") != SHOP_NAME:
+                held = {k: q for k, q in (x.get("stock") or {}).items() if q}
+                mkt_units.update(held)
+                mkt_shops.update(held.keys())
+        st["mkt_units"], st["mkt_shops"] = dict(mkt_units), dict(mkt_shops)
         stars = [v["stars"] for v in me.get("reviews") or []
                  if (v.get("round") or 0) >= 3 and isinstance(v.get("stars"), (int, float))]
         st["rep"] = {"avg": sum(stars) / len(stars) if stars else None, "n": len(stars), "t": now}
@@ -370,7 +398,7 @@ def main():
     top_cat = max(value.values(), default=0) or 1                      # a mattress outweighs a kimchi
     top_own = max(st["own_cat"].values(), default=0) or 1
     top_forum = max(st["forum_cat"].values(), default=0) or 1
-    wants = sku_wants(catalog, have_sku, p, now, sig["hours_left"], st["sku"])   # (priority, category, sku, qty)
+    wants = sku_wants(catalog, have_sku, p, now, sig["hours_left"], st["sku"], st.get("mkt_units"), st.get("mkt_shops"))   # (priority, category, sku, qty)
     for _, cat, v, qty in wants:                            # the category loop sees these as stock already
         have[cat] += qty
         have_sku[v["sku"]] += qty

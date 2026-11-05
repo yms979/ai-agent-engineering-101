@@ -127,5 +127,8 @@
     "end_sale_hours": 12,
     "low_fill_window": 40,
     "low_fill_rate": 0.3
+  },
+  "strategist": {
+    "mode": "propose"
   }
 }

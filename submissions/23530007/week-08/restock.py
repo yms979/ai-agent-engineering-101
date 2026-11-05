@@ -250,6 +250,7 @@ def sku_wants(catalog, have_sku, p, now, hours_left, market_sku, mkt_units=None,
         target = max(math.ceil(own * p["sku_cover_hours"]), math.ceil(p["market_share"] * mkt.get(sku, 0) * GAP_HOURS * 1.5))
         if hours_left <= p["clear_window_hours"]:          # near the end: only what sells before it
             target = min(target, math.floor(sold[sku] / p["sku_hours"] * hours_left))
+        target = math.ceil(target * (p.get("sku_auto", {}).get(sku) or {}).get("cover", 1.0))   # strategist.py
         qty = min(MAX_QTY, target - have_sku.get(sku, 0))
         if qty > 0:
             out.append(((False, -1, -rate * v["list_price"]), v["category"], v, qty))
@@ -462,6 +463,8 @@ def main():
         if len(buy) >= MAX_LINES:
             break
         if v["kind"] == "goods" and goods_lines >= p["max_goods_lines"]:   # food keeps the rest of the lines
+            continue
+        if (p.get("sku_auto", {}).get(v["sku"]) or {}).get("cover") == 0:   # the strategist stopped this SKU
             continue
         cost = v["list_price"] * COST_GUESS * qty
         if cash - spend - cost < p["keep_cash"] or stock_cost + spend + cost > max_stock:

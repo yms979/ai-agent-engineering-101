@@ -309,6 +309,7 @@ class Shop(AgentExecutor):
                 moved = min(share + p["intel_band"], max(share - p["intel_band"], comp - p["intel_undercut"]))
                 share = min(share, moved) if c < 1 else moved
             doomed = u.get("kind") == "food" and u.get("unit") and is_doomed(u, now)
+            share *= (p.get("sku_auto", {}).get(u["sku"]) or {}).get("ask", 1.0)   # strategist.py, per SKU
             if slow:                                    # after the competitor move, so it cannot undo these cuts
                 share *= p["slow_ask_cut"]
             if doomed:

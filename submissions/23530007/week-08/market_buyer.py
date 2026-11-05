@@ -90,6 +90,7 @@ SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed re
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
 TOOLS_SHARE = 0.25         # deals paid through the shop's ACP tools (the model drives ~12 s of checkout);
                            # the kit pays the rest by code, so orders keep flowing
+LOW_VISITS, LOW_RATE = 30, 0.25   # skip a shop that closed under 25 % of 30+ visits in 24 h (if others remain)
 MAX_SHOPS = 3            # shops tried per order when one turns me away before any ask (stale stock list)
 BREAK_WINDOW = 7 * 3600  # goods break up to 6 h after the sale; an hour of slack for the sale's settle time
 RED_FLAGS = re.compile(r"overcharg|higher than (the price )?(we |i )?agreed|receipt (said|was|price)|scam|fake|"
@@ -199,6 +200,17 @@ def choose(shops, mem, item, budget, ask_model=True):
     allowed = [s for s in allowed if s["name"] not in failed] or allowed
     clean = [s for s in allowed if s["name"] not in flagged]
     allowed = clean or allowed
+    since, seen = time.time() - 86400, {}                 # our own success with each shop, last 24 h
+    for t in mem["trades"]:
+        if t.get("t", 0) >= since:
+            v = seen.setdefault(t["shop"], [0, 0])
+            v[0] += 1
+            v[1] += t.get("outcome") == "deal"
+    # 11-05: kcwarni closed 4 of 119 visits, bjeon01 7 of 69, while Kiro729 closed 85 %: a shop that rarely
+    # closes with us costs the order's time (and orders only come after the last one ends)
+    good = [s for s in allowed if seen.get(s["name"], [0, 0])[0] < LOW_VISITS
+            or seen[s["name"]][1] / seen[s["name"]][0] >= LOW_RATE]
+    allowed = good or allowed
 
     answer = (decide("buyer", PICK.format(item=item, budget=budget, lines=lines))
               if len(shops) > 1 and ask_model else {})       # retries pick by code: ~5 s a model call

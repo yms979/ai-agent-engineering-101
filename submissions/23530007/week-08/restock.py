@@ -72,6 +72,8 @@ LEAD = 60                    # seconds before a window opens that a run may alre
 GAP_HOURS = 0.4              # until the window after this one: 20 min apart, 3 min open, slots move a little
 MAX_QTY = 20                 # the market's limit per supply line
 MAX_LINES = 18               # one supply call per 10 s fills a 3-minute window (our kit copy takes 18 per run)
+LEDGER_LAG = 2 * 3600        # seconds behind the newest ledger entry before skipping ahead
+LEDGER_SKIP = 20000          # entries kept when skipping (~1.3 h at ~15k entries/h on 11-05)
 RECENT = 3600                # seconds of our own sales that set the current rate per category
 ARRIVAL_SHARE = 0.6          # shelf life left at a typical arrival (A >= 80 % 25 %, B 45-80 % 50 %, C < 45 % 25 %)
 NEED_SHARE = 0.25            # a food order's use_within_hours is the category's shelf life x 0.10, 0.25, 0.50 or
@@ -88,24 +90,49 @@ def read_json(path, default):
         return default
 
 
-def ledger_after(seq):
-    """Settled deals after seq: [(seq, ts, sku)]. Reads at most 5 pages of 500 per run."""
-    out, last = [], seq
-    for _ in range(5):
+def ledger_after(seq, pages=10):
+    """Settled deals after seq: [(seq, ts, sku)]. Reads at most `pages` pages of 500 per run. More than
+    LEDGER_LAG behind (11-05: 285k entries, ~15 h, because only window runs read it), it skips to the newest
+    LEDGER_SKIP entries: counts decay with a 6 h half-life, so stale sales say little about now."""
+    out, last, ts = [], seq, None
+    for _ in range(pages):
         url = f"{MARKET}/api/ledger?after={last if last is not None else -500}"
         with urllib.request.urlopen(url, timeout=20) as r:
             page = json.load(r)
         if not page:
             break
         for e in page:
-            last = e["seq"]
+            last, ts = e["seq"], e.get("ts")
             d = e.get("data") or {}
             sku = d.get("item") or d.get("sku")
             if e.get("kind") == "settle" and isinstance(sku, str):
                 out.append((e["seq"], e.get("ts") or time.time(), sku))
         if len(page) < 500:
             break
+    if ts and time.time() - ts > LEDGER_LAG:
+        with urllib.request.urlopen(f"{MARKET}/api/ledger?after=-500", timeout=20) as r:
+            head = json.load(r)
+        if head:
+            last = max(last, head[-1]["seq"] - LEDGER_SKIP)
+            print(f"[restock] ledger {time.time() - ts:.0f} s behind: skipping to #{last}", file=sys.stderr)
     return out, last
+
+
+def market_sales(st, catalog):
+    """Add the ledger's new settled deals to the decayed market counts per category and SKU."""
+    try:
+        hours = (time.time() - st["t"]) / 3600                # bring the counts to now first
+        st["cat"], st["sku"] = decay(st["cat"], hours), decay(st["sku"], hours)
+        st["own_cat"], st["forum_cat"] = decay(st["own_cat"], hours), decay(st.get("forum_cat", {}), hours)
+        st["t"] = time.time()
+        sold, st["seq"] = ledger_after(st["seq"])
+        for _, _, sku in sold:
+            cat = (catalog.get(sku) or {}).get("category")
+            if cat:
+                st["cat"][cat] = st["cat"].get(cat, 0) + 1
+                st["sku"][sku] = st["sku"].get(sku, 0) + 1
+    except Exception as e:
+        print(f"[restock] ledger: {type(e).__name__}: {e}", file=sys.stderr)
 
 
 def decay(counts, hours):
@@ -213,7 +240,13 @@ def main():
     win = inv.get("restock") or {}
     shut = (not win.get("open") and win.get("opens_at") and win["opens_at"] - time.time() > LEAD)
     if inv.get("round", 0) < 3 or inv.get("balance") is None or not p["buy"] or shut:
-        if shut:                                       # the ledger is read again on the next run in a window
+        if inv.get("round", 0) >= 3:                   # keep up with the ledger every run, not only in windows
+            st = read_json(STATE, None)
+            if st:
+                catalog = read_json(md / "catalog.json", {})
+                market_sales(st, catalog)
+                STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
+        if shut:
             print(f"[restock] supply closed, opens in {win['opens_at'] - time.time():.0f} s; nothing to buy now",
                   file=sys.stderr)
         if inv.get("round", 0) >= 3:
@@ -242,15 +275,7 @@ def main():
     st["forum_seen"] = list(seen)[-1000:]
     st["t"] = now
 
-    try:                                                    # market-wide sales
-        sold, st["seq"] = ledger_after(st["seq"])
-        for _, _, sku in sold:
-            cat = (catalog.get(sku) or {}).get("category")
-            if cat:
-                st["cat"][cat] = st["cat"].get(cat, 0) + 1
-                st["sku"][sku] = st["sku"].get(sku, 0) + 1
-    except Exception as e:
-        print(f"[restock] ledger: {type(e).__name__}: {e}", file=sys.stderr)
+    market_sales(st, catalog)
 
     try:                                                    # our reputation, for the seller's prices
         with urllib.request.urlopen(f"{MARKET}/api/shops", timeout=15) as r:

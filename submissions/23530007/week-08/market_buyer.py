@@ -76,7 +76,7 @@ import time
 from pathlib import Path
 
 import harness
-from buyer import RpcError, Seller, next_move, read_ask, receipt, state
+from buyer import RpcError, Seller, next_move, read_ask, receipt, said, state
 from harness import as_int, decide, log
 from policy import buyer_params
 
@@ -416,6 +416,24 @@ def main():
                 agreed = offer
                 t = seller.send(text, tid, ctx)
                 tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
+            named = re.search(r"(?:below|final price is|last ask was|Lowest for this unit:)\s*(\d[\d,]*)", said(t))
+            floor = as_int(named.group(1).replace(",", "")) if named else None
+            if (state(t) == "TASK_STATE_REJECTED" and floor and floor <= cap
+                    and time.time() - start < DEADLINE - 30):
+                # most shops end the talk after 2 low offers and only then name their floor (146 of 221 rejections,
+                # 65 of them under our cap): open a new talk and offer that floor, up to 3 times
+                log("buyer", f"{pick['name']} named {floor} after ending the talk (cap {cap}); opening again at it")
+                t = seller.send(first)
+                tid, ctx = t.get("id"), t.get("contextId")
+                for _ in range(3):
+                    if state(t) not in ("TASK_STATE_INPUT_REQUIRED", "TASK_STATE_UNKNOWN"):
+                        break
+                    ask = read_ask(t)[0]
+                    if ask is not None:
+                        asks.append(ask)
+                    agreed = min(floor, ask) if ask else floor
+                    t = seller.send(f"Deal, I will take it at {agreed}.", tid, ctx)
+                    tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
             if state(t) == "TASK_STATE_COMPLETED":
                 rec = receipt(t)
                 price = as_int(rec.get("price"))

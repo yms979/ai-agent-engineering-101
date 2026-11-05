@@ -34,7 +34,14 @@
       "tier_value_share": 0.1,
       "tier_unserved": 10,
       "tier_count": 3,
-      "tier_max_price": 2000000
+      "tier_max_price": 2000000,
+      "sku_hours": 6,
+      "sku_miss_weight": 0.5,
+      "sku_lines": 8,
+      "scarce_hours": 3,
+      "scarce_asks": 3,
+      "scarce_floor_mult": 1.15,
+      "max_goods_lines": 12
     },
     "LAUNCH": {
       "ask_share": {

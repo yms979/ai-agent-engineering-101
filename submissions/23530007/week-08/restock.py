@@ -161,6 +161,42 @@ def tier_wants(catalog, demand, value, top_cat, units, wants, p, now):
     return out
 
 
+def sku_wants(catalog, have_sku, p, now, hours_left):
+    """Goods SKUs stocked by their own demand. The category loop buys one SKU per category, and tiers hold one
+    unit per price point, so a SKU buyers keep asking for runs out: on 11-04/05 the 1.87M sofa (216k margin a
+    unit) turned away 66 buyers in 24 h, the 1.6M and 1.09M mattresses 26 and 17, with 90M of cash idle.
+    Rate per SKU = (our deals + sku_miss_weight x turned-away asks naming it) over the last sku_hours; hold
+    rate x GAP_HOURS x 1.5, at most sku_lines SKUs (by margin-weighted rate), only goods (no expiry)."""
+    sold, asked = Counter(), Counter()
+    since = now - p["sku_hours"] * 3600
+    if SALES_LOG.is_file():
+        with open(SALES_LOG, encoding="utf-8") as f:
+            for line in f.readlines()[-30000:]:
+                try:
+                    ev = json.loads(line)
+                except ValueError:
+                    continue
+                if ev.get("t", 0) < since:
+                    continue
+                if ev.get("event") == "deal" and ev.get("sku"):
+                    sold[ev["sku"]] += 1
+                elif ev.get("event") == "no_stock" and ev.get("skus"):
+                    asked[ev["skus"][0]] += 1
+    out = []
+    for sku in set(sold) | set(asked):
+        v = catalog.get(sku)
+        if not v or v["kind"] != "goods" or v["list_price"] > p["tier_max_price"]:
+            continue
+        rate = (sold[sku] + p["sku_miss_weight"] * asked[sku]) / p["sku_hours"]
+        target = math.ceil(rate * GAP_HOURS * 1.5)
+        if hours_left <= p["clear_window_hours"]:          # near the end: only what sells before it
+            target = min(target, math.floor(sold[sku] / p["sku_hours"] * hours_left))
+        qty = min(MAX_QTY, target - have_sku.get(sku, 0))
+        if qty > 0:
+            out.append(((False, -1, -rate * v["list_price"]), v["category"], v, qty))
+    return sorted(out, key=lambda w: w[0])[:p["sku_lines"]]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--state", default=".market")
@@ -299,7 +335,10 @@ def main():
     top_cat = max(value.values(), default=0) or 1                      # a mattress outweighs a kimchi
     top_own = max(st["own_cat"].values(), default=0) or 1
     top_forum = max(st["forum_cat"].values(), default=0) or 1
-    wants = []                                              # (priority, category, sku, qty)
+    wants = sku_wants(catalog, have_sku, p, now, sig["hours_left"])   # (priority, category, sku, qty)
+    for _, cat, v, qty in wants:                            # the category loop sees these as stock already
+        have[cat] += qty
+        have_sku[v["sku"]] += qty
     for d in demand:
         cat = d["category"]
         options = by_cat.get(cat)
@@ -347,14 +386,18 @@ def main():
     wants.sort(key=lambda w: w[0])
     max_stock = p["max_stock_share"] * (cash + stock_cost)
     buy, spend = [], 0
+    goods_lines = 0
     for _, cat, v, qty in wants:
         if len(buy) >= MAX_LINES:
             break
+        if v["kind"] == "goods" and goods_lines >= p["max_goods_lines"]:   # food keeps the rest of the lines
+            continue
         cost = v["list_price"] * COST_GUESS * qty
         if cash - spend - cost < p["keep_cash"] or stock_cost + spend + cost > max_stock:
             continue
         buy.append({"sku": v["sku"], "qty": qty})
         spend += cost
+        goods_lines += v["kind"] == "goods"
 
     STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
     print(f"[restock] {len(units) - len(fresh)} stale food units not counted as stock; "

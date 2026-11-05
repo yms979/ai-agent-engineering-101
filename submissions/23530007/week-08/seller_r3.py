@@ -183,11 +183,28 @@ def record(**kw):
         f.write(json.dumps(dict(t=int(time.time()), **kw), ensure_ascii=False) + "\n")
 
 
+def scarce_skus(hours, min_asks):
+    """SKUs buyers asked for and found sold out at least min_asks times in the last `hours`: stock, not price,
+    limits these, so a buyer who offers three times does not get them at the cost floor."""
+    asked, since = {}, time.time() - hours * 3600
+    try:
+        with open(LOG, encoding="utf-8") as f:
+            for line in f.readlines()[-20000:]:
+                if '"no_stock"' in line:
+                    ev = json.loads(line)
+                    if ev.get("t", 0) >= since and ev.get("skus"):
+                        asked[ev["skus"][0]] = asked.get(ev["skus"][0], 0) + 1
+    except (OSError, ValueError):
+        pass
+    return {k for k, n in asked.items() if n >= min_asks}
+
+
 class Shop(AgentExecutor):
     def __init__(self):
         self.open = {}      # task id -> deal
         self.cached = (0, None)
         self.asks = {}                                    # category -> competitors' first asks / list price
+        self.scarce = set()                               # SKUs that keep selling out
 
     def policy(self, now):
         """(regime, params, hours to the end, our sales per hour by category), read every POLICY_CACHE seconds."""
@@ -195,6 +212,7 @@ class Shop(AgentExecutor):
             regime, p, sig = shop_params()
             self.cached = (now, (regime, p, sig["hours_left"], category_rates()))
             self.asks = competitor_asks(p["intel_window_hours"])
+            self.scarce = scarce_skus(p["scarce_hours"], p["scarce_asks"])
         return self.cached[1]
 
     def clear_factor(self, u, now):
@@ -255,6 +273,8 @@ class Shop(AgentExecutor):
             slow = age >= p.get("slow_hours", 1e9)  # unsold this long: free the cash at no loss (goods pay storage)
             if slow:
                 mult = min(mult, p["slow_floor_mult"])
+            elif u["sku"] in self.scarce and c >= 1 and p["buy"]:   # not when clearing or liquidating
+                mult = max(mult, p["scarce_floor_mult"])
             share = p["ask_share"].get(grade, 0.8) * max(p["clear_ask_min"], math.sqrt(c))
             comp = competitor_ask(self.asks, u.get("category"), p["intel_min_samples"]) if u.get("unit") else None
             if comp is not None:                        # just under the competitors' usual first ask, within a band

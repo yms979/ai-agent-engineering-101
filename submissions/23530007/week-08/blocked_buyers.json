@@ -1,1 +1,6 @@
-{}
+{
+  "shaun0927": [
+    "^I want to buy .+\\(G[0-9a-f]+\\)\\. Certificate attached, please\\.$",
+    "It must last at least [\\d.]+ hours \\(use within [\\d.]+ h\\): please ship a unit with at least [\\d.]+ h of shelf life left, certificate attached\\."
+  ]
+}

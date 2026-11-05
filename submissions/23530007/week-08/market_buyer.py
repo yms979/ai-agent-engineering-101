@@ -74,6 +74,7 @@ import random
 import re
 import sys
 import time
+import urllib.request
 from pathlib import Path
 
 import harness
@@ -90,6 +91,9 @@ SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed re
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
 TOOLS_SHARE = 0.25         # deals paid through the shop's ACP tools (the model drives ~12 s of checkout);
                            # the kit pays the rest by code, so orders keep flowing
+RIVALS_EVERY = 600         # seconds between Players board reads (user, 11-05: buy from players ranked below us)
+ME = "yms979"
+MARKET = "https://market.ourolabs.ai"
 LOW_VISITS, LOW_RATE = 30, 0.25   # skip a shop that closed under 25 % of 30+ visits in 24 h (if others remain)
 MAX_SHOPS = 3            # shops tried per order when one turns me away before any ask (stale stock list)
 BREAK_WINDOW = 7 * 3600  # goods break up to 6 h after the sale; an hour of slack for the sale's settle time
@@ -183,6 +187,28 @@ def best_elsewhere(mem, item, listed, exclude):
     return best
 
 
+def rivals_above():
+    """Shop names whose owners rank above us on the Players board (cached RIVALS_EVERY s in .market)."""
+    path = HERE / ".market" / "rivals.json"
+    try:
+        c = json.loads(path.read_text())
+        if time.time() - c["t"] < RIVALS_EVERY:
+            return set(c["names"])
+    except (OSError, ValueError, KeyError):
+        pass
+    try:
+        with urllib.request.urlopen(f"{MARKET}/api/board?round=3", timeout=10) as r:
+            b = json.load(r)
+        players = sorted(b["players"], key=lambda x: -(x.get("total") or 0))
+        mine = next((i for i, x in enumerate(players) if x["player"] == ME), len(players))
+        above = {x["player"] for x in players[:mine]}
+        names = [s["name"] for s in b["shops"] if (s.get("owner") or {}).get("login") in above]
+        path.write_text(json.dumps({"t": time.time(), "names": names}))
+        return set(names)
+    except Exception:
+        return set()
+
+
 def choose(shops, mem, item, budget, ask_model=True):
     views = {}
     for s in shops:
@@ -211,6 +237,9 @@ def choose(shops, mem, item, budget, ask_model=True):
     good = [s for s in allowed if seen.get(s["name"], [0, 0])[0] < LOW_VISITS
             or seen[s["name"]][1] / seen[s["name"]][0] >= LOW_RATE]
     allowed = good or allowed
+    rivals = rivals_above()          # buying from a player ranked above us adds to their revenue and book
+    lower = [s for s in allowed if s["name"] not in rivals]
+    allowed = lower or allowed
 
     answer = (decide("buyer", PICK.format(item=item, budget=budget, lines=lines))
               if len(shops) > 1 and ask_model else {})       # retries pick by code: ~5 s a model call

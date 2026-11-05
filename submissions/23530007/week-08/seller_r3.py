@@ -34,7 +34,9 @@ liquidation in the last hours. A negotiation keeps the numbers it started with.
 Honesty, so the stars hold and policy-checking buyers can pay: the receipt claims the unit's real grade now,
 the market's certificate is always shown, and goods of warranty_grades (A, B) carry warranty_hours of warranty
 (breakage shows up to 6 hours after a sale; a covered break refunds the price). Grade C goods carry none: on
-11-05 they broke 15 % of the time (A 1.2 %, B 2.9 %) and their refunds took 23 % of their margin.
+11-05 they broke 15 % of the time (A 1.2 %, B 2.9 %) and their refunds took 23 % of their margin. From 11-05
+evening no grade carries one (user's call): refunds cost ~3.5M won a day per 1 % of breakage at our volume,
+and grade C sales and stars held up without it (18/h, 4.30 stars vs A 4.44 with it).
 Every sale and every lost negotiation goes to seller_r3_log.jsonl, which restock.py reads.
 """
 import argparse
@@ -361,11 +363,14 @@ class Shop(AgentExecutor):
 
 def build(port):
     url = f"http://127.0.0.1:{port}/"
-    warranty = read_params(PARAMS, {}).get("shop", {}).get("base", {}).get("warranty_hours", 0)
+    base = read_params(PARAMS, {}).get("shop", {}).get("base", {})
+    warranty, grades = base.get("warranty_hours", 0), base.get("warranty_grades", [])
+    cover = (f"grade {' and '.join(grades)} goods carry a {warranty:g} h warranty (other grades: none)"
+             if warranty and grades else "goods are sold as graded, without a warranty (no refund if one breaks)")
     card = AgentCard(
         name=NAME,
-        description=("Real stock, honest grades: every unit ships with the market's certificate, grade A and B "
-                     f"goods carry a {warranty:g} h warranty (grade C refurbished: none), and asks never go above the list price. Ask for an item by "
+        description=("Real stock, honest grades: every unit ships with the market's certificate, "
+                     f"{cover}, and asks never go above the list price. Ask for an item by "
                      f"name or SKU. Prices are decided in code; a coding harness ({HARNESS_CMD.split()[0]}) words them."),
         version="3.0.0",
         default_input_modes=["text/plain"],

@@ -10,10 +10,7 @@
       "meet_frac": 0.5,
       "floor_mult": 1.05,
       "warranty_hours": 24,
-      "warranty_grades": [
-        "A",
-        "B"
-      ],
+      "warranty_grades": [],
       "buy": true,
       "keep_cash": 1500000,
       "max_stock_share": 0.9,

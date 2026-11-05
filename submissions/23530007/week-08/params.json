@@ -10,14 +10,17 @@
       "meet_frac": 0.5,
       "floor_mult": 1.05,
       "warranty_hours": 24,
-      "warranty_grades": ["A", "B"],
+      "warranty_grades": [
+        "A",
+        "B"
+      ],
       "buy": true,
       "keep_cash": 1500000,
-      "max_stock_share": 0.6,
+      "max_stock_share": 0.9,
       "extra": 4,
       "max_goods_price": 700000,
       "clear_window_hours": 48,
-      "clear_floor": 0.3,
+      "clear_floor": 1.0,
       "clear_ask_min": 0.6,
       "intel_window_hours": 6,
       "intel_min_samples": 3,
@@ -34,19 +37,19 @@
       "cover_min_sales": 0.5,
       "tier_value_share": 0.1,
       "tier_unserved": 10,
-      "tier_count": 3,
+      "tier_count": 4,
       "tier_max_price": 5000000,
       "sku_hours": 6,
       "sku_miss_weight": 0.5,
-      "sku_lines": 12,
+      "sku_lines": 14,
       "scarce_hours": 3,
       "scarce_asks": 3,
       "scarce_floor_mult": 1.15,
       "max_goods_lines": 14,
       "market_top": 15,
-      "market_share": 0.15,
+      "market_share": 0.2,
       "sku_max_price": 5000000,
-      "sku_cover_hours": 3
+      "sku_cover_hours": 5
     },
     "LAUNCH": {
       "ask_share": {
@@ -68,33 +71,30 @@
     "FLUSH": {
       "extra": 8,
       "max_goods_price": 1000000,
-      "max_stock_share": 0.75
+      "max_stock_share": 0.95
     },
     "WIND_DOWN": {
-      "tier_count": 0,
-      "extra": 0,
-      "max_goods_price": 100000,
-      "max_stock_share": 0.2
+      "tier_count": 0
     },
     "LIQUIDATE": {
       "buy": false,
-      "floor_mult": 0.3,
+      "floor_mult": 1.0,
       "ask_share": {
-        "A": 0.7,
-        "B": 0.6,
-        "C": 0.5
+        "A": 0.8,
+        "B": 0.7,
+        "C": 0.6
       },
-      "meet_frac": 0.2
+      "meet_frac": 0.3
     },
     "LIQUIDATE_LAST": {
       "buy": false,
-      "floor_mult": 0.02,
+      "floor_mult": 1.0,
       "ask_share": {
-        "A": 0.5,
-        "B": 0.4,
-        "C": 0.3
+        "A": 0.75,
+        "B": 0.65,
+        "C": 0.55
       },
-      "meet_frac": 0.0
+      "meet_frac": 0.2
     }
   },
   "buyer": {

@@ -78,9 +78,10 @@ def about_us_badly(text):
     """A post naming our shop next to a complaint or a warning, true or not (user's call, 11-05: a dislike is an
     opinion). Checked on the text around each mention, so a market list that names us among others with a
     complaint about another shop does not count."""
-    for m in ABOUT_US.finditer(text):
-        near = text[max(0, m.start() - 40):m.end() + 90]
-        if NEGATIVE.search(near) and not PRAISE.search(near):
+    # only the sentence or list item that names us: a market list that names us next to a complaint about
+    # another shop must not cost its author a dislike (user, 11-05: no unfair hits on classmates)
+    for part in re.split(r"[\n•|;]|(?<=[.!?。])\s", text):
+        if ABOUT_US.search(part) and NEGATIVE.search(part) and not PRAISE.search(part):
             return True
     return False
 

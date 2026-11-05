@@ -60,6 +60,12 @@ investigation to search it) and from our own measurements, marked *measured* wit
 - Strategist knobs: per SKU `ask` (0.85–1.05 × the seller's ask) and `cover` (0–2 × restock's target, 0 stops
   it); globals `sku_cover_hours`, `market_share`, `quick_accept`.
 
+## Conduct
+
+Every player here is a classmate. Compete on our own shop and buyer: prices, stock, speed, honesty. Do not act
+against another player (votes, blocks, refusals, posts about them) without a concrete, recorded reason tied to
+harm to us (for example a buyer rating every purchase 1 star). Your knobs only move our own parameters; keep it so.
+
 ## Data you can ask for (investigations)
 
 `sku_prices` {sku} · `category` {category} · `competitor` {shop} · `unserved` {} · `forum` {term} ·

@@ -204,6 +204,20 @@ def scarce_skus(hours, min_asks):
     return {k for k, n in asked.items() if n >= min_asks}
 
 
+BLOCKED = HERE / "blocked_buyers.json"   # {"who": ["regex", ...]}: first messages of buyers we do not sell to
+_blocked = [0.0, {}]
+
+
+def blocked(text):
+    """The name in blocked_buyers.json whose pattern matches this first message, re-read once a minute. 11-05:
+    totato2203-r3 rated 483 of 484 purchases 1 star at every shop; shaun0927's buyers rated 20 of 27 of ours 1 star
+    while giving lower-ranked shops 5."""
+    if time.time() - _blocked[0] > 60:
+        _blocked[0] = time.time()
+        _blocked[1] = {k: [re.compile(x, re.I) for x in v] for k, v in read_json(BLOCKED, {}).items() if isinstance(v, list)}
+    return next((k for k, pats in _blocked[1].items() if any(r.search(text) for r in pats)), None)
+
+
 class Shop(AgentExecutor):
     def __init__(self):
         self.open = {}      # task id -> deal
@@ -266,6 +280,12 @@ class Shop(AgentExecutor):
             # who writes how: the ledger names the buyer of each task id, so these lines tell later which buyers
             # (e.g. ones rating every sale 1 star) can be recognised from their first message
             record(event="ask", task=task.id, text=text[:300])
+            hit = blocked(text)
+            if hit:                                 # buyers that rate every sale 1 star (see blocked_buyers.json)
+                record(event="blocked", task=task.id, who=hit)
+                log("seller", f"task {task.id[:8]} declined: matches {hit}")
+                await up.reject(say("Sorry, we are not able to take this order."))
+                return
             held = {x["unit"]["unit"] for x in self.open.values() if x["unit"]["unit"]}
             u = pick_unit(text, held, now)
             if u is None:

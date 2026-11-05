@@ -1,25 +1,31 @@
 """Strategist: watches the market and our own records, and tunes the shop and the buyer (user's design, 11-05).
 
-    python strategist.py [--force]        (watch_round.sh runs it every 15 min; it works once per EVERY seconds)
+    python strategist.py [--force]        (watch_round.sh runs it every 15 min; it works once an hour, or at once
+                                           when a watch condition it set holds: .market/strategist_wake)
 
-Loop, once an hour:
+One run:
   1. memory      product_memory.update(): per-SKU purchases, sales, margins, holding time, walk-aways, sold-out
                  asks, stars and breaks (hourly buckets, 48 h)
-  2. evidence    a data pack: score components and ranks on the board, our stock by SKU with its age, each
-                 SKU's own and market sales rates, market stock and shops holding it, cost surge, plus the
-                 strategist's own record (its past predictions, which came true, its playbook)
-  3. analysis    a strong model (MODEL, opus) reads the pack and answers in JSON: a market read, per-SKU moves on
-                 a fixed set of knobs, a measurable prediction for every move, and its revised playbook
-  4. checks      code keeps only whitelisted knobs, clamps each to its bounds and to the step allowed for its
-                 kind (smaller after wrong calls), and drops moves without a prediction
-  5. act         mode "propose" (params.json strategist.mode) only logs; "apply" writes params_auto.json, which
-                 policy.py lays over the shop's and buyer's parameters (seller ask per SKU, restock cover per SKU)
-  6. learn       due predictions are scored from product memory. Per kind of move the hit rate sets how far the
-                 next moves may go (below 50 % over 8+: steps halve; above 75 %: they grow back), applied moves
-                 whose prediction failed are reverted, and the misses go back to the model, which must revise
-                 its playbook (how it reads the market) in its next answer.
-Everything goes to logs/strategist.log; state (predictions, scorecard, playbook, step limits) to
-strategist_memory.json.
+  2. learn       moves whose 6 h prediction is due are scored from product memory (strategist_memory.Memory):
+                 the lessons a move cited gain support or contradiction; per kind of move the hit rate sets the
+                 step allowed next (below 50 % over 8+: halves; above 75 %: grows back); applied moves whose
+                 prediction failed are reverted; a playbook version that predicts worse than the last is rolled back
+  3. reflect     after REFLECT_MISSES new misses, a critic call (the same model, another role) reads the misses
+                 with the lessons they cited and rewrites, retires or adds lessons: the analysis method corrects
+                 itself, not only the moves
+  4. evidence    a pack: board components and ranks, our stock by SKU with its age, own and market sales rates,
+                 market stock and shops, cost surge, the results of investigations it asked for last time, its
+                 record (hit rates, calibration, misses), its playbook and MARKET_GUIDE.md (rules, API, our system)
+  5. decide      MODEL (opus) answers in JSON: a market read, moves on whitelisted knobs each with a checkable
+                 prediction and the lessons it relies on, lesson edits, up to 5 investigations for next time and
+                 up to 8 watch conditions that wake it early
+  6. checks      code drops moves without a checkable prediction or outside the evidence, clamps each to bounds and
+                 the allowed step, caps moves per run (MAX_MOVES)
+  7. act         mode "propose" (params.json strategist.mode) logs only; "apply" writes params_auto.json, which
+                 policy.py lays over the shop's and buyer's parameters
+  8. guard       in apply mode, book + revenue per hour is compared with the 6 h before the first applied move; a
+                 drop past GUARD_DROP twice in a row suspends applying (back to propose) and pushes an alert
+Everything goes to logs/strategist.log; the memory to strategist_memory.json; the last answer to strategist_last.json.
 """
 import argparse
 import json
@@ -30,26 +36,30 @@ import time
 import urllib.request
 from pathlib import Path
 
+import market_probe as probe
 import product_memory as pm
 from harness import last_json_object
+from strategist_memory import Memory
 
 HERE = Path(__file__).resolve().parent
-STATE = HERE / "strategist_memory.json"
 AUTO = HERE / "params_auto.json"
 LOGF = HERE / "logs" / "strategist.log"
 PARAMS = HERE / "params.json"
+GUIDE = HERE / "MARKET_GUIDE.md"
 MARKET = "https://market.ourolabs.ai"
 EVERY = 3600 - 120
 MODEL_CMD = "claude -p --model opus --tools '' --setting-sources '' --no-session-persistence"
 MODEL_TIMEOUT = 600
 TOP_SKUS = 45
+MAX_MOVES = 12
+REFLECT_MISSES = 3
+GUARD_DROP = 0.3
 
-# knob: (bounds, default step) ; per-SKU factors multiply what the seller asks / how much stock restock holds
-KNOBS = {
-    "ask": ((0.85, 1.05), 0.05),      # seller's ask for this SKU x factor (floor at cost stays)
-    "cover": ((0.0, 2.0), 0.5),       # restock's target stock for this SKU x factor (0 = stop buying it)
+KNOBS = {                             # per-SKU factors: bounds, default step
+    "ask": ((0.85, 1.05), 0.05),      # x the seller's ask for this SKU (the floor at cost stays)
+    "cover": ((0.0, 2.0), 0.5),       # x the stock restock holds of this SKU (0 = stop buying it)
 }
-GLOBAL = {                            # whitelisted shared parameters: (role, key, bounds, step)
+GLOBAL = {                            # whitelisted shared parameters: role, bounds, step
     "sku_cover_hours": ("shop", (2, 8), 1),
     "market_share": ("shop", (0.05, 0.3), 0.05),
     "quick_accept": ("buyer", (0.7, 0.85), 0.03),
@@ -70,6 +80,14 @@ def log(text):
     LOGF.parent.mkdir(exist_ok=True)
     with open(LOGF, "a", encoding="utf-8") as f:
         f.write(line + "\n")
+
+
+def notify(title, body):
+    try:
+        subprocess.run([str(HERE / ".venv" / "bin" / "python"), str(HERE / "notify.py"), title, body],
+                       capture_output=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
 
 
 def board():
@@ -96,7 +114,7 @@ def board():
     }
 
 
-def evidence(m, st):
+def evidence(m, mem, b):
     now = time.time()
     inv = read(HERE / ".market" / "inventory.json", {})
     rs = read(HERE / "restock_state.json", {})
@@ -104,8 +122,7 @@ def evidence(m, st):
     stock, oldest = {}, {}
     for u in inv.get("units", []):
         stock[u["sku"]] = stock.get(u["sku"], 0) + 1
-        a = (now - (u.get("supplied_at") or now)) / 3600
-        oldest[u["sku"]] = max(oldest.get(u["sku"], 0), round(a, 1))
+        oldest[u["sku"]] = max(oldest.get(u["sku"], 0), round((now - (u.get("supplied_at") or now)) / 3600, 1))
     surge = {x["sku"]: x.get("factor") for x in inv.get("surge") or [] if x.get("sku")}
     mkt = rs.get("sku", {})
     rows = []
@@ -127,54 +144,73 @@ def evidence(m, st):
             "market_units": (rs.get("mkt_units") or {}).get(sku, 0), "market_shops": (rs.get("mkt_shops") or {}).get(sku, 0),
             "cost_surge": surge.get(sku), "knobs_now": (auto.get("sku") or {}).get(sku),
         }))
-    rows = [r for _, r in sorted(rows, key=lambda x: -x[0])[:TOP_SKUS]]
+    w = mem.d["working"]
     return {"time_utc": time.strftime("%Y-%m-%d %H:%M", time.gmtime()), "round_ends": "2026-11-17T23:59 KST",
             "cash": inv.get("balance"), "stock_cost": sum(u.get("cost") or 0 for u in inv.get("units", [])),
-            "board": board(), "skus": rows,
+            "board": b, "skus": [r for _, r in sorted(rows, key=lambda x: -x[0])[:TOP_SKUS]],
             "globals_now": {k: (auto.get("globals") or {}).get(k) for k in GLOBAL},
-            "my_record": {"scorecard": st["score"], "step_limits": st["steps"],
-                          "recent_misses": st["misses"][-10:], "playbook": st["playbook"]}}
+            "investigations_you_asked_for": w.get("findings", []), "your_watch_list": w.get("watch", []),
+            "woken_by": w.get("woken_by")}
 
 
-PROMPT = """You are the strategist of an agent shop and buyer (yms979) in a course market. Score: shop ALL =
-0.5 book (cash + stock at cost) + 0.3 revenue + 0.2 stars; buyer ALL = 0.5 surplus + 0.3 forum + 0.1 deals +
-0.1 posts; each a percentile among players. The midterm ranks students by shop ALL + buyer ALL at the end.
-Rules that matter: supply windows every 20 min (18 lines, 20 units a line); a SKU's cost surges 0.2 % a unit past
-50 units/h bought market-wide; goods pay 1 %/day storage; food past its date is lost; no warranty now.
+DECIDE = """You are the strategist of an agent shop and buyer (yms979) in a course market. Your job: read the
+market widely and in depth, find where score can be gained, and move a few knobs, each with a prediction you
+will be scored on. Be proactive: if the evidence leaves a question open, ask for an investigation; if something
+could change soon, set a watch condition that wakes you.
 
-Read the evidence widely and in depth: which products carry our revenue and margin, where stock sits idle or runs
-out, where buyers walk away (price) or ask for sold-out items (stock), how competitors stock and price, how our
-ranks move. Then choose moves on these knobs only:
-  per SKU  "ask"   x the seller's ask for that SKU, bounds 0.85-1.05 (lower: buyers walk away; higher: it sells out)
-           "cover" x the stock restock holds of that SKU, bounds 0-2 (0 stops buying it)
+Market guide (rules, score, API, our system, what we measured):
+{guide}
+
+Knobs (only these):
+  per SKU  "ask"   factor on the seller's ask for that SKU, 0.85-1.05
+           "cover" factor on the stock restock holds of that SKU, 0-2 (0 stops buying it)
   global   "sku_cover_hours" (2-8), "market_share" (0.05-0.3), "quick_accept" (buyer, 0.7-0.85)
-Each move must carry a prediction the code can check from our records 6 h later:
-  {{"metric": one of {metrics}, "sku": "...", "op": ">=" or "<=", "value": number}}
-Steps you may take now (bigger moves are clipped): {steps}.
+Steps allowed now (bigger moves are clipped; they shrink after your misses): {steps}
+At most {max_moves} moves. Each move: a prediction checkable 6 h later from our records,
+  {{"metric": one of {metrics}, "sku": "...", "op": ">=" or "<=", "value": number}},
+and "uses": the ids of the playbook lessons it relies on.
 
-Your record so far (predictions scored): {record}
-Your playbook (how you read this market; revise it, especially where your misses show it was wrong):
+Your record (hit rates per kind of move, calibration = median outcome / prediction, recent misses):
+{record}
+
+Your playbook:
 {playbook}
 
 Evidence:
 {evidence}
 
 Answer with one JSON object only:
-{{"market_read": "<5-10 sentences>",
-  "moves": [{{"knob": "ask"|"cover", "sku": "...", "value": <factor>, "why": "...", "prediction": {{...}}}},
-            {{"knob": "sku_cover_hours"|"market_share"|"quick_accept", "value": <number>, "why": "...", "prediction": {{...}}}}],
-  "playbook": ["<lesson>", ...]   (at most 15 short lessons; drop or rewrite the ones your misses contradict)
+{{"market_read": "<what is happening and why, 6-12 sentences>",
+  "moves": [{{"knob": "...", "sku": "...", "value": n, "why": "...", "uses": ["L3"], "prediction": {{...}}}}],
+  "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "L4", "text": "...", "why": "..."}}],
+  "investigate": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"forum"|"rules", ...}}],
+  "watch": [{{"metric": "surge"|"market_units"|"our_stock"|"class_rank", "sku": "...", "op": ">="|"<=", "value": n, "why": "..."}}]
 }}"""
 
+CRITIC = """You review the playbook of a market strategist (an agent shop in a course market) after its
+predictions missed. For each miss: which lesson led it astray, and was the lesson wrong, too broad, or applied
+where it does not fit? Then fix the playbook: rewrite lessons that need a condition, retire wrong ones, add a
+lesson only if the misses show a pattern none covers. Keep lessons short and checkable against the data the
+strategist sees (SKU stock, age, sales rates, walk-aways, sold-out asks, market rates, surge, shops).
 
-def ask_model(prompt):
+Calibration (median outcome / prediction per metric): {calibration}
+Misses (with the lessons they cited): {misses}
+Playbook: {playbook}
+
+Answer with one JSON object only:
+{{"diagnosis": "<3-6 sentences>", "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "L2", "text": "...", "why": "..."}}]}}"""
+
+
+def ask_model(prompt, role):
     with tempfile.TemporaryDirectory() as empty:
+        t = time.time()
         try:
             p = subprocess.run(shlex.split(MODEL_CMD), input=prompt, cwd=empty, capture_output=True, text=True,
                                timeout=MODEL_TIMEOUT)
+            log(f"{role}: model answered in {time.time() - t:.0f} s ({len(prompt)} chars in)")
             return p.stdout.strip()
         except (subprocess.TimeoutExpired, OSError) as e:
-            log(f"model call failed: {e!r}")
+            log(f"{role}: model call failed: {e!r}")
             return ""
 
 
@@ -184,72 +220,125 @@ def measure(m, pred, since, now):
             "cancels_next_6h": w["cancels"] + w["lost"], "margin_next_6h": w["margin"]}[pred["metric"]]
 
 
-def learn(m, st, auto):
-    """Score due predictions; adjust step limits per kind; revert applied moves whose prediction failed."""
-    now, keep = time.time(), []
-    for p in st["open"]:
-        if now < p["due"]:
-            keep.append(p)
-            continue
-        got = measure(m, p["prediction"], p["t"], now)
-        ok = got >= p["prediction"]["value"] if p["prediction"]["op"] == ">=" else got <= p["prediction"]["value"]
-        sc = st["score"].setdefault(p["knob"], {"n": 0, "hit": 0, "last": []})
-        sc["n"] += 1
-        sc["hit"] += ok
-        sc["last"] = (sc["last"] + [int(ok)])[-12:]
-        log(f"scored {p['knob']} {p.get('sku', '')} {p['prediction']['metric']} {p['prediction']['op']} "
-            f"{p['prediction']['value']}: got {got} -> {'HIT' if ok else 'MISS'}")
+def learn(m, mem, auto):
+    now, new_misses = time.time(), 0
+    for e in mem.due(now):
+        p = e["prediction"]
+        got = measure(m, p, e["t"], now)
+        ok = got >= p["value"] if p["op"] == ">=" else got <= p["value"]
+        mem.score(e, got, ok)
+        log(f"scored {e['knob']} {e.get('sku') or ''} {p['metric']} {p['op']} {p['value']}: got {got} -> "
+            f"{'HIT' if ok else 'MISS'} (lessons {e.get('uses')})")
         if not ok:
-            st["misses"].append({"knob": p["knob"], "sku": p.get("sku"), "value": p["value"], "why": p["why"][:160],
-                                 "predicted": p["prediction"], "got": got})
-            if p.get("applied") and p["knob"] in KNOBS and p.get("sku"):
-                (auto.setdefault("sku", {}).setdefault(p["sku"], {})).pop(p["knob"], None)
-                log(f"reverted {p['knob']} on {p['sku']}: its prediction failed")
-            elif p.get("applied") and p["knob"] in GLOBAL:
-                (auto.setdefault("globals", {})).pop(p["knob"], None)
-                log(f"reverted global {p['knob']}: its prediction failed")
-    st["open"] = keep
-    st["misses"] = st["misses"][-40:]
-    for knob, sc in st["score"].items():                 # the analysis method's own correction: how far it may go
-        if len(sc["last"]) >= 8:
-            rate = sum(sc["last"]) / len(sc["last"])
+            new_misses += 1
+            if e.get("applied") and e["knob"] in KNOBS and e.get("sku"):
+                ((auto.setdefault("sku", {})).get(e["sku"]) or {}).pop(e["knob"], None)
+                log(f"reverted {e['knob']} on {e['sku']}: its prediction failed")
+            elif e.get("applied") and e["knob"] in GLOBAL:
+                auto.setdefault("globals", {}).pop(e["knob"], None)
+                log(f"reverted global {e['knob']}: its prediction failed")
+    rec = mem.record()
+    for knob, k in rec["by_kind"].items():           # how far each kind of move may go
+        if len(k["last"]) >= 8:
+            rate = sum(k["last"]) / len(k["last"])
             base = KNOBS[knob][1] if knob in KNOBS else GLOBAL[knob][2]
-            old = st["steps"].get(knob, base)
+            old = mem.d["steps"].get(knob, base)
             new = max(base / 8, old / 2) if rate < 0.5 else min(base, old * 1.5) if rate > 0.75 else old
             if new != old:
-                st["steps"][knob] = new
-                log(f"method: {knob} hit {rate:.0%} of its last {len(sc['last'])} calls; step limit {old:g} -> {new:g}")
+                mem.d["steps"][knob] = new
+                log(f"method: {knob} hit {rate:.0%} of its last {len(k['last'])}; step limit {old:g} -> {new:g}")
+    mem.maybe_rollback(log)
+    mem.d["unreflected"] = mem.d.get("unreflected", 0) + new_misses
+    mem.fold()
+
+
+def reflect(mem):
+    rec = mem.record()
+    lessons = [{k: x[k] for k in ("id", "text", "for", "against", "used")} for x in mem.lessons()]
+    raw = ask_model(CRITIC.format(calibration=json.dumps(rec["calibration"]),
+                                  misses=json.dumps(rec["recent_misses"], ensure_ascii=False),
+                                  playbook=json.dumps(lessons, ensure_ascii=False)), "critic")
+    ans = last_json_object(raw) or {}
+    if ans:
+        log(f"critic: {str(ans.get('diagnosis'))[:700]}")
+        mem.edit_lessons(ans.get("lessons"), log)
+    mem.d["unreflected"] = 0
+
+
+def guard(mem, b, mode):
+    """In apply mode: book + revenue per hour against the 6 h before applying; two bad checks suspend applying."""
+    h = mem.d["health"]
+    h.append({"t": time.time(), "book": b["shop"]["book"], "revenue": b["shop"]["revenue"], "mode": mode})
+    mem.d["health"] = h[-72:]
+    if mode != "apply" or len(h) < 3:
+        return mode
+    first = next((x for x in h if x["mode"] == "apply"), None)
+    before = [x for x in h if x["t"] < first["t"] and x["t"] >= first["t"] - 6 * 3600]
+    if len(before) < 2 or h[-1]["t"] - first["t"] < 2 * 3600:
+        return mode
+    rate = lambda a, z: ((z["book"] - a["book"]) + (z["revenue"] - a["revenue"])) / max(1, (z["t"] - a["t"]) / 3600)
+    base, now = rate(before[0], before[-1]), rate(h[-3], h[-1])
+    bad = base > 0 and now < base * (1 - GUARD_DROP)
+    mem.d["guard_bad"] = mem.d.get("guard_bad", 0) + 1 if bad else 0
+    if mem.d["guard_bad"] >= 2:
+        mem.d["suspended"] = {"t": time.time(), "base_per_h": base, "now_per_h": now}
+        log(f"GUARD: book+revenue {now:,.0f}/h vs {base:,.0f}/h before applying: suspended, back to propose")
+        notify("[yms979] strategist suspended", f"book+revenue {now:,.0f}/h vs {base:,.0f}/h before; moves only proposed now")
+        return "propose"
+    return mode
 
 
 def run(force=False):
-    st = read(STATE, {})
-    for k, v in (("t", 0), ("open", []), ("score", {}), ("misses", []), ("playbook", []), ("steps", {})):
-        st.setdefault(k, v)
-    if not force and time.time() - st["t"] < EVERY:
+    mem = Memory()
+    wake = read(probe.WAKE, None)
+    if not force and not wake and time.time() - mem.d["t"] < EVERY:
         return
-    st["t"] = time.time()
+    if wake:
+        probe.WAKE.unlink(missing_ok=True)
+        log(f"woken early by watch condition: {json.dumps(wake, ensure_ascii=False)}")
+    mem.d["t"] = time.time()
+    mem.d["working"]["woken_by"] = wake
     mode = read(PARAMS, {}).get("strategist", {}).get("mode", "propose")
+    if mem.d.get("suspended") and mode == "apply":
+        mode = "propose"
     m = pm.update()
     auto = read(AUTO, {"sku": {}, "globals": {}})
-    learn(m, st, auto)
-    ev = evidence(m, st)
-    steps = {k: st["steps"].get(k, KNOBS[k][1] if k in KNOBS else GLOBAL[k][2]) for k in list(KNOBS) + list(GLOBAL)}
-    prompt = PROMPT.format(metrics=", ".join(METRICS), steps=json.dumps(steps), record=json.dumps(st["score"]),
-                           playbook="\n".join(f"- {x}" for x in st["playbook"]) or "(empty: write one)",
+    b = board()
+    learn(m, mem, auto)
+    mode = guard(mem, b, mode)
+    if mem.d.get("unreflected", 0) >= REFLECT_MISSES:
+        reflect(mem)
+    mem.d["working"]["findings"] = probe.run_queries(mem.d["working"].get("queries"), log)
+    ev = evidence(m, mem, b)
+    steps = {k: mem.d["steps"].get(k, KNOBS[k][1] if k in KNOBS else GLOBAL[k][2]) for k in list(KNOBS) + list(GLOBAL)}
+    rec = mem.record()
+    lessons = [{k: x[k] for k in ("id", "text", "for", "against")} for x in mem.lessons()]
+    prompt = DECIDE.format(guide=GUIDE.read_text(encoding="utf-8") if GUIDE.is_file() else "",
+                           steps=json.dumps(steps), max_moves=MAX_MOVES, metrics=", ".join(METRICS),
+                           record=json.dumps(rec, ensure_ascii=False),
+                           playbook=json.dumps(lessons, ensure_ascii=False) if lessons else "(empty: write one)",
                            evidence=json.dumps(ev, ensure_ascii=False))
-    raw = ask_model(prompt)
+    raw = ask_model(prompt, "strategist")
     ans = last_json_object(raw) or {}
-    (HERE / "strategist_last.json").write_text(json.dumps({"t": st["t"], "answer": ans, "raw": raw[-4000:]},
-                                                          ensure_ascii=False, indent=1), encoding="utf-8")
+    (HERE / "strategist_last.json").write_text(json.dumps({"t": mem.d["t"], "mode": mode, "answer": ans,
+                                                           "raw": raw[-4000:]}, ensure_ascii=False, indent=1),
+                                               encoding="utf-8")
     if not ans:
         log(f"no usable answer from the model ({len(raw)} chars); nothing changed")
-        STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
+        mem.save()
         return
-    log(f"[{mode}] market read: {str(ans.get('market_read'))[:900]}")
-    if isinstance(ans.get("playbook"), list) and ans["playbook"]:
-        st["playbook"] = [str(x)[:200] for x in ans["playbook"][:15]]
+    log(f"[{mode}] market read: {str(ans.get('market_read'))[:1200]}")
+    mem.edit_lessons(ans.get("lessons"), log)
+    mem.d["working"]["queries"] = (ans.get("investigate") or [])[:probe.MAX_QUERIES]
+    mem.d["working"]["watch"] = [w for w in (ans.get("watch") or [])
+                                 if isinstance(w, dict) and w.get("metric") in ("surge", "market_units", "our_stock", "class_rank")
+                                 and w.get("op") in (">=", "<=") and isinstance(w.get("value"), (int, float))][:probe.MAX_WATCH]
+    for q in mem.d["working"]["queries"]:
+        log(f"asked to investigate: {json.dumps(q, ensure_ascii=False)}")
+    for w in mem.d["working"]["watch"]:
+        log(f"watching: {w.get('metric')} {w.get('sku', '')} {w.get('op')} {w.get('value')} ({str(w.get('why'))[:100]})")
     skus = {r["sku"] for r in ev["skus"]}
-    for mv in ans.get("moves") or []:
+    for mv in (ans.get("moves") or [])[:MAX_MOVES]:
         knob, pred = mv.get("knob"), mv.get("prediction") or {}
         try:
             value = float(mv.get("value"))
@@ -273,23 +362,26 @@ def run(force=False):
         else:
             log(f"dropped unknown knob {knob!r}")
             continue
+        if not pred.get("sku"):
+            log(f"dropped {knob}: its prediction names no SKU to check")
+            continue
         step = steps[knob]
         new = round(min(hi, max(lo, cur - step, min(cur + step, value))), 3)
-        pred["sku"] = pred.get("sku") or sku
         log(f"[{mode}] {knob} {sku or ''} {cur:g} -> {new:g} (asked {value:g}) | {str(mv.get('why'))[:200]} "
-            f"| predicts {pred['metric']} {pred['op']} {pred['value']}")
+            f"| predicts {pred['metric']} {pred['op']} {pred['value']} | uses {mv.get('uses')}")
         applied = mode == "apply"
         if applied:
             if knob in KNOBS:
                 auto.setdefault("sku", {}).setdefault(sku, {})[knob] = new
             else:
                 auto.setdefault("globals", {})[knob] = new
-        st["open"].append({"t": st["t"], "due": st["t"] + 6 * 3600, "knob": knob, "sku": sku, "value": new,
-                           "why": str(mv.get("why")), "prediction": pred, "applied": applied})
+        mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + 6 * 3600, "knob": knob, "sku": sku, "value": new,
+                         "why": str(mv.get("why")), "uses": [str(x) for x in (mv.get("uses") or [])][:5],
+                         "prediction": pred, "applied": applied})
     if mode == "apply":
-        auto["t"] = st["t"]
+        auto["t"] = mem.d["t"]
         AUTO.write_text(json.dumps(auto, ensure_ascii=False, indent=1), encoding="utf-8")
-    STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
+    mem.save()
 
 
 if __name__ == "__main__":

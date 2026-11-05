@@ -18,6 +18,21 @@ NAME = "yms979"
 EVERY = 3600 - 120            # cron runs every 15 min; a little slack so it lands on the hour's run
 
 
+def strategist_line():
+    """Strategist mode, how its predictions have done, its lessons and watch list (strategist_memory.json)."""
+    try:
+        m = json.loads((HERE / "strategist_memory.json").read_text())
+        mode = json.loads((HERE / "params.json").read_text()).get("strategist", {}).get("mode", "propose")
+    except (OSError, ValueError):
+        return ""
+    scored = [e for e in m.get("episodes", []) if e.get("outcome")]
+    hit = sum(e["outcome"]["hit"] for e in scored)
+    rate = f"{hit}/{len(scored)} 적중" if scored else "채점 전"
+    return (f"\n전략({'적용' if mode == 'apply' and not m.get('suspended') else '제안'}): 예측 {rate}, "
+            f"원칙 {len(m.get('lessons', []))}개 v{(m.get('versions') or [{}])[-1].get('v', 0)}, "
+            f"감시 {len((m.get('working') or {}).get('watch') or [])}개")
+
+
 def main():
     st = json.loads(STATE.read_text()) if STATE.is_file() else {}
     now = time.time()
@@ -52,7 +67,7 @@ def main():
            f"실질 이익(현금+재고원가-500만) {econ:,} | 재고 {len(inv.get('units', []))}개, 원가 {stock:,}\n"
            f"구매자: {u['deals']}/{u['orders']} 성사 ({u['deals'] / max(u['orders'], 1):.0%}), 잉여 {u['surplus'] or 0:,} "
            f"{rk(buyers, 'surplus', NAME)}위, 글 {u.get('posts') or 0}\n"
-           f"선두: {top}")
+           f"선두: {top}" + strategist_line())
     sent = subprocess.run([sys.executable, str(HERE / "notify.py"), f"[yms979] {rank}위{move} 요약", msg],
                           capture_output=True, text=True).stdout.strip()
     STATE.write_text(json.dumps(cur))

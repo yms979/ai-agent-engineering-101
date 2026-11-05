@@ -123,6 +123,7 @@ echo "${hash:-$old_hash} ${round:-$old_round} $health" > "$STATE"
 
 # strategist: market analysis and parameter moves, once an hour (strategist.py keeps its own clock); in the
 # background so a slow model call never holds this watcher up
+"$HERE/.venv/bin/python" "$HERE/market_probe.py" --check >/dev/null 2>&1 || true   # its watch list may wake it early
 nohup "$HERE/.venv/bin/python" "$HERE/strategist.py" >/dev/null 2>&1 &
 
 # hourly status push for the user (summary.py sends at most once an hour)

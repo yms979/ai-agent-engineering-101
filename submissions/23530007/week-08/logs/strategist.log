@@ -10,3 +10,26 @@
 2026-11-05 13:55:04 UTC [propose] ask Gb5d0dde7 1 -> 0.97 (asked 0.97) | 27 units, oldest 5.5h, 77 walkaways; margin 165k/unit can absorb a 3% cut. | predicts sold_next_6h >= 40
 2026-11-05 13:55:04 UTC [propose] ask G9357d6c2 1 -> 0.95 (asked 0.95) | 7 units idle 4.2h, only 3 sold against 22 walkaways: priced above the market. | predicts sold_next_6h >= 4
 2026-11-05 13:55:04 UTC [propose] ask G021aae64 1 -> 0.97 (asked 0.97) | 58 walkaways against 15 sold, 17 units held, 9 competitors. | predicts sold_next_6h >= 12
+2026-11-05 14:02:46 UTC strategist: model answered in 42 s (29357 chars in)
+2026-11-05 14:02:46 UTC [propose] market read: We are 2nd in class (1.612 vs inextro 1.659). The gap is on the shop side: book is 197.7M (rank 8/53) against inextro's 500M and dae-yangkim's 411M, while revenue (rank 6) and buyer surplus (rank 5) are already strong. That is a margin problem, not a volume problem. A 9,192-deal count with only ~10M profit means we turn over a lot of goods at thin spreads. Big-ticket sofas and beds still carry the margin: Mate 342k/unit, Avenuel 232k, Lacloud 205k, Simmons Beautyrest 165k. The Mate sofa is now crowded (15 shops, cost surge 1.164) but still clears instantly (avg hold 0h, 46 sold in 6h), so it can take a higher ask. Avenuel and Simmons Beautyrest show the opposite pattern: stock is 5-7h old and walkaways are about 1.6-2x sales. Since most walkaways make no offer when we are not the lowest ask, a small ask cut should convert some of them while keeping 15-20% margin per unit. Several thin-competition SKUs (Riposo recliner with 2 shops, Cloud Luxe and Borneo Coco with 3, Bedrium folding mattress with 3) ran to 0-3 units with sold-out asks and no surge, so more cover should be cheap volume. Apples keep selling out (20 sold-out asks) but surge is 1.134 and margin is only 4.3k/unit, so I r
+2026-11-05 14:02:46 UTC memory: lesson L9 added: Cover raises on SKUs at 0 stock depend on thin supply windows; predict sold_next_6h at about 40-60% of the last 6h, not 70-85%.
+2026-11-05 14:02:46 UTC memory: lesson L10 added: Book gap to the top shops (2-2.5x) is the main lever on midterm rank; prefer ask raises on fast-clearing big-ticket SKUs over volume pushes.
+2026-11-05 14:02:46 UTC asked to investigate: {"kind": "competitor", "shop": "inextro"}
+2026-11-05 14:02:46 UTC asked to investigate: {"kind": "competitor", "shop": "dae-yangkim"}
+2026-11-05 14:02:46 UTC asked to investigate: {"kind": "sku_prices", "sku": "G8ec51935"}
+2026-11-05 14:02:46 UTC asked to investigate: {"kind": "unserved"}
+2026-11-05 14:02:46 UTC asked to investigate: {"kind": "category", "category": "소파/의자/스툴"}
+2026-11-05 14:02:46 UTC watching: surge G8ec51935 >= 1.3 (If Mate cost keeps climbing, margin per unit erodes; cut cover and lean on the ask)
+2026-11-05 14:02:46 UTC watching: our_stock G8adbc159 >= 30 (Avenuel stock piling up after the cut would mean demand is gone, not price-limited)
+2026-11-05 14:02:46 UTC watching: market_units G9f7c7d1b >= 12 (More Riposo stock in the market means new competitors; revisit the cover raise)
+2026-11-05 14:02:46 UTC watching: class_rank  >= 3 (Wake if SungJinho or psyoung82 overtake us)
+2026-11-05 14:02:46 UTC [propose] ask G8ec51935 1 -> 1.05 (asked 1.05) | Mate sofa: surge 1.164, 15 shops, yet 0h hold and 46 sold in 6h; raise price to protect margin as cost climbs | predicts sold_next_6h >= 28 | uses ['L2', 'L6', 'L1']
+2026-11-05 14:02:46 UTC [propose] ask G8adbc159 1 -> 0.96 (asked 0.96) | Avenuel: oldest stock 6.7h, 40 walkaways vs 22 sold, margin ~16% of selling price leaves room for a 4% cut | predicts sold_next_6h >= 16 | uses ['L4', 'L6']
+2026-11-05 14:02:46 UTC [propose] ask Gb5d0dde7 1 -> 0.96 (asked 0.96) | Simmons Beautyrest queen: oldest 5.6h, 67 walkaways vs 41 sold, ~20% margin per unit | predicts sold_next_6h >= 30 | uses ['L4', 'L6']
+2026-11-05 14:02:46 UTC [propose] ask G9357d6c2 1 -> 0.95 (asked 0.95) | Zinus Ultima Lux Q: oldest 4.3h, 22 walkaways vs 3 sold, ~14% margin, only 5 shops | predicts sold_next_6h >= 3 | uses ['L4']
+2026-11-05 14:02:46 UTC [propose] ask G8095ddd6 1 -> 1.03 (asked 1.03) | Ace BMA SS: surge 1.082 crosses the crowding line, 0h hold; modest raise | predicts sold_next_6h >= 9 | uses ['L2', 'L8']
+2026-11-05 14:02:46 UTC [propose] ask Gef4d3036 1 -> 1.05 (asked 1.05) | Apples: 20 sold-out asks but surge 1.134 and 4.3k margin; price up instead of adding perishable cover | predicts sold_next_6h >= 70 | uses ['L2', 'L7']
+2026-11-05 14:02:46 UTC [propose] cover G9f7c7d1b 1 -> 1.5 (asked 1.5) | Riposo recliner: stock 0, sold-out ask, 2 shops, no surge, 220k margin/unit | predicts sold_next_6h >= 6 | uses ['L3', 'L6']
+2026-11-05 14:02:46 UTC [propose] cover G754bf0ca 1 -> 1.5 (asked 1.5) | Zinus Cloud Luxe Q: stock 0, 2 sold-out asks, 3 shops, no surge | predicts sold_next_6h >= 10 | uses ['L3']
+2026-11-05 14:02:46 UTC [propose] cover G45c54b01 1 -> 1.5 (asked 1.5) | Borneo Coco LED bed: stock 0, sold-out ask, 3 shops, no surge | predicts sold_next_6h >= 6 | uses ['L3']
+2026-11-05 14:02:46 UTC [propose] cover G25fe9221 1 -> 1.5 (asked 1.5) | Bedrium folding mattress: 78 sold in 6h, stock down to 3, 3 shops, no surge; cover is the binding limit | predicts sold_next_6h >= 50 | uses ['L3', 'L8']

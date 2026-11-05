@@ -193,7 +193,7 @@ def sku_wants(catalog, have_sku, p, now, hours_left, market_sku):
     unit per price point, so a SKU buyers keep asking for runs out: on 11-04/05 the 1.87M sofa (216k margin a
     unit) turned away 66 buyers in 24 h, the 1.6M and 1.09M mattresses 26 and 17, with 90M of cash idle.
     Rate per SKU = (our deals + sku_miss_weight x turned-away asks naming it) over the last sku_hours; hold
-    rate x GAP_HOURS x 1.5, at most sku_lines SKUs (by margin-weighted rate), only goods (no expiry).
+    rate x sku_cover_hours, at most sku_lines SKUs (by margin-weighted rate), only goods (no expiry).
     The market's best sellers by value count too, at market_share of their market rate (ledger, half-life
     HALF_LIFE): on 11-05 the top SKU by value was a 2.32M sofa at ~35 sales/h market-wide that we never held
     (above every price cap), with 2.25M and 2.19M sofas next; prices up to sku_max_price."""
@@ -220,9 +220,11 @@ def sku_wants(catalog, have_sku, p, now, hours_left, market_sku):
         v = catalog.get(sku)
         if not v or v["kind"] != "goods" or v["list_price"] > p["sku_max_price"]:
             continue
-        rate = max((sold[sku] + p["sku_miss_weight"] * asked[sku]) / p["sku_hours"],
-                   p["market_share"] * mkt.get(sku, 0))
-        target = math.ceil(rate * GAP_HOURS * 1.5)
+        own = (sold[sku] + p["sku_miss_weight"] * asked[sku]) / p["sku_hours"]
+        rate = max(own, p["market_share"] * mkt.get(sku, 0))
+        # our own demand is held deep, like inextro (155M list of goods vs our 43M, 11-05), so a buyer between
+        # windows finds it; a share of the market's rate is only a guess, so it covers to the next window
+        target = max(math.ceil(own * p["sku_cover_hours"]), math.ceil(p["market_share"] * mkt.get(sku, 0) * GAP_HOURS * 1.5))
         if hours_left <= p["clear_window_hours"]:          # near the end: only what sells before it
             target = min(target, math.floor(sold[sku] / p["sku_hours"] * hours_left))
         qty = min(MAX_QTY, target - have_sku.get(sku, 0))

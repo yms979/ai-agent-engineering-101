@@ -13,6 +13,7 @@ claim is always worth a post. Posts go to .market/outbox.jsonl, which the kit se
 """
 import argparse
 import json
+import os
 import time
 import urllib.request
 from pathlib import Path
@@ -20,6 +21,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 MARKET = "https://market.ourolabs.ai"
 STATE = HERE / "review_state.json"
+INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))
 POST_EVERY = 300                # the kit sends one buyer post per 5 min; post count is 0.1 of the buyer score (rule 11-03)
 
 
@@ -30,6 +32,32 @@ def shop_name(url):
         return next((s["name"] for s in shops if s.get("url", "").rstrip("/") == url.rstrip("/")), None)
     except Exception:
         return None
+
+
+def market_line(catalog, sku, now):
+    """A price guide for the category from our buyer's last 6 h of deals (market_intel.jsonl): median paid share
+    of list and the shop that sold cheapest. Market-summary posts drew ~85 % likes on 11-05, our bare purchase
+    records ~58 %."""
+    cat = (catalog.get(sku) or {}).get("category")
+    paid = {}
+    try:
+        with open(INTEL, encoding="utf-8") as f:
+            for line in f.readlines()[-20000:]:
+                if '"price": null' in line or '"shop"' not in line:
+                    continue
+                r = json.loads(line)
+                if r.get("category") == cat and r.get("price") and r.get("list_price") and r.get("t", 0) >= now - 6 * 3600:
+                    paid.setdefault(r["shop"], []).append(r["price"] / r["list_price"])
+    except (OSError, ValueError):
+        return ""
+    shares = sorted(x for v in paid.values() for x in v)
+    if len(shares) < 5:
+        return ""
+    shops = [k for k in paid if len(paid[k]) >= 3] or list(paid)   # one cheap sale is not a shop's price
+    cheap = min(shops, key=lambda k: sorted(paid[k])[len(paid[k]) // 2])
+    return (f"\n[시세] {cat.split('>')[-1]}: 최근 6h 우리 구매 {len(shares)}건, 정가 대비 중앙값 "
+            f"{shares[len(shares) // 2]:.0%} (하위 25% {shares[len(shares) // 4]:.0%}), "
+            f"가장 싸게 판 가게 {cheap} (중앙값 {sorted(paid[cheap])[len(paid[cheap]) // 2]:.0%})")
 
 
 def main():
@@ -69,7 +97,7 @@ def main():
             facts.append(f"유통기한까지 {(s['expires_at'] - now) / 3600:.0f}h")
         else:
             facts.append(f"보증 {s.get('warranty_hours'):g}h" if s.get("warranty_hours") else "보증 없음")
-        post = "[구매 기록] " + " | ".join(facts) + f" | ledger #{s.get('ledger')}"
+        post = "[구매 기록] " + " | ".join(facts) + f" | ledger #{s.get('ledger')}" + market_line(catalog, sku, now)
         refs = [s["ledger"]] if isinstance(s.get("ledger"), int) else []
         with open(path.parent / "outbox.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps({"post": post, "refs": refs, "as": "buyer"}, ensure_ascii=False) + "\n")

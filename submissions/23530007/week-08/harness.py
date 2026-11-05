@@ -58,23 +58,28 @@ def log(who: str, text: str) -> None:
     print(f"[{time.strftime('%H:%M:%S')}] [{who}] {text}", flush=True)
 
 
-def decide(who: str, prompt: str) -> dict | None:
+def decide(who: str, prompt: str, timeout: float | None = None) -> dict | None:
     """Send `prompt` to the harness; return the last JSON object in its answer, or None.
 
     One retry if the answer has no JSON object. The caller decides what None means.
+    With `timeout` (a fast move, e.g. one haggling step): one attempt of at most that long, and a slow answer
+    only returns None for this move (the caller's code rule answers) without opening the breaker. 11-05: haiku
+    answered a buyer move in 4 s (median) but 18 s at p90, and every second holds the next order back.
     """
     if breaker_open():
         return None
-    for attempt in (1, 2):
+    for attempt in ((1,) if timeout else (1, 2)):
         CALLS["n"] += 1
         with tempfile.TemporaryDirectory() as empty:
             try:
                 proc = subprocess.run(shlex.split(HARNESS_CMD), input=prompt, cwd=empty,
-                                      capture_output=True, text=True, timeout=TIMEOUT)
+                                      capture_output=True, text=True, timeout=timeout or TIMEOUT)
                 raw = proc.stdout.strip()
             except subprocess.TimeoutExpired:
                 raw = ""
-                log(who, f"harness call #{CALLS['n']} timed out after {TIMEOUT} s")
+                log(who, f"harness call #{CALLS['n']} timed out after {timeout or TIMEOUT} s")
+                if timeout:
+                    return None
             except OSError as e:          # harness not installed / not on PATH: the caller falls back
                 log(who, f"harness could not start: {e!r}")
                 trip(who, "could not start")

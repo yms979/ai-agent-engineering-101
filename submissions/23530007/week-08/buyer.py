@@ -31,6 +31,7 @@ import harness
 from harness import HARNESS_CMD, as_int, compact, decide, log
 
 MAX_ROUNDS = 8
+MOVE_TIMEOUT = 10        # seconds a haggling move may take the model; slower, the code rule moves
 DEADLINE = 240          # the trade test kills the buyer at 300 s
 SHORT = 160             # a message this short with at most two numbers: the last number is the ask
 
@@ -225,7 +226,7 @@ def next_move(who, item, budget, history, t, want="", ledger="", chat=False):
         else "Work out the seller's current asking price from the message (it may mention other numbers).",
         ask_field=("" if ask is not None else 'Also add the asking price you read as "ask": <whole number>.\n')
         + ('Also add "say": "<one short, friendly sentence to the seller that goes with your move; no numbers>".\n'
-           if chat else ""))) or {}
+           if chat else "")), timeout=MOVE_TIMEOUT) or {}
     say = re.sub(r"\s+", " ", re.sub(r"\d+", "", answer.get("say") if isinstance(answer.get("say"), str) else "")).strip()
     out = (lambda *r: (*r, say) if chat else r)
     if ask is None:

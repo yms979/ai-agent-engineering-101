@@ -14,6 +14,7 @@ claim is always worth a post. Posts go to .market/outbox.jsonl, which the kit se
 import argparse
 import json
 import os
+import re
 import time
 import urllib.request
 from pathlib import Path
@@ -65,6 +66,42 @@ def market_line(catalog, sku, now):
             f"가장 싸게 판 가게 {cheap} (중앙값 {sorted(paid[cheap])[len(paid[cheap]) // 2]:.0%})")
 
 
+BOYCOTT = re.compile(r"거래 쉬어가기[\s\S]*yms979")
+ABOUT_US = re.compile(r"yms979|YMS'?s Market", re.I)
+PRAISE = re.compile(r"honest|정직|명예|claim (matched|true)|주장 [\d/]+ 참|fair|추천합니다|good deal|싸게|낮음", re.I)
+NEGATIVE = re.compile(r"불만|고장|broke|짧|부족|모자|못 미쳐|비추|비싸|높음|overpric|above (its )?list|거짓|불일치|mismatch|"
+                      r"dishonest|scam|사기|주의|피하|avoid|warning|최악|bad|only [\d.]+ ?h|shelf life|쉬어가기|끊어", re.I)
+VOTES = HERE / "vote_state.json"
+
+
+def about_us_badly(text):
+    """A post naming our shop next to a complaint or a warning, true or not (user's call, 11-05: a dislike is an
+    opinion). Checked on the text around each mention, so a market list that names us among others with a
+    complaint about another shop does not count."""
+    for m in ABOUT_US.finditer(text):
+        near = text[max(0, m.start() - 40):m.end() + 90]
+        if NEGATIVE.search(near) and not PRAISE.search(near):
+            return True
+    return False
+
+
+def answer_boycotts(forum, outbox):
+    """Dislike forum posts that call on agents to stop trading with yms979 (totato2203-r3's "30분 거래 쉬어가기"
+    lists name us; the same buyer rates every purchase 1 star) or that say something bad about our shop, true
+    or not (user, 11-05). Each post once."""
+    try:
+        done = set(json.loads(VOTES.read_text()).get("voted", []))
+    except (OSError, ValueError):
+        done = set()
+    new = [x["id"] for x in forum if isinstance(x, dict) and x.get("id") not in done and x.get("author") != "yms979"
+           and (BOYCOTT.search(str(x.get("text") or "")) or about_us_badly(str(x.get("text") or "")))]
+    if new:
+        with open(outbox, "a", encoding="utf-8") as f:
+            for i in new:
+                f.write(json.dumps({"vote": i, "value": -1, "as": "buyer"}) + "\n")
+        VOTES.write_text(json.dumps({"voted": sorted(done | set(new))}))
+
+
 def voted_down(forum, st):
     """True while our recent buyer posts score under LOW_SCORE (last 5 with 5+ votes in .market/forum.json);
     with none of ours in view (the file holds the last 100 posts), the last answer stands."""
@@ -107,6 +144,7 @@ def main():
         forum = json.loads((path.parent / "forum.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         forum = []
+    answer_boycotts(forum, path.parent / "outbox.jsonl")
     every = PROBE_EVERY if voted_down(forum, st) else POST_EVERY
     if now - st["last_post"] >= every:
         facts = [f"{shop}", f"{name} ({sku})", f"{price:,}원" + (f", 정가 {listp:,}원 대비 {off}% 저렴" if listp else ""),

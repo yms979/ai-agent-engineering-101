@@ -416,8 +416,9 @@ def main():
                 agreed = offer
                 t = seller.send(text, tid, ctx)
                 tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
-            named = re.search(r"(?:below|final price is|last ask was|Lowest for this unit:)\s*(\d[\d,]*)", said(t))
-            floor = as_int(named.group(1).replace(",", "")) if named else None
+            named = re.search(r"(?:below|final price (?:is|was)|last ask was|Lowest for this unit:|our lowest is|"
+                              r"cost floor \()\s*(\d[\d,]*)|(\d[\d,]*) is as low as we go", said(t))
+            floor = as_int((named.group(1) or named.group(2)).replace(",", "")) if named else None
             if (state(t) == "TASK_STATE_REJECTED" and floor and floor <= cap
                     and time.time() - start < DEADLINE - 30):
                 # most shops end the talk after 2 low offers and only then name their floor (146 of 221 rejections,

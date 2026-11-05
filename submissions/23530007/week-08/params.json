@@ -41,7 +41,10 @@
       "scarce_hours": 3,
       "scarce_asks": 3,
       "scarce_floor_mult": 1.15,
-      "max_goods_lines": 12
+      "max_goods_lines": 12,
+      "market_top": 10,
+      "market_share": 0.1,
+      "sku_max_price": 3000000
     },
     "LAUNCH": {
       "ask_share": {

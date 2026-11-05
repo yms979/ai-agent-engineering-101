@@ -161,12 +161,15 @@ def tier_wants(catalog, demand, value, top_cat, units, wants, p, now):
     return out
 
 
-def sku_wants(catalog, have_sku, p, now, hours_left):
+def sku_wants(catalog, have_sku, p, now, hours_left, market_sku):
     """Goods SKUs stocked by their own demand. The category loop buys one SKU per category, and tiers hold one
     unit per price point, so a SKU buyers keep asking for runs out: on 11-04/05 the 1.87M sofa (216k margin a
     unit) turned away 66 buyers in 24 h, the 1.6M and 1.09M mattresses 26 and 17, with 90M of cash idle.
     Rate per SKU = (our deals + sku_miss_weight x turned-away asks naming it) over the last sku_hours; hold
-    rate x GAP_HOURS x 1.5, at most sku_lines SKUs (by margin-weighted rate), only goods (no expiry)."""
+    rate x GAP_HOURS x 1.5, at most sku_lines SKUs (by margin-weighted rate), only goods (no expiry).
+    The market's best sellers by value count too, at market_share of their market rate (ledger, half-life
+    HALF_LIFE): on 11-05 the top SKU by value was a 2.32M sofa at ~35 sales/h market-wide that we never held
+    (above every price cap), with 2.25M and 2.19M sofas next; prices up to sku_max_price."""
     sold, asked = Counter(), Counter()
     since = now - p["sku_hours"] * 3600
     if SALES_LOG.is_file():
@@ -182,12 +185,16 @@ def sku_wants(catalog, have_sku, p, now, hours_left):
                     sold[ev["sku"]] += 1
                 elif ev.get("event") == "no_stock" and ev.get("skus"):
                     asked[ev["skus"][0]] += 1
+    mkt = {k: n * math.log(2) / HALF_LIFE for k, n in market_sku.items()}            # market sales per hour
+    best = sorted((k for k in mkt if (catalog.get(k) or {}).get("kind") == "goods"),
+                  key=lambda k: -mkt[k] * catalog[k]["list_price"])[:p["market_top"]]
     out = []
-    for sku in set(sold) | set(asked):
+    for sku in set(sold) | set(asked) | set(best):
         v = catalog.get(sku)
-        if not v or v["kind"] != "goods" or v["list_price"] > p["tier_max_price"]:
+        if not v or v["kind"] != "goods" or v["list_price"] > p["sku_max_price"]:
             continue
-        rate = (sold[sku] + p["sku_miss_weight"] * asked[sku]) / p["sku_hours"]
+        rate = max((sold[sku] + p["sku_miss_weight"] * asked[sku]) / p["sku_hours"],
+                   p["market_share"] * mkt.get(sku, 0))
         target = math.ceil(rate * GAP_HOURS * 1.5)
         if hours_left <= p["clear_window_hours"]:          # near the end: only what sells before it
             target = min(target, math.floor(sold[sku] / p["sku_hours"] * hours_left))
@@ -335,7 +342,7 @@ def main():
     top_cat = max(value.values(), default=0) or 1                      # a mattress outweighs a kimchi
     top_own = max(st["own_cat"].values(), default=0) or 1
     top_forum = max(st["forum_cat"].values(), default=0) or 1
-    wants = sku_wants(catalog, have_sku, p, now, sig["hours_left"])   # (priority, category, sku, qty)
+    wants = sku_wants(catalog, have_sku, p, now, sig["hours_left"], st["sku"])   # (priority, category, sku, qty)
     for _, cat, v, qty in wants:                            # the category loop sees these as stock already
         have[cat] += qty
         have_sku[v["sku"]] += qty

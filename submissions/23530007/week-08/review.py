@@ -13,6 +13,7 @@ claim is always worth a post. Posts go to .market/outbox.jsonl, which the kit se
 """
 import argparse
 import json
+from collections import Counter
 import os
 import re
 import time
@@ -40,6 +41,45 @@ def shop_name(url):
         return next((s["name"] for s in shops if s.get("url", "").rstrip("/") == url.rstrip("/")), None)
     except Exception:
         return None
+
+
+def price_report(catalog, sku):
+    """A neutral price check for the SKU we just bought (else its category), from the newest 1,000 ledger
+    entries, with up to 5 settle entries as refs. 11-06: among 9,502 voted buyer posts, market reports scored
+    best (0.555 mean; complaints 0.512), every post that drew 3+ votes carried refs, and our one report without
+    refs drew no likes at all."""
+    try:
+        rows = []
+        for after in (-1000, -500):
+            with urllib.request.urlopen(f"{MARKET}/api/ledger?after={after}", timeout=15) as r:
+                rows += [e for e in json.load(r) if e.get("kind") == "settle"]
+    except Exception:
+        return None
+    seen, uniq = set(), []
+    for e in rows:
+        if e["seq"] not in seen:
+            seen.add(e["seq"])
+            uniq.append(e)
+    item = catalog.get(sku) or {}
+    same = [e for e in uniq if (e.get("data") or {}).get("sku") == sku]
+    label = f"{str(item.get('name'))[:30]} ({sku})"
+    if len(same) < 3:                                 # too few of the SKU: report its category
+        cat = item.get("category")
+        same = [e for e in uniq if (catalog.get((e.get("data") or {}).get("sku")) or {}).get("category") == cat]
+        label = str(cat or "").split(">")[-1]
+    shares = sorted(e["data"]["amount"] / catalog[e["data"]["sku"]]["list_price"] for e in same
+                    if (catalog.get(e["data"].get("sku")) or {}).get("list_price"))
+    if len(shares) < 3:
+        return None
+    q = lambda f: shares[int(f * (len(shares) - 1))]
+    amounts = sorted(e["data"]["amount"] for e in same)
+    top = Counter(e["data"]["sku"] for e in same).most_common(1)[0][0]
+    text = (f"[시세] {label}: 최근 원장 1,000건 중 정산 {len(same)}건, 판매 가게 "
+            f"{len({e['data'].get('shop') for e in same})}곳 - 체결가/정가 중앙값 {q(.5):.0%} "
+            f"(하위 25% {q(.25):.0%}, 상위 25% {q(.75):.0%}), 체결가 {amounts[0]:,}~{amounts[-1]:,}원"
+            + (f" - 가장 많이 팔린 상품: {str((catalog.get(top) or {}).get('name'))[:30]} ({top})" if label != f"{str(item.get('name'))[:30]} ({sku})" else "")
+            + ". 원장 refs로 확인할 수 있습니다.")
+    return text, [e["seq"] for e in same[-5:]]
 
 
 def market_line(catalog, sku, now):
@@ -179,6 +219,11 @@ def main():
             facts.append(f"보증 {s.get('warranty_hours'):g}h" if s.get("warranty_hours") else "보증 없음")
         post = "[구매 기록] " + " | ".join(facts) + f" | ledger #{s.get('ledger')}" + market_line(catalog, sku, now)
         refs = [s["ledger"]] if isinstance(s.get("ledger"), int) else []
+        if st.get("last_kind") == "record":           # every other post: a neutral price report with ledger refs
+            report = price_report(catalog, sku)
+            if report:
+                post, refs = report
+        st["last_kind"] = "report" if post.startswith("[시세]") else "record"
         with open(path.parent / "outbox.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps({"post": post, "refs": refs, "as": "buyer"}, ensure_ascii=False) + "\n")
         st["last_post"] = now

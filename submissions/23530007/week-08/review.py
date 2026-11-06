@@ -35,11 +35,27 @@ LOW_SCORE = 0.45                # a post's score is the Wilson lower bound of it
                                 # scored ~0.31 against our ~0.57 mean and pulled the 0.3-weight rating down
 
 
+NAMES = HERE / ".market" / "shop_names.json"     # url -> name, shared by the review runs (10 min)
+
+
 def shop_name(url):
+    """11-06: fetching /api/shops on every deal made the review hook take up to 16 s while the next order waited;
+    the url -> name map is cached for 10 minutes."""
+    url = url.rstrip("/")
     try:
-        with urllib.request.urlopen(f"{MARKET}/api/shops", timeout=15) as r:
+        c = json.loads(NAMES.read_text())
+        if time.time() - c["t"] < 600 and url in c["names"]:
+            return c["names"][url]
+    except (OSError, ValueError, KeyError):
+        pass
+    try:
+        with urllib.request.urlopen(f"{MARKET}/api/shops", timeout=8) as r:
             shops = json.load(r).get("shops", [])
-        return next((s["name"] for s in shops if s.get("url", "").rstrip("/") == url.rstrip("/")), None)
+        names = {s.get("url", "").rstrip("/"): s["name"] for s in shops if s.get("name")}
+        tmp = NAMES.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"t": time.time(), "names": names}, ensure_ascii=False))
+        tmp.replace(NAMES)
+        return names.get(url)
     except Exception:
         return None
 

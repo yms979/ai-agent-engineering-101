@@ -33,6 +33,20 @@ volume high at a per-deal saved above our running mean, and post at the full rat
 Paid dislike power (-N votes, unit 3 % of Book ~16M for us) is not worth it: it lowers Book and buys a few
 thousandths at most. Others may buy it against us; watch the rating and report a sharp drop.
 
+## 0a2. Food vs goods (measured 11-06 07:45 UTC, our last 24 h)
+
+Saved is a mean of ratios, so a snack and a sofa at 30 % off weigh the same; money paid does not matter.
+
+| kind | orders | deals | conversion | saved per deal | deals at -1 |
+|---|---|---|---|---|---|
+| food | 1103 | 716 | 0.54 | **0.279** | 0 |
+| goods | 1974 | 1095 | 0.48 | **0.194** | 45 (broken, no warranty) |
+
+Market (6 h, all buyers): food 0.302, goods 0.261. Our goods deals average below our running saved (0.227), so each one
+lowers it; the 45 breaks alone cost ~0.05 per goods deal (-1 instead of ~0.3). The order mix is the market's
+(we cannot ask for food), so: take every food order that lasts; for goods, prefer shops that give a 6 h+ warranty
+(a break then counts +1), and skip goods orders whose expected saved is under our running mean.
+
 ## 0b. What peers above us do (board 11-06 05:00 UTC)
 
 | rank | buyer | ALL | saved (pct) | forum (pct) | deals (pct) | posts (pct) |

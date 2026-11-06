@@ -21,6 +21,7 @@ Log: logs/buyer_strategist.log.
 """
 import argparse
 import json
+from collections import Counter
 import time
 from pathlib import Path
 
@@ -46,6 +47,12 @@ GLOBAL = {                                    # role, bounds, step
     "rival_penalty": ((0.0, 0.1), 0.02),      # shop pick: minus this for a classmate shop ranked above us
     "cap_margin": ((0.0, 0.1), 0.02),         # cap at most (shop's median price / list + this) x list
     "near_cap": ((0.0, 0.04), 0.005),         # an ask within this x list above the cap is taken (near misses)
+    "open_offset": ((0.0, 0.08), 0.01),       # code haggling opens at (shop's lower-quartile price/list - this) x list
+    "max_shops": ((1, 6), 1),                 # shops tried per order (an order comes every ~20 s; time under that is free)
+}
+SHOP = {                                      # per shop (user 11-06: the strategist steers the rule-based buyer)
+    "shop_bias": ((-0.1, 0.1), 0.03),         # added to the shop's value score (prefer > 0, avoid < 0)
+    "shop_cap": ((-0.05, 0.05), 0.02),        # added to the cap at that shop, as a share of list
 }
 CAT = {"cap": ((0.6, 0.85), 0.04)}            # per category: replaces value_share for orders of that category
 METRICS = ("deals_next_6h", "mean_saved_next_6h", "conversion_next_6h")
@@ -99,6 +106,37 @@ def shop_prices(now):
             for k, v in sorted(by.items(), key=lambda kv: -len(kv[1]))[:15]}
 
 
+def rules_by_shop(r6):
+    """How the rule-based buyer fared per shop (6 h): visits, deals, outcomes, and the asks against our cap, as
+    shares of list: first ask, last ask, cap. A last ask just over the cap says a small shop_cap would close it."""
+    by = {}
+    for r in r6:
+        if not r.get("shop") or str(r.get("outcome", "")).startswith("skipped"):
+            continue
+        by.setdefault(r["shop"], []).append(r)
+    out = {}
+    for name, rows in sorted(by.items(), key=lambda kv: -len(kv[1]))[:20]:
+        lp = lambda r: r.get("list") or r.get("list_price") or 0
+        fa = [r["asks"][0] / lp(r) for r in rows if r.get("asks") and lp(r)]
+        la = [r["asks"][-1] / lp(r) for r in rows if r.get("asks") and lp(r)]
+        cp = [r["cap"] / lp(r) for r in rows if r.get("cap") and lp(r)]
+        med = lambda v: round(sorted(v)[len(v) // 2], 3) if v else None
+        out[name] = {"visits": len(rows), "deals": sum(r.get("outcome") == "deal" for r in rows),
+                     "outcomes": dict(Counter(str(r.get("outcome"))[:16] for r in rows).most_common(4)),
+                     "first_ask": med(fa), "last_ask": med(la), "cap": med(cp)}
+    return out
+
+
+def throughput(r6):
+    """Orders, deals and skips per hour (6 h) and the median seconds per visit: the market sends an order every
+    ~20 s, so time under that per order is free and max_shops can rise while visits stay short."""
+    orders = {r.get("order") for r in r6}
+    secs = sorted(r.get("secs") or 0 for r in r6 if not str(r.get("outcome", "")).startswith("skipped"))
+    return {"orders_per_h": round(len(orders) / 6), "deals_per_h": round(sum(r.get("outcome") == "deal" for r in r6) / 6),
+            "skipped_per_h": round(sum(str(r.get("outcome", "")).startswith("skipped") for r in r6) / 6),
+            "median_secs_per_visit": secs[len(secs) // 2] if secs else None}
+
+
 def market_value(r6):
     """buyer_value.py's table: per kind the market mean and the 12 shops whose deals add most to the saved rate
     (all buyers, 6 h, breaks -1/+1), with how many of our last-6 h deals went to each."""
@@ -121,7 +159,8 @@ def market_value(r6):
 
 
 def measure(pred, since, now):
-    rows = [r for r in trades(since, now) if not pred.get("category") or r.get("category") == pred["category"]]
+    rows = [r for r in trades(since, now) if (not pred.get("category") or r.get("category") == pred["category"])
+            and (not pred.get("shop") or r.get("shop") == pred["shop"])]
     s = summary(rows)
     return {"deals_next_6h": s["deals"], "mean_saved_next_6h": s["mean_saved"] or 0,
             "conversion_next_6h": s["conversion"] or 0}[pred["metric"]]
@@ -148,6 +187,8 @@ def evidence(mem, b, auto, params):
             "knobs_now": {k: (auto.get("globals") or {}).get(k, params.get(k)) for k in GLOBAL},
             "from_shop_strategist": read_board("buyer"),
             "market_value_6h": market_value(r6),
+            "rules_by_shop_6h": rules_by_shop(r6),
+            "throughput": throughput(r6),
             "our_shop_sells_at_24h": shop_prices(now),
             "investigations_you_asked_for": mem.d["working"].get("findings", []),
             "your_watch_list": mem.d["working"].get("watch", [])}
@@ -179,6 +220,11 @@ settle with predictions; your lessons refine it): {strategy}
 
 Shared memory digest (the curator's summary of what both strategists have found so far): {digest}
 
+YOUR ROLE (user, 11-06): the buyer is RULE-BASED and fast: code picks the shop, haggles (open at the shop's
+lower-quartile price minus open_offset, then halfway, then the cap, holding at the cap while the shop keeps coming
+down) and pays, in about a second per shop, with no model call. You are its controller: every 30 minutes you set
+the rules' numbers from what they produced (evidence "rules_by_shop_6h", "throughput"). Speed comes from the code;
+flexibility comes from you.
 How the buyer works (BUYER_STRATEGY.md section 3): per order it scores the shops that hold an acceptable SKU by
 the market's realized saved per deal there (evidence "market_value_6h") + conv_weight x our close rate - rival_penalty
 for classmates above us, skips the order if the best is under skip_below, caps at min(category cap or value_share,
@@ -187,7 +233,9 @@ re-offers a floor the shop names. Goods: A/B, or any grade with a 6 h+ warranty.
 food_extra_hours. Evidence "now"/"by_*" count saved as the score does (a break -1, a refunded one +1).
 
 Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75), "food_extra_hours" (1-12),
-"skip_below" (0.15-0.33), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1), "near_cap" (0-0.04);
+"skip_below" (0.15-0.33), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1), "near_cap" (0-0.04),
+"open_offset" (0-0.08), "max_shops" (1-6); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
+added to its value score) and "shop_cap" (-0.05..0.05, added to the cap there as a share of list);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
 HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often the best answer. Move a knob
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
@@ -203,7 +251,7 @@ Evidence: {evidence}
 
 Answer with one JSON object only:
 {{"read": "<6-10 sentences>",
-  "moves": [{{"knob": "value_share"|"quick_accept"|"food_extra_hours"|"cap", "category": "...", "value": n, "why": "...",
+  "moves": [{{"knob": "<a knob above>", "category": "<for cap>", "shop": "<for shop_bias/shop_cap>", "value": n, "why": "...",
              "uses": [...], "prediction": {{...}}}}],
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "...", "text": "...", "why": "..."}}],
   "investigate": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules", ...}}],
@@ -259,13 +307,15 @@ def run(force=False):
             if e.get("applied"):
                 if e["knob"] in CAT:
                     ((auto.setdefault("category", {})).get(e["sku"]) or {}).pop(e["knob"], None)
+                elif e["knob"] in SHOP:
+                    ((auto.setdefault("shop", {})).get(e["sku"]) or {}).pop(e["knob"], None)
                 else:
                     auto.setdefault("globals", {}).pop(e["knob"], None)
                 log(f"reverted {e['knob']} {e.get('sku') or ''}: its prediction failed")
     rec = mem.record()
     for knob, k in rec["by_kind"].items():
         if len(k["last"]) >= 8:
-            base = (GLOBAL.get(knob) or CAT.get(knob))[1]
+            base = (GLOBAL.get(knob) or CAT.get(knob) or SHOP.get(knob))[1]
             old = mem.d["steps"].get(knob, base)
             rate = sum(k["last"]) / len(k["last"])
             new = max(base / 8, old / 2) if rate < 0.5 else min(base, old * 1.5) if rate > 0.75 else old
@@ -282,7 +332,7 @@ def run(force=False):
     b = board_view()
     bp = params.get("buyer", {}).get("base", {})
     ev = evidence(mem, b, auto, bp)
-    steps = {k: mem.d["steps"].get(k, v[1]) for k, v in (GLOBAL | CAT).items()}
+    steps = {k: mem.d["steps"].get(k, v[1]) for k, v in (GLOBAL | CAT | SHOP).items()}
     lessons = [{k: x[k] for k in ("id", "text", "for", "against")} for x in mem.lessons()]
     strategy = (HERE / "BUYER_STRATEGY.md").read_text(encoding="utf-8") if (HERE / "BUYER_STRATEGY.md").is_file() else ""
     prompt = DECIDE.format(guide=shop.GUIDE.read_text(encoding="utf-8"), strategy=strategy, digest=read_digest("buyer"),
@@ -306,6 +356,8 @@ def run(force=False):
     mem.edit_lessons(ans.get("lessons"), log)
     mem.d["working"]["queries"] = (ans.get("investigate") or [])[:probe.MAX_QUERIES]
     cats = set(ev["by_category_24h"])
+    shops_known = set(ev["by_shop_24h"]) | set(ev["rules_by_shop_6h"]) | {
+        x["shop"] for k in ("food", "goods") for x in (ev["market_value_6h"].get(k) or {}).get("best_shops", [])}
     for mv in (ans.get("moves") or [])[:MAX_MOVES]:
         knob, pred = mv.get("knob"), mv.get("prediction") or {}
         try:
@@ -322,6 +374,13 @@ def run(force=False):
                 continue
             (lo, hi), _ = CAT[knob]
             cur = ((auto.get("category") or {}).get(key) or {}).get(knob, bp.get("value_share", 0.78))
+        elif knob in SHOP:
+            key = mv.get("shop")
+            if key not in shops_known:
+                log(f"dropped {knob} {key}: not a shop in the evidence")
+                continue
+            (lo, hi), _ = SHOP[knob]
+            cur = ((auto.get("shop") or {}).get(key) or {}).get(knob, 0)
         elif knob in GLOBAL:
             key = None
             (lo, hi), _ = GLOBAL[knob]
@@ -336,6 +395,8 @@ def run(force=False):
         if applied:
             if knob in CAT:
                 auto.setdefault("category", {}).setdefault(key, {})[knob] = new
+            elif knob in SHOP:
+                auto.setdefault("shop", {}).setdefault(key, {})[knob] = new
             else:
                 auto.setdefault("globals", {})[knob] = new
         mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + 6 * 3600, "knob": knob, "sku": key, "value": new,

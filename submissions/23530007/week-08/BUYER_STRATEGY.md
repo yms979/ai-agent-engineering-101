@@ -86,6 +86,15 @@ buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, each a mid-rank perce
    avoid shops that are slow (median ≥ 60 s) or close < 25 % of 30+ visits; food must last its hours +
    `food_extra_hours`.
 
+## 3b. Control split (user, 11-06)
+
+The buyer runs on rules: shop choice, haggling, paying and retries are code, about a second per shop with no model
+call. The market sends an order every ~20 s, so time under that per order is free. The buyer strategist is the
+controller. Every 30 minutes it reads what the rules produced (rules_by_shop_6h: first/last ask against our cap
+per shop; throughput: orders, deals and skips per hour, seconds per visit) and sets the rules' numbers: global
+knobs, the cap per category, and per shop a bias on the value score and a cap adjustment. The code gives the
+speed; the strategist gives the flexibility. A move it makes is reverted if its 6 h prediction fails.
+
 ## 4. Knobs (the strategist's whitelist) and how to move them
 
 | knob | range | raises saved when | costs |
@@ -97,6 +106,10 @@ buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, each a mid-rank perce
 | rival_penalty | 0-0.10 | lowered | rivals' revenue rises |
 | quick_accept | 0.55-0.75 | lowered | speed |
 | food_extra_hours | 1-12 | raised (fewer −1 spoils) | fewer food shops qualify |
+| open_offset | 0-0.08 | raised (open lower) | shops that end talks after low offers |
+| max_shops | 1-6 | raised (more tries per order, free under ~20 s) | none while visits stay short |
+| shop_bias (per shop) | -0.1-0.1 | toward shops that close cheaply | none |
+| shop_cap (per shop) | -0.05-0.05 | lowered where last asks sit far below cap | conversion there |
 
 **Holding is a strategy (user, 11-06).** When the numbers are on track, the last moves' predictions are not yet
 due, or the evidence is thin, make no move and say why. Changing settings every run hides what worked.

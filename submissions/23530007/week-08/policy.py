@@ -120,6 +120,7 @@ def merged(cfg, role, regime):
             p[k] = v
     p["sku_auto"] = auto.get("sku") or {}
     p["cat_auto"] = auto.get("category") or {}
+    p["shop_auto"] = auto.get("shop") or {}          # buyer_strategist.py: per-shop bias and cap adjustment
     for k, v in cfg[role].get(regime, {}).items():
         p[k] = dict(p[k], **v) if isinstance(v, dict) and isinstance(p.get(k), dict) else v
     return p

@@ -268,7 +268,9 @@ def choose(shops, mem, item, budget, ask_model=True, ctx=None):
             e = expected(ctx["stats"], s["name"], ctx["kind"], ctx["cat"])
             v = seen.get(s["name"], [0, 0])
             conv = (v[1] + 1) / (v[0] + 2) if v[0] >= 5 else 0.6
-            return e["saved"] + bp["conv_weight"] * conv - (bp["rival_penalty"] if s["name"] in rivals else 0), e, conv
+            bias = ((bp.get("shop_auto") or {}).get(s["name"]) or {}).get("shop_bias", 0)   # the strategist's call
+            return (e["saved"] + bp["conv_weight"] * conv - (bp["rival_penalty"] if s["name"] in rivals else 0) + bias,
+                    e, conv)
         ranked = sorted(((value(s), s) for s in allowed), key=lambda x: -x[0][0])
         # skip only when no allowed shop reaches skip_below; else the best score among those that do
         worth = [r for r in ranked if r[0][1]["saved"] >= bp["skip_below"]]
@@ -476,7 +478,8 @@ def main():
             no_deal(f"No shop had {a.item} in stock.")
             return
 
-    for attempt in range(MAX_SHOPS):              # a shop that turns me away before any ask: try the next one
+    max_shops = int(bp.get("max_shops", MAX_SHOPS)) if acceptable else MAX_SHOPS   # strategist knob
+    for attempt in range(max_shops):              # a shop that turns me away before any ask: try the next one
         pick, why, skipped, views = choose(shops, mem, a.item, a.budget, ask_model=attempt == 0, ctx=vctx)
         t_shop = time.time()
         if pick is None:                           # every shop is expected under skip_below: no deal beats a bad one
@@ -501,6 +504,9 @@ def main():
             if ev["n"] >= 10:      # do not pay above what this shop usually takes from other buyers
                 p25 = ev["p25"]
                 cap = min(cap, int(want["list_price"] * (ev["p50"] + bp["cap_margin"])))
+            adj = ((bp.get("shop_auto") or {}).get(pick["name"]) or {}).get("shop_cap", 0)   # strategist, per shop
+            if adj:
+                cap = max(1, min(a.budget, int(cap + want["list_price"] * adj)))
                 aim = (f"Other buyers usually settle with this shop at {int(want['list_price'] * ev['p25'])}-"
                        f"{int(want['list_price'] * ev['p50'])}; aim for the low end.")
             hours = order.get("use_within_hours")
@@ -559,7 +565,7 @@ def main():
                     elif len(mine) >= 3:
                         action, offer = "offer", cap       # still coming down (rounds take < 1 s): hold at the cap
                     elif not mine:
-                        action, offer = "offer", min(cap, int(lp * max(0.4, (p25 or cap / lp) - 0.02)))
+                        action, offer = "offer", min(cap, int(lp * max(0.4, (p25 or cap / lp) - bp.get("open_offset", 0.02))))
                     elif len(mine) == 1:
                         action, offer = "offer", max(mine[-1], (mine[-1] + cap) // 2)
                     else:
@@ -636,14 +642,14 @@ def main():
         turned_away = (outcome == "rejected" and not asks) or outcome.startswith(("error", "grade "))
         on_price = vctx is not None and outcome in RETRY_ON_PRICE   # Round 3: the next-best shop may take our price
         others = [s for s in shops if s["name"] != pick["name"]]
-        if (turned_away or on_price) and others and attempt < MAX_SHOPS - 1 and time.time() - start < DEADLINE - 60:
+        if (turned_away or on_price) and others and attempt < max_shops - 1 and time.time() - start < DEADLINE - 60:
             mem["trades"].append({"t": int(time.time()), "secs": int(time.time() - t_shop), "shop": pick["name"],
                                   "item": item, "budget": a.budget,
                                   "order": order.get("order"), "category": a.item if acceptable else None,
                                   "kind": order.get("kind"), "outcome": outcome, "price": None, "asks": asks,
                                   "agreed": agreed, "honest": True, "signed": True, "void": ""})
             log("buyer", f"{pick['name']} {'turned me away' if turned_away else 'did not meet my price'} ({outcome}); "
-                         f"trying another shop ({attempt + 2}/{MAX_SHOPS})")
+                         f"trying another shop ({attempt + 2}/{max_shops})")
             shops = others
             continue
         break
@@ -676,7 +682,8 @@ def main():
                           "name": want["name"] if acceptable else None, "kind": order.get("kind"),
                           "outcome": outcome, "price": price, "asks": asks, "agreed": agreed, "honest": honest,
                           "signed": not void, "void": void,
-                          "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0})
+                          "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
+                          "cap": cap, "list": want["list_price"] if acceptable else None})
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")
                  + f", {time.time() - start:.0f} s, harness calls {harness.CALLS['n']}")

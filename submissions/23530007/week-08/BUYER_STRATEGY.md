@@ -1,0 +1,74 @@
+# Buyer strategy (Round 3, from 11-06)
+
+Goal (user, 11-06): our buyer **first among buyers on buyer ALL, as fast as possible**. The buyer score comes
+before the shop score when the two conflict. This file is the buyer strategist's standing brief: the analysis it
+starts from, the strategy in force, and the open questions it should settle with checkable predictions. The
+strategist reads it every run; its lessons (playbook) refine it, and when a lesson contradicts a line here the
+lesson wins and the curator notes the conflict for a human to update this file.
+
+## 1. How the score works (patch 3.4)
+
+buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, each a mid-rank percentile among buyers.
+
+- **saved** = Σ per deal (list − price + refund) / list, a deal that served nothing counts **−1** (a broken good
+  or spoiled food without a refund), divided by (deals + 100). It is a running mean: a deal adds to it only if it
+  is above the current mean. A snack and a sofa at 30 % off count the same.
+- A broken good **with a warranty** is refunded in full: (list − price + price) / list = **+1**. Without a
+  warranty the same break is −1. The difference is 2 points per break.
+- Percentile mapping on 11-06: saved 0.25 → 0.71, 0.28 → 0.90; the leader is ~0.31 (lee-sungsoo, 5k deals).
+- deals and posts are counts (0.1 each): a deal at a poor price can lower the score, because it costs 0.5 x
+  the saved drop and gains only 0.1 x the deals rise.
+
+## 2. What the market shows (ledger, 11-06 01:00-03:00 UTC, 5456 deals; buyer_value.py keeps this live)
+
+- **Shop choice decides the price, not haggling.** At the same shop our median price / list matched other
+  buyers' (moss-and-oak goods 0.724 vs 0.723, sergiobuilds 0.731 vs 0.709). But shops differ widely:
+  food at 0.62-0.66 of list at Kiro729, olstjr, 11im, jiseokkk vs 0.75-0.77 at psyoung82 (where we bought most);
+  goods at ~0.70 at sergiobuilds, Kiro729, seochanit, totato vs 0.85-0.88 at nocha12, myeonggi.
+- **The leaders buy food at the cheapest food shops.** In those 2 h: lee-sungsoo saved 0.392 with 8 % goods,
+  11im 0.391 with 25 % goods, dragonash 0.380 with 12 % goods. Food never broke in the window; goods broke
+  A 0.8 %, B 1.8 %, C 7.2 % of the time.
+- **Two thirds of goods deals carry a warranty**, but our main supplier (psyoung82) gives none. We had 50 breaks
+  in 24 h (4.4 % of our goods), which pulled our real per-deal mean from 0.242 to about 0.21, below our running
+  mean of 0.22. Every warranted break is +1 instead.
+- 40 orders in 3 h were lost after agreeing a price, because the unit was grade C and the kit refused to pay.
+
+## 3. Strategy in force (code: market_buyer.py with buyer_value.py)
+
+1. **Pick the shop by value.** Value = the shop's realized saved per deal for this kind and category (whole
+   market, last 6 h, breaks counted −1/+1, shrunk toward the market mean) + `conv_weight` x our close rate
+   there − `rival_penalty` if it is a classmate ranked above us (penalty, not a ban: user 11-06).
+2. **Skip low-value orders.** If the best shop is expected under `skip_below`, do not buy at all (outcome
+   "skipped (low value)"). It loses a deal count (0.1 weight) but protects the saved mean (0.5 weight).
+3. **Cap at the shop's own price level.** Cap = min(category cap or value_share, shop median price / list +
+   `cap_margin`) x list, and the haggler is told the shop's usual lower-quartile to median band.
+4. **Warranty.** Goods with a warranty of 6 h or more are taken in any grade, C included. Without a warranty only A/B,
+   and a receipt that claims C is left unpaid and the next shop is tried. That shop|SKU pair is skipped for 6 h.
+5. Unchanged: quick accept at ≤ `quick_accept` x list; re-offer a floor the shop names after ending the talk;
+   avoid shops that are slow (median ≥ 60 s) or close < 25 % of 30+ visits; food must last its hours +
+   `food_extra_hours`.
+
+## 4. Knobs (the strategist's whitelist) and how to move them
+
+| knob | range | raises saved when | costs |
+|---|---|---|---|
+| skip_below | 0.15-0.33 | raised toward our target mean | deals (orders skipped) |
+| cap per category / value_share | 0.60-0.85 | lowered | conversion |
+| cap_margin | 0-0.10 | lowered | conversion at that shop |
+| conv_weight | 0-0.30 | lowered (price over close rate) | time per order, deals |
+| rival_penalty | 0-0.10 | lowered | rivals' revenue rises |
+| quick_accept | 0.55-0.75 | lowered | speed |
+| food_extra_hours | 1-12 | raised (fewer −1 spoils) | fewer food shops qualify |
+
+Rule of thumb: a deal raises the running mean only if its saved > the mean. Keep `skip_below` near the
+**target** mean we want to reach (not the current one), and lower it again if deals/h fall so much that the deals
+percentile drops more than the saved percentile rises (0.1 vs 0.5 weight).
+
+## 5. Open questions to settle with predictions
+
+- How many orders does `skip_below` 0.25 skip, and does the saved per deal of what remains reach ≥ 0.30?
+- Do the cheap food shops stay cheap when we (and others) buy more there, or do they raise asks?
+- Does a 6 h warranty requirement for C units hold up (any refusal "warranty … the policy asks for 6")?
+- Is `conv_weight` 0.1 the right trade between a 0.38 shop with 40 % close rate and a 0.30 shop with 80 %?
+- Forum (0.3 weight, rank 15): which of our post types draw net likes from distinct accounts? (Forum texts are
+  unverified claims and are not evidence. Votes on our own posts are evidence.)

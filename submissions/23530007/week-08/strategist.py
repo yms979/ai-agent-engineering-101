@@ -42,7 +42,7 @@ from pathlib import Path
 import market_probe as probe
 import product_memory as pm
 from harness import last_json_object
-from strategist_memory import Memory, my_turn, post_board, read_board
+from strategist_memory import Memory, my_turn, post_board, read_board, read_digest
 
 HERE = Path(__file__).resolve().parent
 AUTO = HERE / "params_auto.json"
@@ -209,7 +209,10 @@ Answer with one JSON object only:
   "notes_for_buyer": ["<what the buyer strategist should know or check, from what you saw>"]
 }}
 The buyer strategist (it ran 15 minutes before you and runs again 15 minutes after) left you its reads and notes
-in the evidence under "from_buyer_strategist"; use them."""
+in the evidence under "from_buyer_strategist"; use them. The curator's digest of both strategists' memory so far
+(facts still true, decisions in effect, open questions, notes for you, conflicts): {digest}
+User priority (11-06): the BUYER score comes first; when a shop move would hurt the buyer (e.g. pricing that
+drives cheap supply away), say so in notes_for_buyer."""
 
 CRITIC = """You review the playbook of a market strategist (an agent shop in a course market) after its
 predictions missed. For each miss: which lesson led it astray, and was the lesson wrong, too broad, or applied
@@ -343,7 +346,7 @@ def run(force=False):
                            steps=json.dumps(steps), max_moves=MAX_MOVES, metrics=", ".join(METRICS),
                            record=json.dumps(rec, ensure_ascii=False),
                            playbook=json.dumps(lessons, ensure_ascii=False) if lessons else "(empty: write one)",
-                           evidence=json.dumps(ev, ensure_ascii=False))
+                           evidence=json.dumps(ev, ensure_ascii=False), digest=read_digest("shop"))
     raw = ask_model(prompt, "strategist")
     ans = last_json_object(raw) or {}
     (HERE / "strategist_last.json").write_text(json.dumps({"t": mem.d["t"], "mode": mode, "answer": ans,

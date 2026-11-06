@@ -268,8 +268,10 @@ def choose(shops, mem, item, budget, ask_model=True, ctx=None):
             conv = (v[1] + 1) / (v[0] + 2) if v[0] >= 5 else 0.6
             return e["saved"] + bp["conv_weight"] * conv - (bp["rival_penalty"] if s["name"] in rivals else 0), e, conv
         ranked = sorted(((value(s), s) for s in allowed), key=lambda x: -x[0][0])
+        # skip only when no allowed shop reaches skip_below; else the best score among those that do
+        worth = [r for r in ranked if r[0][1]["saved"] >= bp["skip_below"]]
     if ctx is not None and ranked:
-        (score, e, conv), pick = ranked[0]
+        (score, e, conv), pick = (worth or ranked)[0]
         skipped = [n for n in views if n not in {s["name"] for s in allowed}]
         why = (f"value: {pick['name']} expected saved {e['saved']:.3f} per deal ({e['n']} market deals, "
                f"median {e['p50']:.2f} of list, warranty {e['warranty']:.0%}), our close rate {conv:.2f}"
@@ -639,7 +641,8 @@ def main():
                           "order": order.get("order"), "category": a.item if acceptable else None,
                           "name": want["name"] if acceptable else None, "kind": order.get("kind"),
                           "outcome": outcome, "price": price, "asks": asks, "agreed": agreed, "honest": honest,
-                          "signed": not void, "void": void})
+                          "signed": not void, "void": void,
+                          "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0})
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")
                  + f", {time.time() - start:.0f} s, harness calls {harness.CALLS['n']}")
@@ -680,7 +683,8 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:      # still end with a result line the kit and the test can read
-        log("buyer", f"error: {e!r}")
+        import traceback
+        log("buyer", f"error: {e!r} at " + " < ".join(f"{f.name}:{f.lineno}" for f in reversed(traceback.extract_tb(e.__traceback__))))
         try:
             first = json.load(open(sys.argv[sys.argv.index("--shops") + 1], encoding="utf-8"))[0]["url"]
         except Exception:

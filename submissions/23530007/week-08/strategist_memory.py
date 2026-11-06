@@ -208,11 +208,24 @@ def post_board(role, read, findings, notes=None):
         db.execute("INSERT INTO entries VALUES (?, ?, ?, ?, ?)",
                    (time.time(), role, str(read)[:2000], json.dumps(findings, ensure_ascii=False),
                     json.dumps(notes or [], ensure_ascii=False)))
-        db.execute("DELETE FROM entries WHERE t < ?", (time.time() - 7 * 86400,))
+    # the curator merges it into the digest and archives old entries (memory_curator.py), detached
+    import subprocess
+    import sys
+    subprocess.Popen([sys.executable, str(HERE / "memory_curator.py")], stdin=subprocess.DEVNULL,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True, cwd=str(HERE))
 
 
-def read_board(role, n=3):
-    """The other strategist's last n entries, newest first: read, findings and its notes to us."""
+def read_digest(role):
+    """The curator's digest of both strategists' memory, with the notes meant for `role`."""
+    try:
+        from memory_curator import read_digest as rd
+        return rd(role)
+    except Exception:
+        return "{}"
+
+
+def read_board(role, n=1):
+    """The other strategist's last n raw entries, newest first (older ones live on in the curator's digest)."""
     other = "buyer" if role == "shop" else "shop"
     try:
         with _db() as db:

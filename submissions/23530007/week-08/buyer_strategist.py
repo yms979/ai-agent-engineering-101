@@ -27,7 +27,7 @@ from pathlib import Path
 import market_probe as probe
 import strategist as shop
 from harness import last_json_object
-from strategist_memory import Memory, my_turn, post_board, read_board
+from strategist_memory import Memory, my_turn, post_board, read_board, read_digest
 
 HERE = Path(__file__).resolve().parent
 AUTO = HERE / "params_auto_buyer.json"
@@ -65,14 +65,18 @@ def trades(since, until=None):
             continue
         lp = (cat.get(t.get("item")) or {}).get("list_price")
         saved = 1 - t["price"] / lp if t.get("outcome") == "deal" and t.get("price") and lp else None
+        if saved is not None and t.get("broken"):          # the score: a break is -1, or +1 when refunded
+            saved = 1.0 if (t.get("warranty") or 0) >= 6 else -1.0
         out.append(dict(t, list=lp, saved=saved))
     return out
 
 
 def summary(rows):
+    skipped = sum(str(r.get("outcome", "")).startswith("skipped") for r in rows)
+    rows = [r for r in rows if not str(r.get("outcome", "")).startswith("skipped")]
     deals = [r for r in rows if r.get("outcome") == "deal"]
     sv = [r["saved"] for r in deals if r["saved"] is not None]
-    return {"visits": len(rows), "deals": len(deals), "conversion": round(len(deals) / len(rows), 2) if rows else None,
+    return {"visits": len(rows), "skipped_orders": skipped, "deals": len(deals), "conversion": round(len(deals) / len(rows), 2) if rows else None,
             "mean_saved": round(sum(sv) / len(sv), 3) if sv else None,
             "first_ask_over_list": round(sorted(r["asks"][0] / r["list"] for r in rows if r.get("asks") and r.get("list"))
                                          [len([1 for r in rows if r.get("asks") and r.get("list")]) // 2], 2)
@@ -92,6 +96,27 @@ def shop_prices(now):
             by.setdefault(str(e.get("category") or "").split(">")[-1], []).append(e["price"] / lp)
     return {k: {"sales": len(v), "price_over_list_median": round(sorted(v)[len(v) // 2], 2)}
             for k, v in sorted(by.items(), key=lambda kv: -len(kv[1]))[:15]}
+
+
+def market_value(r6):
+    """buyer_value.py's table: per kind the market mean and the 12 shops whose deals add most to the saved rate
+    (all buyers, 6 h, breaks -1/+1), with how many of our last-6 h deals went to each."""
+    try:
+        from buyer_value import table
+        st = table()
+    except Exception as e:
+        return {"error": str(e)}
+    ours = {}
+    for r in r6:
+        if r.get("outcome") == "deal":
+            ours[r["shop"]] = ours.get(r["shop"], 0) + 1
+    out = {}
+    for kind in ("food", "goods"):
+        rows = [(k.split("|")[0], v) for k, v in st.items() if k.endswith(f"|{kind}") and k.count("|") == 1]
+        top = sorted((x for x in rows if x[1]["n"] >= 10 and x[0] != "*"), key=lambda kv: -kv[1]["saved"])[:12]
+        out[kind] = {"market": st.get(f"*|{kind}"),
+                     "best_shops": [dict(v, shop=n, our_deals_6h=ours.get(n, 0)) for n, v in top]}
+    return out
 
 
 def measure(pred, since, now):
@@ -121,6 +146,7 @@ def evidence(mem, b, auto, params):
             "by_shop_24h": {k: summary(v) for k, v in top_s},
             "knobs_now": {k: (auto.get("globals") or {}).get(k, params.get(k)) for k in GLOBAL},
             "from_shop_strategist": read_board("buyer"),
+            "market_value_6h": market_value(r6),
             "our_shop_sells_at_24h": shop_prices(now),
             "investigations_you_asked_for": mem.d["working"].get("findings", []),
             "your_watch_list": mem.d["working"].get("watch", [])}
@@ -138,12 +164,20 @@ pushing and how many hours you expect until we pass the next buyer above us.
 
 Market guide (rules, API, our system): {guide}
 
-How the buyer works: per order it picks a shop (avoiding slow shops, shops that rarely close with us, classmates
-ranked above us), asks for a SKU, takes any ask <= quick_accept x list at once, else haggles (haiku) up to the cap
-= value_share x list (or the category's cap), and re-offers a shop's stated floor if it is under the cap. Goods:
-grades A/B only. Food: must last the order's hours + food_extra_hours.
+Standing buyer strategy (BUYER_STRATEGY.md: the analysis and strategy in force, and the open questions you should
+settle with predictions; your lessons refine it): {strategy}
 
-Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75), "food_extra_hours" (1-12);
+Shared memory digest (the curator's summary of what both strategists have found so far): {digest}
+
+How the buyer works (BUYER_STRATEGY.md section 3): per order it scores the shops that hold an acceptable SKU by
+the market's realized saved per deal there (evidence "market_value_6h") + conv_weight x our close rate - rival_penalty
+for classmates above us, skips the order if the best is under skip_below, caps at min(category cap or value_share,
+shop median price/list + cap_margin) x list, takes any ask <= quick_accept x list at once, else haggles (haiku), and
+re-offers a floor the shop names. Goods: A/B, or any grade with a 6 h+ warranty. Food: must last its hours +
+food_extra_hours. Evidence "now"/"by_*" count saved as the score does (a break -1, a refunded one +1).
+
+Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75), "food_extra_hours" (1-12),
+"skip_below" (0.15-0.33), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
 the evidence). Steps allowed now: {steps}. At most {max_moves} moves, each with a prediction checkable 6 h later
 from our records: {{"metric": one of {metrics}, "category": "<optional>", "op": ">=" or "<=", "value": n}}, and
@@ -226,7 +260,9 @@ def run(force=False):
     ev = evidence(mem, b, auto, bp)
     steps = {k: mem.d["steps"].get(k, v[1]) for k, v in (GLOBAL | CAT).items()}
     lessons = [{k: x[k] for k in ("id", "text", "for", "against")} for x in mem.lessons()]
-    prompt = DECIDE.format(guide=shop.GUIDE.read_text(encoding="utf-8"), steps=json.dumps(steps), max_moves=MAX_MOVES,
+    strategy = (HERE / "BUYER_STRATEGY.md").read_text(encoding="utf-8") if (HERE / "BUYER_STRATEGY.md").is_file() else ""
+    prompt = DECIDE.format(guide=shop.GUIDE.read_text(encoding="utf-8"), strategy=strategy, digest=read_digest("buyer"),
+                           steps=json.dumps(steps), max_moves=MAX_MOVES,
                            metrics=", ".join(METRICS), record=json.dumps(mem.record(), ensure_ascii=False),
                            playbook=json.dumps(lessons, ensure_ascii=False) if lessons else "(empty: write one)",
                            evidence=json.dumps(ev, ensure_ascii=False))

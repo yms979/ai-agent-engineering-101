@@ -17,10 +17,8 @@ so the buyer gets its own loop, the same shape:
             and per category "cap"; each with a checkable prediction
   act       mode as the shop strategist's (params.json strategist.mode); "apply" writes params_auto_buyer.json,
             which policy.py lays over the buyer's parameters (market_buyer reads the category cap)
-  watch     (11-06, user: the agent does this, not the operator) the market's rule pages are hashed each run and
-            a change wakes it out of turn with the changed lines; the student board is diffed against its last
-            run (who moved, shop or buyer part); saved_speed = deals/h x (saved per deal - our saved) per hour,
-            before/after its last move, is the metric moves are judged on (predictions may be scored after 1-6 h)
+  briefing  (11-06, user) memory_curator.py watches rules, rank and saved_speed and briefs it through the digest;
+            moves are judged on saved_speed = deals/h x (saved per deal - our saved) (predictions scored after 1-6 h)
 Log: logs/buyer_strategist.log.
 """
 import argparse
@@ -60,8 +58,6 @@ SHOP = {                                      # per shop (user 11-06: the strate
 }
 CAT = {"cap": ((0.6, 0.85), 0.04)}            # per category: replaces value_share for orders of that category
 METRICS = ("deals_next_6h", "mean_saved_next_6h", "conversion_next_6h", "saved_speed")
-RULES_URLS = ("https://market.ourolabs.ai/rules", "https://market.ourolabs.ai/agent.md")
-RULES_SEEN = HERE / ".market" / "rules_seen.json"
 
 
 def saved_speed(rows, hours, base):
@@ -72,47 +68,6 @@ def saved_speed(rows, hours, base):
     if not s["deals"] or s["mean_saved"] is None or not hours:
         return 0.0
     return round(s["deals"] / hours * (s["mean_saved"] - base), 2)
-
-
-def rules_watch():
-    """The market's rule pages, hashed each run; a change (a patch) comes back as the new text's changed lines
-    so the strategist reacts the same hour instead of waiting for a person to read the notice."""
-    import difflib
-    import hashlib
-    import urllib.request
-    seen = shop.read(RULES_SEEN, {})
-    out = {}
-    for url in RULES_URLS:
-        try:
-            text = urllib.request.urlopen(url, timeout=20).read().decode("utf-8", "replace")
-        except Exception:
-            continue
-        h = hashlib.sha256(text.encode()).hexdigest()
-        old = seen.get(url) or {}
-        if old.get("sha") and old["sha"] != h:
-            diff = [x for x in difflib.unified_diff(old.get("text", "").splitlines(), text.splitlines(), lineterm="", n=0)
-                    if x[:1] in "+-" and not x.startswith(("+++", "---"))]
-            out[url] = "\n".join(diff)[:4000]
-        seen[url] = {"sha": h, "text": text, "t": time.time()}
-    RULES_SEEN.write_text(json.dumps(seen, ensure_ascii=False), encoding="utf-8")
-    return out
-
-
-def rank_watch(mem, b):
-    """Who moved on the student board since our last run, and by which part (shop / buyer), so a rank change is
-    explained from the numbers each run."""
-    now = {x[0]: {"total": x[1], "shop": x[3], "buyer": x[5]} for x in b.get("class_top") or []}
-    before = mem.d.get("last_class_top") or {}
-    mem.d["last_class_top"] = now
-    moved = {}
-    for name, v in now.items():
-        o = before.get(name)
-        if o:
-            d = {k: round((v[k] or 0) - (o[k] or 0), 3) for k in ("total", "shop", "buyer")}
-            if any(abs(x) >= 0.003 for x in d.values()):
-                moved[name] = d
-    return {"class_rank_now": b.get("class_rank"), "class_rank_last_run": mem.d.get("last_class_rank"),
-            "changes_since_last_run": moved}
 
 
 def log(text):
@@ -236,21 +191,8 @@ def evidence(mem, b, auto, params):
     top_s = sorted(shops.items(), key=lambda kv: -len(kv[1]))[:15]
     rows = [x for x in b["buyers_all"] if x.get("saved") is not None]
     ladder = sorted({round(x["saved"], 3) for x in rows if x["saved"] > b["buyer"]["saved"]})[:6]
-    base = b["buyer"].get("saved") or 0
-    hourly = []
-    for h in range(6, 0, -1):
-        rows = trades(now - h * 3600, now - (h - 1) * 3600)
-        sm = summary(rows)
-        hourly.append({"hours_ago": h, "deals": sm["deals"], "mean_saved": sm["mean_saved"],
-                       "saved_speed": saved_speed(rows, 1, base)})
-    last_move = max((e["t"] for e in mem.d.get("episodes", []) if e.get("applied")), default=None)
     return {"time_utc": time.strftime("%Y-%m-%d %H:%M", time.gmtime()), "round_ends": "2026-11-17T23:59 KST",
-            "rules_changed": mem.d.pop("rules_changed", None) or "no change since the last run",
-            "rank_watch": rank_watch(mem, b),
-            "saved_speed_by_hour": hourly,
-            "saved_speed_since_last_move": None if not last_move else
-            {"hours": round((now - last_move) / 3600, 2), "speed": saved_speed(trades(last_move), (now - last_move) / 3600, base),
-             "before_6h": saved_speed(trades(last_move - 6 * 3600, last_move), 6, base)},
+
             "buyer_board": b["buyer"], "buyer_leaders": b["buyer_leaders"], "saved_values_just_above_us": ladder,
             "class_rank": b["class_rank"], "class_top": b["class_top"],
             "now": {"last_6h": summary(r6), "last_24h": summary(r24)},
@@ -325,15 +267,11 @@ Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75)
 "open_offset" (0-0.08), "max_shops" (1-6); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
 added to its value score) and "shop_cap" (-0.05..0.05, added to the cap there as a share of list);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
-YOUR JOB EACH RUN (user, 11-06: "the buyer agent must do this itself, not the operator"):
-1. Rules: evidence "rules_changed" holds the changed lines of the market's rules when a patch landed since the last
-   run (you were woken out of turn for it). Work out what it changes in the score and in what pays, say it in
-   "read", and move the knobs it calls for at once. Patches have changed the scoring three times in this round.
-2. Rank: evidence "rank_watch" shows who moved on the student board since the last run and by which part. When our
-   class rank changed, say why (our numbers or theirs, which component), in "read".
-3. Speed: evidence "saved_speed_by_hour" and "saved_speed_since_last_move" give deals/h x (saved per deal - our
-   saved) per hour and before/after the last move. Judge moves on it, with metric "saved_speed" (same units), and
-   use "hours": 2 when ~140 deals are enough to read a move; revert a move that lowered it.
+THE CURATOR'S BRIEFING (user, 11-06): the memory curator between the strategists watches the market's rules, the
+student board and how fast our saved rises, and writes you a briefing (in the shared memory below: "briefing_for_you",
+"rules_change", "rank_change"). Act on it: a rules change is decided this run, and moves are judged on
+saved_speed = deals/h x (saved per deal - our saved) (metric "saved_speed", same units; "hours": 2 when ~140 deals
+are enough to read a move); revert a move that lowered it. Say in "read" what you took from the briefing.
 HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often the best answer. Move a knob
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
 predictions are not yet due, when the numbers are on track, or when the evidence is thin or noisy, hold and say
@@ -386,16 +324,6 @@ def board_view():
 
 def run(force=False):
     mem = Memory(STATE)
-    try:
-        changed = rules_watch()
-    except Exception as e:
-        changed = {}
-        log(f"rules watch failed: {e}")
-    if changed:                                   # a patch: run now, out of turn, with the changed lines
-        log(f"rules changed: {', '.join(changed)}")
-        mem.d["rules_changed"] = changed
-        mem.save()
-        force = True
     slot = my_turn("buyer")
     if not force and (slot is None or slot == mem.d.get("slot")):
         return
@@ -441,7 +369,6 @@ def run(force=False):
     b = board_view()
     bp = params.get("buyer", {}).get("base", {})
     ev = evidence(mem, b, auto, bp)
-    mem.d["last_class_rank"] = b.get("class_rank")
     steps = {k: mem.d["steps"].get(k, v[1]) for k, v in (GLOBAL | CAT | SHOP).items()}
     lessons = [{k: x[k] for k in ("id", "text", "for", "against")} for x in mem.lessons()]
     strategy = (HERE / "BUYER_STRATEGY.md").read_text(encoding="utf-8") if (HERE / "BUYER_STRATEGY.md").is_file() else ""

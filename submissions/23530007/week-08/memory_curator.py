@@ -18,6 +18,13 @@ itself, and old findings sit beside the ones that replaced them. The curator is 
                 cold  everything older: appended to logs/archive/strategy-exchange-YYYYMMDD.jsonl.gz, then deleted
               The buyer's buyer_memory.json keeps TRADES_HOURS of trades (every reader uses 24 h or less);
               older trades go to logs/archive/buyer-trades-YYYYMMDD.jsonl.gz. Nothing is thrown away.
+  3. watch    (user 11-06: this agent, not the buyer, gathers the picture and briefs the strategists) each run it
+              checks, in code: the market's rule pages (hash; a change gives the changed lines and wakes both
+              strategists out of turn), the student board against its last run (who moved, shop or buyer part),
+              our buyer's components and the peers above, and saved_speed = deals/h x (saved per deal - our
+              saved) by hour and before/after the buyer strategist's last move. The model reads that with the new
+              entries and writes a briefing per strategist into the digest (briefing_buyer, briefing_shop,
+              rules_change, rank_change); read_digest hands each its own.
 Log: logs/memory_curator.log. One curator at a time (lock); a failed model call leaves entries uncurated for
 the next run.
 """
@@ -45,7 +52,13 @@ MODEL_TIMEOUT = 300
 HOT_HOURS = 24
 DIGEST_KEEP = 10
 TRADES_HOURS = 48
-LIMITS = {"facts": 20, "decisions": 10, "open_questions": 8, "for_shop": 6, "for_buyer": 6, "conflicts": 5}
+LIMITS = {"facts": 20, "decisions": 10, "open_questions": 8, "for_shop": 6, "for_buyer": 6, "conflicts": 5,
+          "briefing_buyer": 6, "briefing_shop": 6}
+STRINGS = ("rules_change", "rank_change")         # one short paragraph each, TEXT_MAX * 3
+RULES_URLS = ("https://market.ourolabs.ai/rules", "https://market.ourolabs.ai/agent.md")
+RULES_SEEN = HERE / ".market" / "rules_seen.json"
+WATCH_STATE = HERE / ".market" / "curator_watch.json"
+BSTATE = HERE / "buyer_strategist_memory.json"
 TEXT_MAX = 320
 
 PROMPT = """You curate the shared memory of two strategists that run one agent's shop and buyer (yms979) in a course
@@ -62,6 +75,22 @@ Rules:
 - "conflicts": where the two strategists disagree, or a finding contradicts the standing buyer strategy below.
 - Limits: facts 20, decisions 10, open_questions 8, for_shop 6, for_buyer 6, conflicts 5; each text under 300 chars.
 
+You are also the strategists' analyst (user, 11-06): the WATCH below was measured in code just now. From it, the
+entries and the rules, write
+- "rules_change": if WATCH.rules_changed has lines, what the patch changes in the score and in what pays for our
+  buyer and shop, concretely (which knob or behaviour should change); else "".
+- "rank_change": if our class rank or the totals around us moved since the last run (WATCH.rank), why: our numbers
+  or theirs, which part (shop or buyer) and, for the buyer, which component; else "".
+- "briefing_buyer" and "briefing_shop": up to 6 items each, the most decision-relevant points for that strategist
+  now, with numbers: where the gap to first place is, which component moves it cheapest, what saved_speed says about
+  the buyer's last move (WATCH.saved_speed; higher is better; compare since_last_move with before_6h), and what the
+  other strategist found that concerns it. Do not repeat what they already said they act on.
+Scoring as of the WATCH: Buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, forum as the rating itself
+(patch 3.5), the rest percentiles; Shop ALL = 0.5 book + 0.3 revenue + 0.2 stars; rank = shop ALL + buyer ALL among
+students. Trust WATCH.rules_changed over this paragraph when they differ.
+
+WATCH: {watch}
+
 Standing buyer strategy (BUYER_STRATEGY.md, section titles and section 3 matter most):
 {strategy}
 
@@ -72,7 +101,8 @@ NEW entries (oldest first): {entries}
 Answer with one JSON object only:
 {{"facts": [{{"id": "F1", "text": "...", "source": "shop"|"buyer"|"both", "since": "YYYY-MM-DD HH:MM", "last_confirmed": "YYYY-MM-DD HH:MM"}}],
   "decisions": [{{"who": "shop"|"buyer", "what": "...", "when": "YYYY-MM-DD HH:MM", "why": "..."}}],
-  "open_questions": ["..."], "for_shop": ["..."], "for_buyer": ["..."], "conflicts": ["..."]}}"""
+  "open_questions": ["..."], "for_shop": ["..."], "for_buyer": ["..."], "conflicts": ["..."],
+  "rules_change": "...", "rank_change": "...", "briefing_buyer": ["..."], "briefing_shop": ["..."]}}"""
 
 
 def log(msg):
@@ -109,6 +139,8 @@ def clean(ans):
             elif isinstance(x, str):
                 keep.append(x[:TEXT_MAX])
         out[k] = keep
+    for k in STRINGS:
+        out[k] = str(ans.get(k) or "")[:TEXT_MAX * 3]
     return out
 
 
@@ -125,17 +157,98 @@ def ask(prompt):
             return ""
 
 
-def curate(d):
+def rules_watch():
+    """The market's rule pages, hashed; a change comes back as the changed lines (a patch)."""
+    import difflib
+    import hashlib
+    import urllib.request
+    seen = read_json(RULES_SEEN, {})
+    out = {}
+    for url in RULES_URLS:
+        try:
+            text = urllib.request.urlopen(url, timeout=20).read().decode("utf-8", "replace")
+        except Exception:
+            continue
+        h = hashlib.sha256(text.encode()).hexdigest()
+        old = seen.get(url) or {}
+        if old.get("sha") and old["sha"] != h:
+            diff = [x for x in difflib.unified_diff(old.get("text", "").splitlines(), text.splitlines(), lineterm="", n=0)
+                    if x[:1] in "+-" and not x.startswith(("+++", "---"))]
+            out[url] = "\n".join(diff)[:4000]
+        seen[url] = {"sha": h, "text": text, "t": time.time()}
+    RULES_SEEN.write_text(json.dumps(seen, ensure_ascii=False), encoding="utf-8")
+    return out
+
+
+def read_json(path, default):
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return default
+
+
+def watch(rules_changed):
+    """What the curator measures in code each run, for its model call: rules, rank, buyer components, saved_speed."""
+    import buyer_strategist as bs
+    st = read_json(WATCH_STATE, {})
+    b = bs.board_view()
+    now = time.time()
+    top = {x[0]: {"total": x[1], "shop": x[3], "buyer": x[5]} for x in b.get("class_top") or []}
+    before = st.get("class_top") or {}
+    moved = {}
+    for name, v in top.items():
+        o = before.get(name)
+        if o:
+            dd = {k: round((v[k] or 0) - (o[k] or 0), 3) for k in ("total", "shop", "buyer")}
+            if any(abs(x) >= 0.003 for x in dd.values()):
+                moved[name] = dd
+    base = b["buyer"].get("saved") or 0
+    hourly = []
+    for h in range(6, 0, -1):
+        rows = bs.trades(now - h * 3600, now - (h - 1) * 3600)
+        sm = bs.summary(rows)
+        hourly.append({"hours_ago": h, "deals": sm["deals"], "mean_saved": sm["mean_saved"],
+                       "saved_speed": bs.saved_speed(rows, 1, base)})
+    eps = [e for e in read_json(BSTATE, {}).get("episodes", []) if e.get("applied")]
+    last = max((e["t"] for e in eps), default=None)
+    out = {"time_utc": time.strftime("%Y-%m-%d %H:%M", time.gmtime(now)),
+           "rules_changed": rules_changed or {},
+           "rank": {"class_rank_now": b.get("class_rank"), "class_rank_last_run": st.get("class_rank"),
+                    "minutes_since_last_run": round((now - st["t"]) / 60) if st.get("t") else None,
+                    "class_top": b.get("class_top"), "changes_since_last_run": moved},
+           "buyer": b["buyer"], "peers_above": (b.get("peers_above") or [])[:10],
+           "saved_speed": {"by_hour": hourly, "since_last_move": None if not last else {
+               "hours": round((now - last) / 3600, 2),
+               "speed": bs.saved_speed(bs.trades(last), (now - last) / 3600, base),
+               "before_6h": bs.saved_speed(bs.trades(last - 6 * 3600, last), 6, base),
+               "moves": [(e.get("knob"), e.get("sku"), e.get("value")) for e in eps if e["t"] == last]}}}
+    WATCH_STATE.write_text(json.dumps({"t": now, "class_top": top, "class_rank": b.get("class_rank")},
+                                      ensure_ascii=False), encoding="utf-8")
+    return out
+
+
+def wake_strategists():
+    """A patch landed: both strategists run now, out of turn, and read the curator's rules_change."""
+    for script in ("buyer_strategist.py", "strategist.py"):
+        subprocess.Popen([sys.executable, str(HERE / script), "--force"], cwd=HERE, stdin=subprocess.DEVNULL,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    log("rules changed: woke both strategists")
+
+
+def curate(d, w=None):
     rows = d.execute("SELECT rowid, t, role, read, findings, notes FROM entries WHERE curated = 0 ORDER BY t").fetchall()
-    if not rows:
-        return False
     _, current = latest_digest(d)
+    w = w or {}
+    if not rows and not w.get("rules_changed") and not (w.get("rank") or {}).get("changes_since_last_run") \
+            and current.get("briefing_buyer"):
+        return False                                 # nothing new to merge or brief
     entries = [{"at": time.strftime("%Y-%m-%d %H:%M", time.gmtime(t)), "role": role, "read": read,
                 "findings": json.loads(f or "null"), "notes_for_the_other": json.loads(n or "[]")}
                for _, t, role, read, f, n in rows]
     strategy = (HERE / "BUYER_STRATEGY.md").read_text(encoding="utf-8") if (HERE / "BUYER_STRATEGY.md").is_file() else ""
     raw = ask(PROMPT.format(strategy=strategy, digest=json.dumps(current, ensure_ascii=False) or "{}",
-                            entries=json.dumps(entries, ensure_ascii=False)))
+                            entries=json.dumps(entries, ensure_ascii=False),
+                            watch=json.dumps(w or {}, ensure_ascii=False)))
     from harness import last_json_object
     ans = last_json_object(raw) if raw else None
     if not isinstance(ans, dict):
@@ -203,9 +316,25 @@ def main():
             fcntl.flock(lk, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
             return                                   # another curator is at work; it will see these entries too
+        pending = read_json(WATCH_STATE, {}).get("pending_rules") or {}
+        try:
+            changed = pending | rules_watch()      # a change stays pending until a digest has taken it in
+        except Exception as e:
+            changed = pending
+            log(f"rules watch failed: {e!r}")
+        try:
+            w = watch(changed)
+        except Exception as e:
+            w = {"rules_changed": changed, "error": repr(e)}
+            log(f"watch failed: {e!r}")
         with db() as d:
-            curate(d)
+            done = curate(d, w)
             archive(d)
+        st = read_json(WATCH_STATE, {})
+        st["pending_rules"] = {} if done else changed
+        WATCH_STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
+        if changed and done:
+            wake_strategists()
         trim_buyer_memory()
 
 
@@ -220,7 +349,9 @@ def read_digest(role):
         return "{}"
     view = {"updated_minutes_ago": round((time.time() - t) / 60), "facts": dg.get("facts"),
             "decisions_in_effect": dg.get("decisions"), "open_questions": dg.get("open_questions"),
-            "notes_for_you": dg.get(f"for_{role}"), "conflicts": dg.get("conflicts")}
+            "notes_for_you": dg.get(f"for_{role}"), "conflicts": dg.get("conflicts"),
+            "briefing_for_you": dg.get(f"briefing_{role}"), "rules_change": dg.get("rules_change"),
+            "rank_change": dg.get("rank_change")}
     return json.dumps(view, ensure_ascii=False)
 
 

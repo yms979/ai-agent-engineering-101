@@ -100,7 +100,9 @@ ME = "yms979"
 MARKET = "https://market.ourolabs.ai"
 SLOW_SECS = 60             # median seconds per visit above which a shop is skipped (5+ visits in 24 h)
 LOW_VISITS, LOW_RATE = 30, 0.25   # skip a shop that closed under 25 % of 30+ visits in 24 h (if others remain)
-MAX_SHOPS = 3            # shops tried per order when one turns me away before any ask (stale stock list)
+MAX_SHOPS = 4            # shops tried per order: after a turn-away, and (Round 3) after a haggle that failed on
+                         # price while time is left (11-06: an order has ~10 min, a failed haggle takes 6-21 s)
+RETRY_ON_PRICE = ("rejected", "too dear", "over budget", "walked away")
 BREAK_WINDOW = 7 * 3600  # goods break up to 6 h after the sale; an hour of slack for the sale's settle time
 RED_FLAGS = re.compile(r"overcharg|higher than (the price )?(we |i )?agreed|receipt (said|was|price)|scam|fake|"
                        r"cheat|dishonest|did not match|didn't match|mismatch|avoid|rip.?off|bait", re.I)
@@ -528,8 +530,11 @@ def main():
                 ask = read_ask(t)[0]
                 if ask is not None:
                     asks.append(ask)
-                if (acceptable and ask is not None and ask <= cap
-                        and ask <= want["list_price"] * bp["quick_accept"]):
+                near = acceptable and ask is not None and cap < ask <= min(a.budget, cap + want["list_price"] * bp["near_cap"])
+                if near or (acceptable and ask is not None and ask <= cap
+                            and ask <= want["list_price"] * bp["quick_accept"]):
+                    # near: 11-06, 43 of 54 rejections in an hour came after asks within ~1-2 % of list of our cap
+                    # (ask 0.70, our offer 0.69); taking such an ask keeps saved ~0.29-0.30 and saves the order
                     # already at or under a typical deal price (median paid ~0.75-0.79 of list): take it now.
                     # Haggling costs ~5 s a model call; order flow, not a few % of price, held the buyer back
                     log("buyer", f"ask {ask} is {ask / want['list_price']:.0%} of list: taking it")
@@ -557,7 +562,8 @@ def main():
             named = re.search(r"(?:below|final price (?:is|was)|last ask was|Lowest for this unit:|our lowest is|"
                               r"cost floor \()\s*(\d[\d,]*)|(\d[\d,]*) is as low as we go", said(t))
             floor = as_int((named.group(1) or named.group(2)).replace(",", "")) if named else None
-            if (state(t) == "TASK_STATE_REJECTED" and floor and floor <= cap
+            if (state(t) == "TASK_STATE_REJECTED" and floor
+                    and floor <= min(a.budget, cap + (want["list_price"] * bp["near_cap"] if acceptable else 0))
                     and time.time() - start < DEADLINE - 30):
                 # most shops end the talk after 2 low offers and only then name their floor (146 of 221 rejections,
                 # 65 of them under our cap): open a new talk and offer that floor, up to 3 times
@@ -602,14 +608,16 @@ def main():
             log("buyer", f"trade failed: {e!r}")
             outcome = f"error ({type(e).__name__})"
         turned_away = (outcome == "rejected" and not asks) or outcome.startswith(("error", "grade "))
+        on_price = vctx is not None and outcome in RETRY_ON_PRICE   # Round 3: the next-best shop may take our price
         others = [s for s in shops if s["name"] != pick["name"]]
-        if turned_away and others and attempt < MAX_SHOPS - 1 and time.time() - start < DEADLINE - 60:
+        if (turned_away or on_price) and others and attempt < MAX_SHOPS - 1 and time.time() - start < DEADLINE - 60:
             mem["trades"].append({"t": int(time.time()), "secs": int(time.time() - t_shop), "shop": pick["name"],
                                   "item": item, "budget": a.budget,
                                   "order": order.get("order"), "category": a.item if acceptable else None,
-                                  "outcome": outcome, "price": None, "asks": [], "agreed": None, "honest": True,
-                                  "signed": True, "void": ""})
-            log("buyer", f"{pick['name']} turned me away ({outcome}); trying another shop ({attempt + 2}/{MAX_SHOPS})")
+                                  "kind": order.get("kind"), "outcome": outcome, "price": None, "asks": asks,
+                                  "agreed": agreed, "honest": True, "signed": True, "void": ""})
+            log("buyer", f"{pick['name']} {'turned me away' if turned_away else 'did not meet my price'} ({outcome}); "
+                         f"trying another shop ({attempt + 2}/{MAX_SHOPS})")
             shops = others
             continue
         break

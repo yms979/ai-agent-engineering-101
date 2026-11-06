@@ -45,6 +45,7 @@ GLOBAL = {                                    # role, bounds, step
     "conv_weight": ((0.0, 0.3), 0.05),        # shop pick: expected saved + this x our close rate there
     "rival_penalty": ((0.0, 0.1), 0.02),      # shop pick: minus this for a classmate shop ranked above us
     "cap_margin": ((0.0, 0.1), 0.02),         # cap at most (shop's median price / list + this) x list
+    "near_cap": ((0.0, 0.04), 0.005),         # an ask within this x list above the cap is taken (near misses)
 }
 CAT = {"cap": ((0.6, 0.85), 0.04)}            # per category: replaces value_share for orders of that category
 METRICS = ("deals_next_6h", "mean_saved_next_6h", "conversion_next_6h")
@@ -181,7 +182,7 @@ re-offers a floor the shop names. Goods: A/B, or any grade with a 6 h+ warranty.
 food_extra_hours. Evidence "now"/"by_*" count saved as the score does (a break -1, a refunded one +1).
 
 Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75), "food_extra_hours" (1-12),
-"skip_below" (0.15-0.33), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1);
+"skip_below" (0.15-0.33), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1), "near_cap" (0-0.04);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
 HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often the best answer. Move a knob
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'

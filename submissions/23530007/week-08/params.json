@@ -111,7 +111,8 @@
       "conv_weight": 0.1,
       "rival_penalty": 0.04,
       "skip_below": 0.25,
-      "cap_margin": 0.03
+      "cap_margin": 0.03,
+      "near_cap": 0.015
     },
     "END_SALE": {},
     "LOW_FILL": {}

@@ -85,6 +85,13 @@ entries and the rules, write
   now, with numbers: where the gap to first place is, which component moves it cheapest, what saved_speed says about
   the buyer's last move (WATCH.saved_speed; higher is better; compare since_last_move with before_6h), and what the
   other strategist found that concerns it. Do not repeat what they already said they act on.
+USER DIRECTIVE (11-06): the buyer's score comes first, above everything else. Find the best way to raise saved and
+have the buyer apply it, and weigh deals, posts, forum and saved on the formula itself: WATCH.buyer_formula gives
+buyer ALL gained per step of each component and buyer ALL after 24 h / 72 h / until the round ends for several (deals/h, saved per deal)
+settings. In "briefing_buyer", item 1 must name the best setting from that arithmetic (which scenario, why, the
+expected buyer ALL change, and the knobs that get there: value_share, category caps, skip_below, quick_accept,
+open_offset, max_shops, shop_bias/shop_cap), and item 2 where saved is being lost now (shops, categories,
+outcomes) with numbers.
 Scoring as of the WATCH: Buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, forum as the rating itself
 (patch 3.5), the rest percentiles; Shop ALL = 0.5 book + 0.3 revenue + 0.2 stars; rank = shop ALL + buyer ALL among
 students. Trust WATCH.rules_changed over this paragraph when they differ.
@@ -222,9 +229,50 @@ def watch(rules_changed):
                "speed": bs.saved_speed(bs.trades(last), (now - last) / 3600, base),
                "before_6h": bs.saved_speed(bs.trades(last - 6 * 3600, last), 6, base),
                "moves": [(e.get("knob"), e.get("sku"), e.get("value")) for e in eps if e["t"] == last]}}}
+    out["buyer_formula"] = formula(b, hourly)
     WATCH_STATE.write_text(json.dumps({"t": now, "class_top": top, "class_rank": b.get("class_rank")},
                                       ensure_ascii=False), encoding="utf-8")
     return out
+
+
+def formula(b, hourly):
+    """The buyer score's arithmetic, in code (user 11-06: weigh deals, posts, forum and saved by the formula):
+    buyer ALL gained per step of each component at today's board, and where saved lands for a few
+    (deals/h, saved per deal) settings, so the briefing compares them on buyer ALL itself."""
+    import urllib.request
+    full = json.load(urllib.request.urlopen("https://market.ourolabs.ai/api/board?round=3", timeout=30))
+    rows = [x for x in full["buyers"] if x.get("all") is not None]
+    me = next(x for x in rows if x["name"] == "yms979")
+
+    def pct(k, v):
+        vals = [x.get(k) or 0 for x in rows]
+        return (sum(q < v for q in vals) + 0.5 * sum(q == v for q in vals)) / len(vals)
+
+    sv, dl, po, fo = me.get("saved") or 0, me.get("deals") or 0, me.get("posts") or 0, me.get("forum") or 0
+    gain = {"saved_plus_0.01": round(0.5 * (pct("saved", sv + 0.01) - pct("saved", sv)), 4),
+            "saved_plus_0.03": round(0.5 * (pct("saved", sv + 0.03) - pct("saved", sv)), 4),
+            "deals_plus_500": round(0.1 * (pct("deals", dl + 500) - pct("deals", dl)), 4),
+            "deals_plus_2000": round(0.1 * (pct("deals", dl + 2000) - pct("deals", dl)), 4),
+            "posts_plus_100": round(0.1 * (pct("posts", po + 100) - pct("posts", po)), 4),
+            "forum_rating_plus_0.01": 0.003}
+    total = sv * (dl + 100)
+    scen = {}
+    for rate, per in ((55, 0.32), (70, 0.30), (85, 0.28), (100, 0.26), (40, 0.35)):
+        end = (1794927540 - time.time()) / 3600        # 2026-11-17 23:59 KST
+        for hours in (24, 72, int(end)):
+            n = rate * hours
+            s2 = (total + n * per) / (dl + 100 + n)
+            scen[f"{rate}/h at {per} for {hours}h"] = {
+                "saved": round(s2, 4),
+                "buyer_ALL_change": round(0.5 * (pct("saved", s2) - pct("saved", sv))
+                                          + 0.1 * (pct("deals", dl + n) - pct("deals", dl)), 4)}
+    last3 = [h for h in hourly[-3:] if h["deals"]]
+    now_rate = sum(h["deals"] for h in last3) / max(len(last3), 1)
+    now_per = (sum(h["deals"] * (h["mean_saved"] or 0) for h in last3) / max(sum(h["deals"] for h in last3), 1))
+    return {"now": {"saved": sv, "deals": dl, "posts": po, "forum": fo,
+                    "deals_per_h_3h": round(now_rate, 1), "saved_per_deal_3h": round(now_per, 3)},
+            "buyer_ALL_gain_per_step": gain, "scenarios": scen,
+            "note": "others move too; percentiles are against today's board. Posts are capped at 12/h by the market."}
 
 
 def wake_strategists():
@@ -235,12 +283,12 @@ def wake_strategists():
     log("rules changed: woke both strategists")
 
 
-def curate(d, w=None):
+def curate(d, w=None, force=False):
     rows = d.execute("SELECT rowid, t, role, read, findings, notes FROM entries WHERE curated = 0 ORDER BY t").fetchall()
     _, current = latest_digest(d)
     w = w or {}
     if not rows and not w.get("rules_changed") and not (w.get("rank") or {}).get("changes_since_last_run") \
-            and current.get("briefing_buyer"):
+            and current.get("briefing_buyer") and not force:
         return False                                 # nothing new to merge or brief
     entries = [{"at": time.strftime("%Y-%m-%d %H:%M", time.gmtime(t)), "role": role, "read": read,
                 "findings": json.loads(f or "null"), "notes_for_the_other": json.loads(n or "[]")}
@@ -309,7 +357,7 @@ def trim_buyer_memory():
     log(f"buyer_memory.json: {len(old)} trades older than {TRADES_HOURS} h archived, {len(mem['trades'])} kept")
 
 
-def main():
+def main(force=False):
     LOCK.parent.mkdir(exist_ok=True)
     with open(LOCK, "w") as lk:
         try:
@@ -328,7 +376,7 @@ def main():
             w = {"rules_changed": changed, "error": repr(e)}
             log(f"watch failed: {e!r}")
         with db() as d:
-            done = curate(d, w)
+            done = curate(d, w, force)
             archive(d)
         st = read_json(WATCH_STATE, {})
         st["pending_rules"] = {} if done else changed
@@ -357,4 +405,4 @@ def read_digest(role):
 
 if __name__ == "__main__":
     sys.path.insert(0, str(HERE))
-    main()
+    main("--force" in sys.argv)

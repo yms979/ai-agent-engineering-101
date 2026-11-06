@@ -61,6 +61,7 @@ STRINGS = {"rules_change": 3, "rank_change": 3, "market_flow": 4}      # one par
 ITEM_KEYS = ("id", "text", "source", "since", "last_confirmed", "who", "what", "when", "why", "role", "numbers",
              "request", "answer")
 REFRESH_MIN = 60                                   # a digest older than this is rewritten even without new entries
+LOCK_WAIT = 300                                    # s a run waits for another curator (a model call takes ~90 s)
 PROBE_CHARS = 2500                                 # a code result for one request, at most
 RULES_URLS = ("https://market.ourolabs.ai/rules", "https://market.ourolabs.ai/agent.md")
 RULES_SEEN = HERE / ".market" / "rules_seen.json"
@@ -430,10 +431,23 @@ def curate(d, w=None, market=None, force=False):
     rows = d.execute("SELECT rowid, t, role, read, findings, notes, requests FROM entries WHERE curated = 0 ORDER BY t").fetchall()
     dt, current = latest_digest(d)
     w = w or {}
-    stale = dt is None or time.time() - dt > REFRESH_MIN * 60
-    if not rows and not w.get("rules_changed") and not (w.get("rank") or {}).get("changes_since_last_run") \
-            and current.get("briefing_buyer") and not stale and not force:
+    rk = w.get("rank") or {}
+    why = []                                         # the model is called only for one of these
+    if rows:
+        why.append(f"{len(rows)} new entries")
+    if w.get("rules_changed"):
+        why.append("rules changed")
+    if rk.get("class_rank_last_run") is not None and rk.get("class_rank_now") != rk.get("class_rank_last_run"):
+        why.append(f"class rank {rk['class_rank_last_run']} -> {rk['class_rank_now']}")
+    if dt is None or time.time() - dt > REFRESH_MIN * 60:
+        why.append(f"digest older than {REFRESH_MIN} min")
+    if not current.get("briefing_buyer"):
+        why.append("no briefing yet")
+    if force:
+        why.append("forced")
+    if not why:
         return False                                 # nothing new to merge, answer or brief
+    log("curating: " + ", ".join(why))
     entries = [{"at": time.strftime("%Y-%m-%d %H:%M", time.gmtime(t)), "role": role, "read": read,
                 "findings": json.loads(f or "null"), "notes_for_the_other": json.loads(n or "[]"),
                 "requests": json.loads(rq or "[]")}
@@ -506,13 +520,26 @@ def trim_buyer_memory():
     log(f"buyer_memory.json: {len(old)} trades older than {TRADES_HOURS} h archived, {len(mem['trades'])} kept")
 
 
+def _lock(lk, wait):
+    """One curator at a time; a second one waits (a strategist's post that lands during the cron tick's run would
+    otherwise sit unanswered until the next tick: the buyer's 08:30 requests did on 11-06)."""
+    t0 = time.time()
+    while True:
+        try:
+            fcntl.flock(lk, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return True
+        except OSError:
+            if time.time() - t0 > wait:
+                return False
+            time.sleep(5)
+
+
 def main(force=False):
     LOCK.parent.mkdir(exist_ok=True)
     with open(LOCK, "w") as lk:
-        try:
-            fcntl.flock(lk, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError:
-            return                                   # another curator is at work; it will see these entries too
+        if not _lock(lk, LOCK_WAIT):
+            log(f"another curator held the lock for {LOCK_WAIT} s; giving up this run")
+            return
         pending = read_json(WATCH_STATE, {}).get("pending_rules") or {}
         try:
             changed = pending | rules_watch()      # a change stays pending until a digest has taken it in

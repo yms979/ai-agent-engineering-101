@@ -452,9 +452,14 @@ def main():
             continue
         if (p.get("sku_auto", {}).get(v["sku"]) or {}).get("cover") == 0:   # the strategist stopped this SKU
             continue
-        cost = v["list_price"] * COST_GUESS * qty
-        if cash - spend - cost < p["keep_cash"] or stock_cost + spend + cost > max_stock:
+        unit = v["list_price"] * COST_GUESS
+        # 11-06: a line that did not fit whole was skipped, so the top sellers (Plana 4 swing 11 % of revenue,
+        # 20 x ~2.3M) got nothing for 2 h and sat at 0 stock while 64M cash waited; buy what fits instead
+        room = min(cash - spend - p["keep_cash"], max_stock - stock_cost - spend)
+        qty = min(qty, int(room // unit)) if unit > 0 else qty
+        if qty <= 0:
             continue
+        cost = unit * qty
         buy.append({"sku": v["sku"], "qty": qty})
         spend += cost
         goods_lines += v["kind"] == "goods"

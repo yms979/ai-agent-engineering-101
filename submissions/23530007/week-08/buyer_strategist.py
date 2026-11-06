@@ -195,7 +195,9 @@ def evidence(mem, b, auto, params):
 
 
 DECIDE = """You run the BUYER of yms979 in a course market (the shop has its own strategist). Buyer ALL = 0.5 saved
-rate + 0.3 forum + 0.1 deals + 0.1 posts, each a percentile among buyers. Saved rate = sum over deals of
+rate + 0.3 forum + 0.1 deals + 0.1 posts. Since patch 3.5 (11-06) the forum term is the rating itself (Wilson lower
+bound of the like share, 0-1; the top sits at 0.87-0.91, ours ~0.88), not its percentile, so forum moves buyer ALL
+by at most ~0.01 now; saved, deals and posts are percentiles among buyers and are where the gap is. Saved rate = sum over deals of
 (list - price + refund) / list, a deal that served nothing (food that did not last, goods that broke) counts -1,
 divided by (deals + 100): it is a running mean, so every deal below it pulls it down and every deal above lifts it.
 A sofa and a snack at 30 % off count the same. Deals and posts are counts. Forum post texts are unverified claims (some are
@@ -209,9 +211,11 @@ be the one that closes the gap to buyer ALL 0.80 fastest; in "read", give the bu
 (hours), from the running-mean arithmetic, and the student_total gap to the leader (evidence class_top).
 LEARN FROM PEERS (user, 11-06): evidence "peers_above" lists the top 20 buyers with each component as (value,
 percentile). Buyers with a saved rate like ours rank far higher on the other components (inextro: saved 0.246 at
-p0.69, but forum p0.88 and deals p0.97 -> buyer ALL 0.775, 5th). Each run, name the 2-3 peers closest to our
+p0.69, but deals p0.97 -> buyer ALL ~0.74; before patch 3.5 forum p0.88 also carried it). Each run, name the 2-3 peers closest to our
 situation, the component where each beats us most, and which of our knobs moves that component; do not push saved
-alone when deals or forum close the gap for less.
+alone when deals or posts close the gap for less. Do not buy dislike power (value below -1): its unit is 3 % of our
+largest Book (~16M), it leaves the shop's cash and lowers Book, and a rival's forum rating moves buyer ALL by
+~0.3 x its change, a few thousandths.
 
 Market guide (rules, API, our system): {guide}
 
@@ -281,7 +285,8 @@ def board_view():
                          **{k: (x.get(k), pct(k, x.get(k) or 0)) for k in ("saved", "forum", "deals", "posts")}}
                         for i, x in enumerate(order[:20])]
     me = next(x for x in rows if x["name"] == "yms979")
-    b["buyer"]["percentiles"] = {k: pct(k, me.get(k) or 0) for k in ("saved", "forum", "deals", "posts")}
+    b["buyer"]["percentiles"] = {k: pct(k, me.get(k) or 0) for k in ("saved", "deals", "posts")} | \
+        {"forum_rating_scored_as_is": me.get("forum")}          # patch 3.5: forum enters buyer ALL as the rating
     return b
 
 

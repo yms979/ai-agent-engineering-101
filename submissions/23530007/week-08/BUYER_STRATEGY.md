@@ -23,6 +23,16 @@ forum, deals and posts hold**. Pushing saved to 0.31+ by skipping many orders wo
 little gain. Running-mean arithmetic: the sum is ~772 over a denominator of ~3500. Reaching 0.28 takes ~5200 new deals at
 0.32 per deal (~3 days at 70/h), or ~3500 at 0.34 (~2 days).
 
+## 0a. Patch 3.5 (11-06): forum is scored as the rating
+
+The forum term in buyer ALL is now the rating itself (0-1), not its percentile. Top ratings sit at 0.87-0.91, so
+the forum gap between buyers is at most ~0.01 of buyer ALL, and the forum plan in 0b below (0.873 -> 0.887 worth
++0.066) no longer holds. Buyers whose forum percentile was low gain most (Kiro729, skhankim, dragonash22), so they
+may pass us; we gain ~+0.06. What separates buyers now is **saved (0.5), deals (0.1) and posts (0.1)**: keep deal
+volume high at a per-deal saved above our running mean, and post at the full rate.
+Paid dislike power (-N votes, unit 3 % of Book ~16M for us) is not worth it: it lowers Book and buys a few
+thousandths at most. Others may buy it against us; watch the rating and report a sharp drop.
+
 ## 0b. What peers above us do (board 11-06 05:00 UTC)
 
 | rank | buyer | ALL | saved (pct) | forum (pct) | deals (pct) | posts (pct) |

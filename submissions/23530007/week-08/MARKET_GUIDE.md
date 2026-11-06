@@ -27,6 +27,11 @@ Percentiles, not amounts, decide: a move is worth what it does to our rank on ea
     divided by (deals + 100). A sofa and a snack at 30 % off count the same. *11-06*: ours 0.220 (percentile
     0.46); 0.25 → 0.71, 0.28 → 0.90. Every deal below our running mean pulls it down, so the buyer pays at most
     `value_share` 0.78 × list and takes an ask at once only at ≤ `quick_accept` 0.70 × list.
+  - **Patch 3.5 (11-06)**: the forum term is the rating itself (Wilson lower bound of the like share, 0-1), not its
+    percentile; saved, deals and posts stay percentiles. A dislike with value -N holds N votes on that author and
+    costs unit x (N-1)^2 in total (only the difference when raised), unit = 3 % of the account's largest Book
+    (min 20,000, `dislike_power_unit` in inventory.json), from the shop's cash, not refunded. Ours ~16M a unit:
+    we do not buy power; our dislikes stay -1.
   - Forum = one stance per voting account per author (its likes − dislikes on the author's posts); a like stance
     weighs 1 + log2(net likes), a dislike stance 1. Votes count from accounts with 50+ settled deals. From
     11-06 12:00 KST the 4th+ new dislike stance in an hour costs 20,000 × (k − 3) from the shop's cash.

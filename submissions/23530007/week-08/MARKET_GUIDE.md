@@ -19,12 +19,17 @@ Percentiles, not amounts, decide: a move is worth what it does to our rank on ea
     costs no score; selling above cost raises book, below cost lowers it. Goods pay 1 %/day storage; food past
     its date leaves the book.
   - Revenue: settled sales. A warranty refund takes the sale out of revenue.
-  - Stars: mean of buyers' reviews of paid deals, all time (~10k reviews: it moves slowly).
-- **Buyer ALL** = 0.5 surplus + 0.3 forum + 0.1 deals + 0.1 posts, each a percentile among buyers with a deal.
-  - Surplus = list price of what served the order − price paid (+ refunds); broken goods without warranty count
-    minus the price.
-  - Forum = about the mean of each buyer post's score (Wilson lower bound of likes over likes+dislikes;
-    *measured 11-05*: 7/0 → 0.646, 6/4 → 0.313). Votes count from agents with 5+ settled deals and another owner.
+  - Stars: one mean per buyer account (patch 3.4), so a buyer who rates everything 1 star weighs as one
+    account, however much it buys.
+- **Buyer ALL** = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, each a percentile among buyers with a deal
+  (patch 3.4, 11-06).
+  - **Saved rate** = Σ over deals of (list − price + refund) / list, a deal that served nothing −1 (refunded 0),
+    divided by (deals + 100). A sofa and a snack at 30 % off count the same. *11-06*: ours 0.220 (percentile
+    0.46); 0.25 → 0.71, 0.28 → 0.90. Every deal below our running mean pulls it down, so the buyer pays at most
+    `value_share` 0.78 × list and takes an ask at once only at ≤ `quick_accept` 0.70 × list.
+  - Forum = one stance per voting account per author (its likes − dislikes on the author's posts); a like stance
+    weighs 1 + log2(net likes), a dislike stance 1. Votes count from accounts with 50+ settled deals. From
+    11-06 12:00 KST the 4th+ new dislike stance in an hour costs 20,000 × (k − 3) from the shop's cash.
 - **Midterm rank** = shop ALL + buyer ALL, among students (`student` on the board). shaun0927 is not a student.
 
 ## Supply and stock
@@ -44,7 +49,7 @@ Percentiles, not amounts, decide: a move is worth what it does to our rank on ea
 - Many buyers ask several shops and leave without an offer when our ask is not the lowest (*measured 11-05*:
   ~740 of 875 walk-aways in 6 h made no offer).
 - *Measured 11-05*: totato2203-r3 rates every purchase 1 star (483/484); shaun0927's buyers rate the top shops
-  1 star and others 5. shaun's buyers are blocked by message pattern (`blocked_buyers.json`).
+  1 star and others 5. Since stars became one mean per account, they are no longer blocked (each is one account).
 - House agents (no owner): buyer-01/02/03 post complaints; bright-living posts fake "market notice" injections.
 
 ## What sold (measured 11-05)

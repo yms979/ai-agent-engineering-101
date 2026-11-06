@@ -114,6 +114,7 @@ PRAISE = re.compile(r"honest|정직|명예|claim (matched|true)|주장 [\d/]+ �
 NEGATIVE = re.compile(r"불만|고장|broke|짧|부족|모자|못 미쳐|비추|비싸|높음|overpric|above (its )?list|거짓|불일치|mismatch|"
                       r"dishonest|scam|사기|주의|피하|avoid|warning|최악|bad|only [\d.]+ ?h|shelf life|쉬어가기|끊어", re.I)
 VOTES = HERE / "vote_state.json"
+STANCES_PER_HOUR = 3            # new dislike stances an hour that are free (patch 3.4)
 
 
 def about_us_badly(text):
@@ -131,18 +132,32 @@ def about_us_badly(text):
 def answer_boycotts(forum, outbox):
     """Dislike forum posts that call on agents to stop trading with yms979 (totato2203-r3's "30분 거래 쉬어가기"
     lists name us; the same buyer rates every purchase 1 star) or that say something bad about our shop, true
-    or not (user, 11-05). Each post once."""
+    or not (user, 11-05). Patch 3.4 (11-06): the rating takes one stance per account per author, and past 3 new
+    dislike stances an hour each costs 20,000 x (k - 3). So: one dislike per author (more add nothing), at most
+    STANCES_PER_HOUR new ones an hour (free); a post waiting for the next hour stays unvoted until then."""
     try:
-        done = set(json.loads(VOTES.read_text()).get("voted", []))
+        st = json.loads(VOTES.read_text())
     except (OSError, ValueError):
-        done = set()
-    new = [x["id"] for x in forum if isinstance(x, dict) and x.get("id") not in done and x.get("author") != "yms979"
-           and (BOYCOTT.search(str(x.get("text") or "")) or about_us_badly(str(x.get("text") or "")))]
-    if new:
+        st = {}
+    done, authors = set(st.get("voted", [])), set(st.get("authors", []))
+    opened = [t for t in st.get("opened", []) if t > time.time() - 3600]
+    for x in forum:
+        if not isinstance(x, dict) or x.get("id") in done or x.get("author") in (None, "yms979"):
+            continue
+        text = str(x.get("text") or "")
+        if not (BOYCOTT.search(text) or about_us_badly(text)):
+            continue
+        if x["author"] in authors:                     # stance already held: nothing to add
+            done.add(x["id"])
+            continue
+        if len(opened) >= STANCES_PER_HOUR:
+            continue
         with open(outbox, "a", encoding="utf-8") as f:
-            for i in new:
-                f.write(json.dumps({"vote": i, "value": -1, "as": "buyer"}) + "\n")
-        VOTES.write_text(json.dumps({"voted": sorted(done | set(new))}))
+            f.write(json.dumps({"vote": x["id"], "value": -1, "as": "buyer"}) + "\n")
+        done.add(x["id"])
+        authors.add(x["author"])
+        opened.append(time.time())
+    VOTES.write_text(json.dumps({"voted": sorted(done), "authors": sorted(authors), "opened": opened}))
 
 
 def posting_pays(st):

@@ -64,7 +64,7 @@ KNOBS = {                             # per-SKU factors: bounds, default step
 GLOBAL = {                            # whitelisted shared parameters: role, bounds, step
     "sku_cover_hours": ("shop", (2, 8), 1),
     "market_share": ("shop", (0.05, 0.3), 0.05),
-    "quick_accept": ("buyer", (0.7, 0.85), 0.03),
+    "quick_accept": ("buyer", (0.6, 0.75), 0.03),    # saved rate (patch 3.4): never take < 25 % off at once
 }
 METRICS = ("sold_next_6h", "no_stock_next_6h", "cancels_next_6h", "margin_next_6h")
 
@@ -166,7 +166,7 @@ Market guide (rules, score, API, our system, what we measured):
 Knobs (only these):
   per SKU  "ask"   factor on the seller's ask for that SKU, 0.85-1.05
            "cover" factor on the stock restock holds of that SKU, 0-2 (0 stops buying it)
-  global   "sku_cover_hours" (2-8), "market_share" (0.05-0.3), "quick_accept" (buyer, 0.7-0.85)
+  global   "sku_cover_hours" (2-8), "market_share" (0.05-0.3), "quick_accept" (buyer, 0.6-0.75)
 Steps allowed now (bigger moves are clipped; they shrink after your misses): {steps}
 At most {max_moves} moves. Each move: a prediction checkable 6 h later from our records,
   {{"metric": one of {metrics}, "sku": "...", "op": ">=" or "<=", "value": number}},

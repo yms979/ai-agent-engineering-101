@@ -101,19 +101,19 @@
   },
   "buyer": {
     "base": {
-      "value_share": 0.97,
+      "value_share": 0.78,
       "goods_grades": [
         "A",
         "B"
       ],
       "food_extra_hours": 1,
-      "quick_accept": 0.78
+      "quick_accept": 0.7
     },
     "END_SALE": {
-      "value_share": 0.85
+      "value_share": 0.78
     },
     "LOW_FILL": {
-      "value_share": 0.99
+      "value_share": 0.78
     }
   },
   "regimes": {

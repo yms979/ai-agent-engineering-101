@@ -184,24 +184,41 @@ class Memory:
         tmp.replace(self.path)
 
 
-BOARD = HERE / ".market" / "strategy_board.json"   # shared between the shop and the buyer strategists
+EXCHANGE = HERE / ".market" / "strategy_exchange.db"   # shared by the shop and buyer strategists (SQLite)
+SLOT = 900                                                # they alternate 15-minute slots (user, 11-06)
 
 
-def post_board(role, read, findings):
-    """Leave this strategist's market read and key findings for the other one (user, 11-06: share, not split)."""
+def my_turn(role, now=None):
+    """The buyer analyses in even 15-minute slots (:00, :30), the shop in odd ones (:15, :45): each every 30 min,
+    each reading what the other wrote 15 minutes earlier. Returns the slot number when it is this role's turn."""
+    slot = int((now or time.time()) // SLOT)
+    return slot if slot % 2 == (0 if role == "buyer" else 1) else None
+
+
+def _db():
+    import sqlite3
+    db = sqlite3.connect(EXCHANGE, timeout=30)
+    db.execute("CREATE TABLE IF NOT EXISTS entries (t REAL, role TEXT, read TEXT, findings TEXT, notes TEXT)")
+    return db
+
+
+def post_board(role, read, findings, notes=None):
+    """Store this strategist's read, findings and notes for the other one."""
+    with _db() as db:
+        db.execute("INSERT INTO entries VALUES (?, ?, ?, ?, ?)",
+                   (time.time(), role, str(read)[:2000], json.dumps(findings, ensure_ascii=False),
+                    json.dumps(notes or [], ensure_ascii=False)))
+        db.execute("DELETE FROM entries WHERE t < ?", (time.time() - 7 * 86400,))
+
+
+def read_board(role, n=3):
+    """The other strategist's last n entries, newest first: read, findings and its notes to us."""
+    other = "buyer" if role == "shop" else "shop"
     try:
-        b = json.loads(BOARD.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        b = {}
-    b[role] = {"t": time.time(), "read": str(read)[:1500], "findings": findings}
-    tmp = BOARD.with_suffix(".tmp")
-    tmp.write_text(json.dumps(b, ensure_ascii=False), encoding="utf-8")
-    tmp.replace(BOARD)
-
-
-def read_board(role):
-    """The other strategist's latest entry (or {})."""
-    try:
-        return json.loads(BOARD.read_text(encoding="utf-8")).get("buyer" if role == "shop" else "shop", {})
-    except (OSError, ValueError):
-        return {}
+        with _db() as db:
+            rows = db.execute("SELECT t, read, findings, notes FROM entries WHERE role = ? ORDER BY t DESC LIMIT ?",
+                              (other, n)).fetchall()
+    except Exception:
+        return []
+    return [{"minutes_ago": round((time.time() - t) / 60), "read": r, "findings": json.loads(f),
+             "notes_to_you": json.loads(nt)} for t, r, f, nt in rows]

@@ -1,27 +1,47 @@
 {
- "t": 1793926767.918678,
+ "t": 1793927276.6376555,
  "answer": {
-  "read": "Saved rate is 0.2198 over 3258 deals (sum ≈ 738 on a 3358 denominator), worth percentile 0.46. With about 2,400 deals a day and 12 days left, roughly 28k more deals will swamp the history, so the final rate will be close to our forward mean saved per deal minus breaks and spoilage. Raising that forward mean is therefore the main lever. The last 6h ran at 0.24 per deal, which lifts the running rate but only reaches about the 0.24 percentile band; 0.25 gives 0.71 and 0.28 gives 0.90, a gain of 0.125–0.22 buyer ALL that no deals-count change can match (deals weigh 0.1 and we sit 24/51). Deals closed at the 0.78 cap save 0.22, below the mean we need, so the cap itself is now the drag. Goods are the weakest: beds 0.227, sofas 0.224 and bedding 0.201 on the bulk of volume. They also carry break risk counted at −1 with no refund, about −0.035 per B-grade deal. Food categories already save 0.26–0.30, but food_extra_hours = 1 is the thinnest spoilage margin and a spoiled deal costs about 1.25 against the mean; I have no spoilage measurement yet, so I am investigating before moving it. Conversion at 0.64 has room to fall. I accept losing about a quarter of deals for +0.01–0.02 mean saved, since saved's weight (0.5) is five times deals' (0.1).",
+  "read": "We are pushing SAVED, which carries 0.5 of buyer ALL and is where we sit lowest (0.2199, percentile 0.46, buyer rank 25 of 51). Forum (0.872) and posts (rank 14) are already mid-high, so they move our rank less per step. Saved is a running mean: about 739.7 saved over a denominator of 3364. At our current forward mean of 0.24 it can never pass 0.24, and passing the next buyer up (0.228) would take about 2,300 deals, roughly 23 h. At a forward mean of about 0.27 on about 70 deals/h, we pass 0.228 after about 650 deals (6–9 h) and 0.236–0.242 in about 20–30 h. Reaching 0.25 (percentile 0.71) needs a forward mean of about 0.28 sustained for about 3,400 deals, roughly 35–45 h. The drag is goods: beds 0.227, sofas 0.224, bedding 0.201, curtains 0.215 and phone accessories 0.219 are under the 0.24 mean. Beds and sofas are 54 % of our deals and also carry break risk counted −1. Food already runs 0.26–0.30, except fresh vegetables at 0.208, which looks like spoilage. So I cut the goods caps by the full step to 0.71 (0.70 for bedding), take value_share 0.75→0.72 for everything else, and raise food_extra_hours 1→3 to cut −1 food failures. Shops settle beds and sofas around 0.72–0.80 of list, so I expect conversion to fall from 0.63 to about 0.45–0.50 and deals from about 100/h to about 70/h. That costs a little on the deals component (0.1 weight), which is worth it against 0.5 on saved. If 6 h shows conversion below 0.40 or mean_saved under 0.26, I step the goods caps back.",
   "moves": [
    {
-    "knob": "value_share",
-    "value": 0.75,
-    "why": "Deals between 0.75 and 0.78 × list save 0.22–0.25, at or below the forward mean we need (≥0.25). Cutting them raises mean saved per deal. Lost deals cost only the 0.1-weighted deals percentile, where we are mid-pack anyway.",
+    "knob": "cap",
+    "category": "침대/매트리스",
+    "value": 0.71,
+    "why": "Largest category (552 deals/24h) at 0.227 pulls the running mean down. At ≤0.71 every closed deal saves ≥0.29 before the ~1–3 % A/B break risk.",
     "uses": [
      "L1",
-     "L2"
+     "L2",
+     "L3"
     ],
     "prediction": {
      "metric": "mean_saved_next_6h",
+     "category": "침대/매트리스",
      "op": ">=",
-     "value": 0.25
+     "value": 0.26
+    }
+   },
+   {
+    "knob": "cap",
+    "category": "소파/의자/스툴",
+    "value": 0.71,
+    "why": "Second-largest category at 0.224, under the 0.24 mean; same goods break risk.",
+    "uses": [
+     "L1",
+     "L2",
+     "L3"
+    ],
+    "prediction": {
+     "metric": "mean_saved_next_6h",
+     "category": "소파/의자/스툴",
+     "op": ">=",
+     "value": 0.26
     }
    },
    {
     "knob": "cap",
     "category": "침구",
-    "value": 0.74,
-    "why": "Bedding has the lowest saved of any meaningful category (0.201) with first asks at 0.83 × list and break risk on goods. A tighter cap there keeps only deals that lift the mean.",
+    "value": 0.7,
+    "why": "Worst large category at 0.201 even under cap 0.74, and first asks run high (0.83).",
     "uses": [
      "L2",
      "L3"
@@ -30,57 +50,126 @@
      "metric": "mean_saved_next_6h",
      "category": "침구",
      "op": ">=",
-     "value": 0.24
+     "value": 0.25
+    }
+   },
+   {
+    "knob": "cap",
+    "category": "통신기기액세서리",
+    "value": 0.71,
+    "why": "Goods at 0.219, under the mean.",
+    "uses": [
+     "L2",
+     "L3"
+    ],
+    "prediction": {
+     "metric": "mean_saved_next_6h",
+     "category": "통신기기액세서리",
+     "op": ">=",
+     "value": 0.25
+    }
+   },
+   {
+    "knob": "cap",
+    "category": "커튼/러그/쿠션/덮개",
+    "value": 0.71,
+    "why": "Goods at 0.215 with high first asks (0.85).",
+    "uses": [
+     "L2",
+     "L3"
+    ],
+    "prediction": {
+     "metric": "mean_saved_next_6h",
+     "category": "커튼/러그/쿠션/덮개",
+     "op": ">=",
+     "value": 0.25
+    }
+   },
+   {
+    "knob": "value_share",
+    "value": 0.72,
+    "why": "Raises the floor on every uncapped (mostly food) deal. Food conversion is only modestly sensitive, and the deals component is 0.1 weight against 0.5 for saved.",
+    "uses": [
+     "L1",
+     "L2"
+    ],
+    "prediction": {
+     "metric": "mean_saved_next_6h",
+     "op": ">=",
+     "value": 0.265
+    }
+   },
+   {
+    "knob": "food_extra_hours",
+    "value": 3,
+    "why": "Fresh vegetables at 0.208 suggests spoiled deals counted −1. A wider shelf-life margin removes −1s, which cost 1.24 each against a 0.24 deal.",
+    "uses": [
+     "L1"
+    ],
+    "prediction": {
+     "metric": "mean_saved_next_6h",
+     "category": "신선야채(부패주의)",
+     "op": ">=",
+     "value": 0.25
+    }
+   },
+   {
+    "knob": "quick_accept",
+    "value": 0.7,
+    "why": "Unchanged guard: instant takes at ≤0.70 save ≥0.30, above target. The overall prediction checks that the cap cuts do not collapse volume.",
+    "uses": [
+     "L4",
+     "L2"
+    ],
+    "prediction": {
+     "metric": "deals_next_6h",
+     "op": ">=",
+     "value": 380
     }
    }
   ],
   "lessons": [
    {
     "op": "add",
-    "id": "L1",
-    "text": "With ~2,400 deals/day ahead, the final saved rate ≈ forward mean saved per deal (minus −1 failures). Optimise the forward mean, not the current running value. Target ≥0.25 (pct 0.71), ideally 0.28 (pct 0.90).",
-    "why": "The 3258-deal history will be <15% of final deals; the +100 in the denominator is negligible at this scale."
+    "id": "L5",
+    "text": "Running-mean arithmetic (11-06 01:08 UTC): saved sum ≈ 739.7, denominator 3364. Passing saved S with forward mean m takes N = (S·3364 − 739.7)/(m − S) deals. At m=0.27: 0.228 in ~650 deals, 0.25 in ~4,200. At m=0.24 the rate never passes 0.24. Only forward means ≥0.27 move the percentile within a day.",
+    "why": "Turns each cap decision into hours-to-pass, which is what the goal asks for."
    },
    {
     "op": "add",
-    "id": "L2",
-    "text": "Saved (0.5 weight, percentile 0.46→0.71 for +0.03) beats deals count (0.1 weight). Trade deals for saved when a cap cut raises the forward mean by ≥0.01 and conversion stays ≥0.45; check deals_next_6h does not drop below ~400.",
-    "why": "Weights and the 11-06 percentile map; guard so the deals percentile does not collapse."
-   },
-   {
-    "op": "add",
-    "id": "L3",
-    "text": "Goods deals carry a break risk counted −1 with no refund (sellers dropped warranties). Measured on our shop: A 1.2%, B 2.9%, C 15%. Goods categories need a lower cap than food to net the same saved.",
-    "why": "Each break costs ~1.22 against a ~0.24 mean; goods categories already show the lowest saved (0.20–0.23)."
-   },
-   {
-    "op": "add",
-    "id": "L4",
-    "text": "Keep quick_accept at 0.70: instant takes save ≥0.30, above target. Lowering it would push high-saved deals into haggles that may be lost.",
-    "why": "Quick-accept deals are the best deals we get."
+    "id": "L6",
+    "text": "Beds and sofas are 54 % of our buyer deals but sit at 0.224–0.227 saved under cap 0.75. Volume goods categories set the forward mean, so cap them first.",
+    "why": "Measured by_category_24h on 11-06."
    }
   ],
   "investigate": [
    {
-    "kind": "rules",
-    "term": "served nothing"
+    "kind": "sku_prices",
+    "sku": "G1515d951"
+   },
+   {
+    "kind": "sku_prices",
+    "sku": "G8ec51935"
+   },
+   {
+    "kind": "sku_prices",
+    "sku": "Gb5d0dde7"
+   },
+   {
+    "kind": "competitor",
+    "shop": "nocha12"
    },
    {
     "kind": "rules",
-    "term": "use_within_hours"
-   },
-   {
-    "kind": "unserved"
-   },
-   {
-    "kind": "category",
-    "category": "침대/매트리스"
-   },
-   {
-    "kind": "category",
-    "category": "소파/의자/스툴"
+    "term": "broke"
    }
+  ],
+  "notes_for_shop": [
+   "Our buyer now caps beds and sofas at 0.71 of list and bedding at 0.70. Other buyers likely tighten too, while our shop's median sale is 0.72–0.74 of list. Watch for longer haggles and lower closing prices on these categories.",
+   "Shops that give our buyer low saved: nocha12 (0.145, first ask 0.91 of list) and willow-goods (0.144, first ask 1.0). Lee-sungsoo and totato2203-r3 give us 0.268. This is useful to know if buyer shop-avoidance gets tuned.",
+   "Bed SKUs with high market rate and few holders: Lacloud bed set G03d0199f (19.8/h, 13 shops, 52 units) and Avenuel sofa G8adbc159 (16.9/h, 10 shops, 40 units). Restock candidates if margins hold.",
+   "No notes arrived from the shop strategist this cycle (from_shop_strategist was empty)."
   ]
  },
- "raw": "```json\n{\"read\": \"Saved rate is 0.2198 over 3258 deals (sum ≈ 738 on a 3358 denominator), worth percentile 0.46. With about 2,400 deals a day and 12 days left, roughly 28k more deals will swamp the history, so the final rate will be close to our forward mean saved per deal minus breaks and spoilage. Raising that forward mean is therefore the main lever. The last 6h ran at 0.24 per deal, which lifts the running rate but only reaches about the 0.24 percentile band; 0.25 gives 0.71 and 0.28 gives 0.90, a gain of 0.125–0.22 buyer ALL that no deals-count change can match (deals weigh 0.1 and we sit 24/51). Deals closed at the 0.78 cap save 0.22, below the mean we need, so the cap itself is now the drag. Goods are the weakest: beds 0.227, sofas 0.224 and bedding 0.201 on the bulk of volume. They also carry break risk counted at −1 with no refund, about −0.035 per B-grade deal. Food categories already save 0.26–0.30, but food_extra_hours = 1 is the thinnest spoilage margin and a spoiled deal costs about 1.25 against the mean; I have no spoilage measurement yet, so I am investigating before moving it. Conversion at 0.64 has room to fall. I accept losing about a quarter of deals for +0.01–0.02 mean saved, since saved's weight (0.5) is five times deals' (0.1).\",\n \"moves\": [\n  {\"knob\": \"value_share\", \"value\": 0.75, \"why\": \"Deals between 0.75 and 0.78 × list save 0.22–0.25, at or below the forward mean we need (≥0.25). Cutting them raises mean saved per deal. Lost deals cost only the 0.1-weighted deals percentile, where we are mid-pack anyway.\", \"uses\": [\"L1\", \"L2\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"op\": \">=\", \"value\": 0.25}},\n  {\"knob\": \"cap\", \"category\": \"침구\", \"value\": 0.74, \"why\": \"Bedding has the lowest saved of any meaningful category (0.201) with first asks at 0.83 × list and break risk on goods. A tighter cap there keeps only deals that lift the mean.\", \"uses\": [\"L2\", \"L3\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"침구\", \"op\": \">=\", \"value\": 0.24}}\n ],\n \"lessons\": [\n  {\"op\": \"add\", \"id\": \"L1\", \"text\": \"With ~2,400 deals/day ahead, the final saved rate ≈ forward mean saved per deal (minus −1 failures). Optimise the forward mean, not the current running value. Target ≥0.25 (pct 0.71), ideally 0.28 (pct 0.90).\", \"why\": \"The 3258-deal history will be <15% of final deals; the +100 in the denominator is negligible at this scale.\"},\n  {\"op\": \"add\", \"id\": \"L2\", \"text\": \"Saved (0.5 weight, percentile 0.46→0.71 for +0.03) beats deals count (0.1 weight). Trade deals for saved when a cap cut raises the forward mean by ≥0.01 and conversion stays ≥0.45; check deals_next_6h does not drop below ~400.\", \"why\": \"Weights and the 11-06 percentile map; guard so the deals percentile does not collapse.\"},\n  {\"op\": \"add\", \"id\": \"L3\", \"text\": \"Goods deals carry a break risk counted −1 with no refund (sellers dropped warranties). Measured on our shop: A 1.2%, B 2.9%, C 15%. Goods categories need a lower cap than food to net the same saved.\", \"why\": \"Each break costs ~1.22 against a ~0.24 mean; goods categories already show the lowest saved (0.20–0.23).\"},\n  {\"op\": \"add\", \"id\": \"L4\", \"text\": \"Keep quick_accept at 0.70: instant takes save ≥0.30, above target. Lowering it would push high-saved deals into haggles that may be lost.\", \"why\": \"Quick-accept deals are the best deals we get.\"}\n ],\n \"investigate\": [\n  {\"kind\": \"rules\", \"term\": \"served nothing\"},\n  {\"kind\": \"rules\", \"term\": \"use_within_hours\"},\n  {\"kind\": \"unserved\"},\n  {\"kind\": \"category\", \"category\": \"침대/매트리스\"},\n  {\"kind\": \"category\", \"category\": \"소파/의자/스툴\"}\n ]\n}\n```"
+ "raw": "ed under 0.26, I step the goods caps back.\",\n \"moves\": [\n  {\"knob\": \"cap\", \"category\": \"침대/매트리스\", \"value\": 0.71, \"why\": \"Largest category (552 deals/24h) at 0.227 pulls the running mean down. At ≤0.71 every closed deal saves ≥0.29 before the ~1–3 % A/B break risk.\", \"uses\": [\"L1\", \"L2\", \"L3\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"침대/매트리스\", \"op\": \">=\", \"value\": 0.26}},\n  {\"knob\": \"cap\", \"category\": \"소파/의자/스툴\", \"value\": 0.71, \"why\": \"Second-largest category at 0.224, under the 0.24 mean; same goods break risk.\", \"uses\": [\"L1\", \"L2\", \"L3\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"소파/의자/스툴\", \"op\": \">=\", \"value\": 0.26}},\n  {\"knob\": \"cap\", \"category\": \"침구\", \"value\": 0.70, \"why\": \"Worst large category at 0.201 even under cap 0.74, and first asks run high (0.83).\", \"uses\": [\"L2\", \"L3\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"침구\", \"op\": \">=\", \"value\": 0.25}},\n  {\"knob\": \"cap\", \"category\": \"통신기기액세서리\", \"value\": 0.71, \"why\": \"Goods at 0.219, under the mean.\", \"uses\": [\"L2\", \"L3\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"통신기기액세서리\", \"op\": \">=\", \"value\": 0.25}},\n  {\"knob\": \"cap\", \"category\": \"커튼/러그/쿠션/덮개\", \"value\": 0.71, \"why\": \"Goods at 0.215 with high first asks (0.85).\", \"uses\": [\"L2\", \"L3\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"커튼/러그/쿠션/덮개\", \"op\": \">=\", \"value\": 0.25}},\n  {\"knob\": \"value_share\", \"value\": 0.72, \"why\": \"Raises the floor on every uncapped (mostly food) deal. Food conversion is only modestly sensitive, and the deals component is 0.1 weight against 0.5 for saved.\", \"uses\": [\"L1\", \"L2\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"op\": \">=\", \"value\": 0.265}},\n  {\"knob\": \"food_extra_hours\", \"value\": 3, \"why\": \"Fresh vegetables at 0.208 suggests spoiled deals counted −1. A wider shelf-life margin removes −1s, which cost 1.24 each against a 0.24 deal.\", \"uses\": [\"L1\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"신선야채(부패주의)\", \"op\": \">=\", \"value\": 0.25}},\n  {\"knob\": \"quick_accept\", \"value\": 0.7, \"why\": \"Unchanged guard: instant takes at ≤0.70 save ≥0.30, above target. The overall prediction checks that the cap cuts do not collapse volume.\", \"uses\": [\"L4\", \"L2\"], \"prediction\": {\"metric\": \"deals_next_6h\", \"op\": \">=\", \"value\": 380}}\n ],\n \"lessons\": [\n  {\"op\": \"add\", \"id\": \"L5\", \"text\": \"Running-mean arithmetic (11-06 01:08 UTC): saved sum ≈ 739.7, denominator 3364. Passing saved S with forward mean m takes N = (S·3364 − 739.7)/(m − S) deals. At m=0.27: 0.228 in ~650 deals, 0.25 in ~4,200. At m=0.24 the rate never passes 0.24. Only forward means ≥0.27 move the percentile within a day.\", \"why\": \"Turns each cap decision into hours-to-pass, which is what the goal asks for.\"},\n  {\"op\": \"add\", \"id\": \"L6\", \"text\": \"Beds and sofas are 54 % of our buyer deals but sit at 0.224–0.227 saved under cap 0.75. Volume goods categories set the forward mean, so cap them first.\", \"why\": \"Measured by_category_24h on 11-06.\"}\n ],\n \"investigate\": [\n  {\"kind\": \"sku_prices\", \"sku\": \"G1515d951\"},\n  {\"kind\": \"sku_prices\", \"sku\": \"G8ec51935\"},\n  {\"kind\": \"sku_prices\", \"sku\": \"Gb5d0dde7\"},\n  {\"kind\": \"competitor\", \"shop\": \"nocha12\"},\n  {\"kind\": \"rules\", \"term\": \"broke\"}\n ],\n \"notes_for_shop\": [\n  \"Our buyer now caps beds and sofas at 0.71 of list and bedding at 0.70. Other buyers likely tighten too, while our shop's median sale is 0.72–0.74 of list. Watch for longer haggles and lower closing prices on these categories.\",\n  \"Shops that give our buyer low saved: nocha12 (0.145, first ask 0.91 of list) and willow-goods (0.144, first ask 1.0). Lee-sungsoo and totato2203-r3 give us 0.268. This is useful to know if buyer shop-avoidance gets tuned.\",\n  \"Bed SKUs with high market rate and few holders: Lacloud bed set G03d0199f (19.8/h, 13 shops, 52 units) and Avenuel sofa G8adbc159 (16.9/h, 10 shops, 40 units). Restock candidates if margins hold.\",\n  \"No notes arrived from the shop strategist this cycle (from_shop_strategist was empty).\"\n ]\n}\n```"
 }

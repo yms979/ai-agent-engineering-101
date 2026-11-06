@@ -10,6 +10,9 @@ so the buyer gets its own loop, the same shape:
             a critic call after misses, all through strategist_memory.Memory (its own file)
   evidence  the buyer's board components with the ladder above it, our saved rate per deal now vs the running
             mean, per category and per shop: visits, deals, conversion, mean saved, first ask / list
+  schedule  every 30 min in the even 15-minute slots (:00, :30); the shop strategist takes the odd ones, and each
+            reads the other's read and notes from the shared SQLite exchange (strategist_memory.post_board)
+  goal      first place among buyers on buyer ALL, as fast as possible (user, 11-06)
   decide    MODEL (opus) moves whitelisted knobs: value_share (cap, share of list), quick_accept, food_extra_hours,
             and per category "cap"; each with a checkable prediction
   act       mode as the shop strategist's (params.json strategist.mode); "apply" writes params_auto_buyer.json,
@@ -24,7 +27,7 @@ from pathlib import Path
 import market_probe as probe
 import strategist as shop
 from harness import last_json_object
-from strategist_memory import Memory, post_board, read_board
+from strategist_memory import Memory, my_turn, post_board, read_board
 
 HERE = Path(__file__).resolve().parent
 AUTO = HERE / "params_auto_buyer.json"
@@ -106,7 +109,7 @@ def evidence(mem, b, auto, params):
     rows = [x for x in b["buyers_all"] if x.get("saved") is not None]
     ladder = sorted({round(x["saved"], 3) for x in rows if x["saved"] > b["buyer"]["saved"]})[:6]
     return {"time_utc": time.strftime("%Y-%m-%d %H:%M", time.gmtime()), "round_ends": "2026-11-17T23:59 KST",
-            "buyer_board": b["buyer"], "saved_values_just_above_us": ladder,
+            "buyer_board": b["buyer"], "buyer_leaders": b["buyer_leaders"], "saved_values_just_above_us": ladder,
             "class_rank": b["class_rank"], "class_top": b["class_top"],
             "now": {"last_6h": summary(r6), "last_24h": summary(r24)},
             "by_category_24h": {k: summary(v) | {"cap_now": ((auto.get("category") or {}).get(k) or {}).get("cap")}
@@ -123,7 +126,10 @@ DECIDE = """You run the BUYER of yms979 in a course market (the shop has its own
 rate + 0.3 forum + 0.1 deals + 0.1 posts, each a percentile among buyers. Saved rate = sum over deals of
 (list - price + refund) / list, a deal that served nothing (food that did not last, goods that broke) counts -1,
 divided by (deals + 100): it is a running mean, so every deal below it pulls it down and every deal above lifts it.
-A sofa and a snack at 30 % off count the same. Deals and posts are counts. Goal: first place overall.
+A sofa and a snack at 30 % off count the same. Deals and posts are counts.
+GOAL (user, 11-06): make our buyer FIRST among buyers on buyer ALL as fast as possible. Each move should be the
+one that raises our buyer percentile fastest; say in "read" which component (saved, forum, deals, posts) you are
+pushing and how many hours you expect until we pass the next buyer above us.
 
 Market guide (rules, API, our system): {guide}
 
@@ -147,8 +153,11 @@ Answer with one JSON object only:
   "moves": [{{"knob": "value_share"|"quick_accept"|"food_extra_hours"|"cap", "category": "...", "value": n, "why": "...",
              "uses": [...], "prediction": {{...}}}}],
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "...", "text": "...", "why": "..."}}],
-  "investigate": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"forum"|"rules", ...}}]
-}}"""
+  "investigate": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"forum"|"rules", ...}}],
+  "notes_for_shop": ["<what the shop strategist should know or check: competitor prices, stock-outs, demand>"]
+}}
+The shop strategist (it ran 15 minutes before you and runs again 15 minutes after) left you its reads and notes
+in the evidence under "from_shop_strategist"; use them."""
 
 
 def board_view():
@@ -157,14 +166,20 @@ def board_view():
     me = next(x for x in full["buyers"] if x["name"] == "yms979")
     b["buyer"] = {k: me.get(k) for k in ("all", "saved", "forum", "deals", "orders", "posts")} | \
         {k: v for k, v in b["buyer"].items() if k.endswith("_rank")}
-    b["buyers_all"] = [{"name": x["name"], "saved": x.get("saved")} for x in full["buyers"] if x.get("all") is not None]
+    rows = [x for x in full["buyers"] if x.get("all") is not None]
+    b["buyers_all"] = [{"name": x["name"], "saved": x.get("saved")} for x in rows]
+    order = sorted(rows, key=lambda x: -(x.get("all") or 0))
+    b["buyer"]["rank_on_buyer_all"] = next((i + 1 for i, x in enumerate(order) if x["name"] == "yms979"), None)
+    b["buyer_leaders"] = [{k: x.get(k) for k in ("name", "all", "saved", "forum", "deals", "posts")} for x in order[:6]]
     return b
 
 
 def run(force=False):
     mem = Memory(STATE)
-    if not force and time.time() - mem.d["t"] < EVERY:
+    slot = my_turn("buyer")
+    if not force and (slot is None or slot == mem.d.get("slot")):
         return
+    mem.d["slot"] = slot
     mem.d["t"] = time.time()
     params = shop.read(shop.PARAMS, {})
     mode = params.get("strategist", {}).get("mode", "propose")
@@ -221,7 +236,8 @@ def run(force=False):
     log(f"[{mode}] read: {str(ans.get('read'))[:1200]}")
     post_board("buyer", ans.get("read"), {"moves": [(m.get("knob"), m.get("category"), m.get("value"))
                                                    for m in (ans.get("moves") or [])][:8],
-                                          "categories_24h": {k: v.get("mean_saved") for k, v in ev["by_category_24h"].items()}})
+                                          "categories_24h": {k: v.get("mean_saved") for k, v in ev["by_category_24h"].items()}},
+               ans.get("notes_for_shop"))
     mem.edit_lessons(ans.get("lessons"), log)
     mem.d["working"]["queries"] = (ans.get("investigate") or [])[:probe.MAX_QUERIES]
     cats = set(ev["by_category_24h"])

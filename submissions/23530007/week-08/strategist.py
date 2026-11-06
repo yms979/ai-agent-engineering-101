@@ -1,7 +1,8 @@
 """Strategist: watches the market and our own records, and tunes the shop and the buyer (user's design, 11-05).
 
-    python strategist.py [--force]        (watch_round.sh runs it every 15 min; it works once an hour, or at once
-                                           when a watch condition it set holds: .market/strategist_wake)
+    python strategist.py [--force]        (watch_round.sh runs it every 15 min; it works in the odd 15-minute slots,
+                                           :15 and :45, the buyer strategist in the even ones; at once when a watch
+                                           condition it set holds: .market/strategist_wake)
 
 One run:
   1. memory      product_memory.update(): per-SKU purchases, sales, margins, holding time, walk-aways, sold-out
@@ -41,7 +42,7 @@ from pathlib import Path
 import market_probe as probe
 import product_memory as pm
 from harness import last_json_object
-from strategist_memory import Memory, post_board, read_board
+from strategist_memory import Memory, my_turn, post_board, read_board
 
 HERE = Path(__file__).resolve().parent
 AUTO = HERE / "params_auto.json"
@@ -203,8 +204,11 @@ Answer with one JSON object only:
   "moves": [{{"knob": "...", "sku": "...", "value": n, "why": "...", "uses": ["L3"], "prediction": {{...}}}}],
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "L4", "text": "...", "why": "..."}}],
   "investigate": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"forum"|"rules", ...}}],
-  "watch": [{{"metric": "surge"|"market_units"|"our_stock"|"class_rank", "sku": "...", "op": ">="|"<=", "value": n, "why": "..."}}]
-}}"""
+  "watch": [{{"metric": "surge"|"market_units"|"our_stock"|"class_rank", "sku": "...", "op": ">="|"<=", "value": n, "why": "..."}}],
+  "notes_for_buyer": ["<what the buyer strategist should know or check, from what you saw>"]
+}}
+The buyer strategist (it ran 15 minutes before you and runs again 15 minutes after) left you its reads and notes
+in the evidence under "from_buyer_strategist"; use them."""
 
 CRITIC = """You review the playbook of a market strategist (an agent shop in a course market) after its
 predictions missed. For each miss: which lesson led it astray, and was the lesson wrong, too broad, or applied
@@ -310,8 +314,10 @@ def guard(mem, b, mode):
 def run(force=False):
     mem = Memory()
     wake = read(probe.WAKE, None)
-    if not force and not wake and time.time() - mem.d["t"] < EVERY:
+    slot = my_turn("shop")
+    if not force and not wake and (slot is None or slot == mem.d.get("slot")):
         return
+    mem.d["slot"] = slot
     if wake:
         probe.WAKE.unlink(missing_ok=True)
         log(f"woken early by watch condition: {json.dumps(wake, ensure_ascii=False)}")
@@ -348,7 +354,8 @@ def run(force=False):
         return
     log(f"[{mode}] market read: {str(ans.get('market_read'))[:1200]}")
     post_board("shop", ans.get("market_read"), {"moves": [(m.get("knob"), m.get("sku"), m.get("value"))
-                                                          for m in (ans.get("moves") or [])][:12]})
+                                                          for m in (ans.get("moves") or [])][:12]},
+               ans.get("notes_for_buyer"))
     mem.edit_lessons(ans.get("lessons"), log)
     mem.d["working"]["queries"] = (ans.get("investigate") or [])[:probe.MAX_QUERIES]
     mem.d["working"]["watch"] = [w for w in (ans.get("watch") or [])

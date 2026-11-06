@@ -491,7 +491,7 @@ def main():
         print(f"WHY: picked {pick['name']} ({views[pick['name']]['text']}; memory: {views[pick['name']]['mem']}). {why}"
               + (f" Not entered: {', '.join(skipped)}." if skipped else ""), flush=True)
 
-        item, label, cap, accept, aim = a.item, f"a {a.item}", a.budget, None, ""
+        item, label, cap, accept, aim, p25 = a.item, f"a {a.item}", a.budget, None, "", None
         first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
         if acceptable:
             want = pick_sku(pick, acceptable, catalog, a.budget, share, cskip)
@@ -499,6 +499,7 @@ def main():
             cap = min(a.budget, int(want["list_price"] * share))
             ev = expected(vctx["stats"], pick["name"], vctx["kind"], vctx["cat"])
             if ev["n"] >= 10:      # do not pay above what this shop usually takes from other buyers
+                p25 = ev["p25"]
                 cap = min(cap, int(want["list_price"] * (ev["p50"] + bp["cap_margin"])))
                 aim = (f"Other buyers usually settle with this shop at {int(want['list_price'] * ev['p25'])}-"
                        f"{int(want['list_price'] * ev['p50'])}; aim for the low end.")
@@ -542,7 +543,29 @@ def main():
                     t = seller.send(str(ask), tid, ctx)
                     tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
                     continue
-                action, offer, ask2, say = next_move(
+                if vctx is not None and bp.get("code_haggle") and ask is not None:
+                    # 11-06: a model move took 4-5 s and an order 17-34 s (80-170 s over several shops), and the next
+                    # order only comes when this one ends; the price logic was code already (cap, shop's band).
+                    # Open just under the shop's lower quartile, then halfway to the cap, then the cap; take any
+                    # ask at or under the cap; after 3 offers walk (the next shop is tried).
+                    mine = [p for k, p in history if k == "you offered"]
+                    history.append(("seller asked", ask))
+                    lp = want["list_price"]
+                    if ask <= cap:
+                        action, offer = "offer", ask
+                    elif len(mine) >= 3:
+                        action, offer = "walk", None
+                    elif not mine:
+                        action, offer = "offer", min(cap, int(lp * max(0.4, (p25 or cap / lp) - 0.02)))
+                    elif len(mine) == 1:
+                        action, offer = "offer", max(mine[-1], (mine[-1] + cap) // 2)
+                    else:
+                        action, offer = "offer", cap
+                    if offer is not None:
+                        history.append(("you offered", offer))
+                    ask2, say = ask, ""
+                else:
+                    action, offer, ask2, say = next_move(
                     "buyer", label, cap, history, t, chat=True,
                     ledger=((f"Another shop sold this item for {elsewhere[0]} recently; aim near that, but this shop "
                              f"ends the talk after 2 or 3 low offers, so rather pay up to {cap} than lose the deal. "

@@ -209,7 +209,7 @@ Answer with one JSON object only:
 {{"market_read": "<what is happening and why, 6-12 sentences>",
   "moves": [{{"knob": "...", "sku": "...", "value": n, "why": "...", "uses": ["L3"], "prediction": {{...}}}}],
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "L4", "text": "...", "why": "..."}}],
-  "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"question", ...}}],
+  "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"knobs"|"trades"|"question", ...}}],
   "watch": [{{"metric": "surge"|"market_units"|"our_stock"|"class_rank", "sku": "...", "op": ">="|"<=", "value": n, "why": "..."}}],
   "notes_for_buyer": ["<what the buyer strategist should know or check, from what you saw>"]
 }}
@@ -224,7 +224,9 @@ questions, notes for you and conflicts. Read them first; say in "market_read" wh
 shop should move. Then ask for what you need next in "requests" (up to 5): {{"kind": "sku_prices", "sku"}},
 {{"kind": "category", "category"}}, {{"kind": "competitor", "shop"}}, {{"kind": "unserved"}}, {{"kind": "rules",
 "term"}}, {{"kind": "buyer", "name"}} (a buyer's 6 h profile), {{"kind": "shop", "name"}} (a shop's: what it sells,
-prices, buyers, stock), {{"kind": "question", "text"}} (anything else). Answers arrive before your next run.
+prices, buyers, stock), {{"kind": "knobs", "sku"|"knob"|"category"}} (what the knob store and the
+strategists' records hold for it: set when, value, applied, outcome), {{"kind": "trades", "outcome"|"shop"|"category"|"kind"}}
+(our buyer's matching trade records with their fields), {{"kind": "question", "text"}} (anything else). Answers arrive before your next run.
 The curator's digest: {digest}
 Standing stock strategy (SHOP_STOCK_STRATEGY.md: constraints, how restock decides, what to watch): {stock}
 User priority (11-06): the BUYER score comes first; when a shop move would hurt the buyer (e.g. pricing that

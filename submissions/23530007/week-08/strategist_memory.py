@@ -208,7 +208,8 @@ def _db():
 # What a strategist may ask the curator for (user 11-06: the strategists tell the memory agent what they need
 # next; the curator answers in its next digest, under answers_to_your_requests). kind -> required keys.
 REQUEST_KINDS = {"sku_prices": ("sku",), "category": ("category",), "competitor": ("shop",), "unserved": (),
-                 "rules": ("term",), "buyer": ("name",), "shop": ("name",), "question": ("text",)}
+                 "rules": ("term",), "buyer": ("name",), "shop": ("name",), "question": ("text",),
+                 "knobs": (), "trades": ()}      # knobs: sku|knob|category; trades: outcome|shop|category|kind
 MAX_REQUESTS = 5
 
 

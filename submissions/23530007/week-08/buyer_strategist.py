@@ -281,7 +281,9 @@ setting by the formula, item 2 where saved is lost), "rules_change", "rank_chang
 and how we should move. Then ask for what you need next in "requests" (up to 5): {{"kind": "sku_prices", "sku"}},
 {{"kind": "category", "category"}}, {{"kind": "competitor", "shop"}}, {{"kind": "unserved"}}, {{"kind": "rules",
 "term"}}, {{"kind": "buyer", "name"}} (a buyer's 6 h profile: shops, kinds, prices, saved per deal),
-{{"kind": "shop", "name"}} (a shop's: what it sells, prices, buyers, stock), {{"kind": "question", "text"}} (anything
+{{"kind": "shop", "name"}} (a shop's: what it sells, prices, buyers, stock), {{"kind": "knobs", "sku"|"knob"|"category"}} (what the knob store and the
+strategists' records hold for it: set when, value, applied, outcome), {{"kind": "trades", "outcome"|"shop"|"category"|"kind"}}
+(our buyer's matching trade records with their fields), {{"kind": "question", "text"}} (anything
 else; it answers from its data or says what it cannot measure). Answers arrive before your next run. A rules
 change is decided this run. Moves are judged on saved_speed = deals/h x (saved per deal - our saved) (metric
 "saved_speed", same units; "hours": 2 when ~140 deals are enough to read a move); revert a move that lowered it.
@@ -303,7 +305,7 @@ Answer with one JSON object only:
   "moves": [{{"knob": "<a knob above>", "category": "<for cap>", "shop": "<for shop_bias/shop_cap>", "value": n, "why": "...",
              "uses": [...], "prediction": {{...}}}}],
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "...", "text": "...", "why": "..."}}],
-  "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"question", ...}}],
+  "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"knobs"|"trades"|"question", ...}}],
   "notes_for_shop": ["<what the shop strategist should know or check: competitor prices, stock-outs, demand>"]
 }}
 The shop strategist (it ran 15 minutes before you and runs again 15 minutes after) left you its reads and notes

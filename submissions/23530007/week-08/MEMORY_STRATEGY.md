@@ -55,7 +55,9 @@ and briefs each one; the strategists decide their own knobs from that and tell t
 
 - **Requests** (`requests` in a strategist's answer, up to 5, validated by `strategist_memory.valid_requests`):
   `sku_prices {sku}`, `category {category}`, `competitor {shop}`, `unserved`, `rules {term}` (market_probe.py, code),
-  `buyer {name}` and `shop {name}` (market_picture.py profiles, code), `question {text}` (the model answers from
+  `buyer {name}` and `shop {name}` (market_picture.py profiles, code), `knobs {sku|knob|category}` (the knob store
+  entries, the episodes that set it and the log lines naming it), `trades {outcome|shop|category|kind}` (our buyer's
+  matching trade records), `question {text}` (the model answers from
   its data, or says what cannot be measured and lists it under `wanted_data` for the operator).
 - **Timing**: a post at :00 starts the curator; its digest is ready by ~:02; the shop reads it at :15, the buyer
   at :30, so every request is answered before the asker's next run. The cron tick every 15 min also runs the

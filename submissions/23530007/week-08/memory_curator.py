@@ -337,10 +337,67 @@ def wake_strategists():
     log("rules changed: woke both strategists")
 
 
+def probe_knobs(q):
+    """What the knob store and the strategists' records say about one SKU or knob (wanted_data 08:22: "do knobs
+    reset?"): the live params_auto entries, the episodes that set it (when, value, applied, outcome) and the last
+    log lines naming it."""
+    key = str(q.get("sku") or q.get("knob") or q.get("category") or "").strip()
+    if not key:
+        return {"error": "knobs: give sku, knob or category"}
+    auto_s, auto_b = read_json(HERE / "params_auto.json", {}), read_json(HERE / "params_auto_buyer.json", {})
+    out = {"key": key,
+           "shop_params_auto": {"sku": (auto_s.get("sku") or {}).get(key), "globals": (auto_s.get("globals") or {}).get(key),
+                                "written": time.strftime("%m-%d %H:%M", time.gmtime(auto_s.get("t") or 0))},
+           "buyer_params_auto": {"globals": (auto_b.get("globals") or {}).get(key),
+                                 "category": (auto_b.get("category") or {}).get(key),
+                                 "shop": (auto_b.get("shop") or {}).get(key),
+                                 "written": time.strftime("%m-%d %H:%M", time.gmtime(auto_b.get("t") or 0))},
+           "episodes": [], "log_lines": []}
+    for role, path in (("shop", HERE / "strategist_memory.json"), ("buyer", BSTATE)):
+        for e in read_json(path, {}).get("episodes", []):
+            if key in (e.get("sku"), e.get("knob")):
+                out["episodes"].append({"role": role, "at": time.strftime("%m-%d %H:%M", time.gmtime(e.get("t") or 0)),
+                                        "knob": e.get("knob"), "sku": e.get("sku"), "value": e.get("value"),
+                                        "applied": e.get("applied"), "outcome": e.get("outcome"),
+                                        "due": time.strftime("%H:%M", time.gmtime(e.get("due") or 0))})
+    out["episodes"] = out["episodes"][-12:]
+    for path in (HERE / "logs" / "strategist.log", HERE / "logs" / "buyer_strategist.log"):
+        try:
+            with open(path, "rb") as f:
+                f.seek(0, 2)
+                f.seek(max(0, f.tell() - 400_000))
+                lines = f.read().decode("utf-8", "replace").splitlines()
+        except OSError:
+            continue
+        out["log_lines"] += [x[:220] for x in lines if key in x][-6:]
+    return out
+
+
+def probe_trades(q):
+    """Our buyer's own trade records that match (wanted_data 08:22: why 'unpaid' happens): outcome prefix, shop,
+    category or kind; the last 20 with their fields, and the outcome counts among the matches in 24 h."""
+    trades = read_json(BMEM, {}).get("trades") or []
+    cut = time.time() - 24 * 3600
+    want = {k: str(q[k]) for k in ("outcome", "shop", "category", "kind") if q.get(k)}
+    rows = [t for t in trades if t.get("t", 0) >= cut
+            and all(str(t.get(k) or "").startswith(v) if k == "outcome" else str(t.get(k) or "") == v
+                    for k, v in want.items())]
+    counts = {}
+    for t in rows:
+        o = str(t.get("outcome") or "")[:60]
+        counts[o] = counts.get(o, 0) + 1
+    keep = ("shop", "item", "category", "kind", "outcome", "price", "asks", "cap", "list", "warranty", "secs", "budget")
+    return {"filter": want, "matches_24h": len(rows),
+            "outcomes": dict(sorted(counts.items(), key=lambda kv: -kv[1])[:12]),
+            "last": [{"at": time.strftime("%H:%M", time.gmtime(t.get("t") or 0))}
+                     | {k: (str(t[k])[:160] if k == "outcome" else t[k]) for k in keep if k in t} for t in rows[-20:]]}
+
+
 def run_probes(entries):
     """Code answers for the strategists' requests (strategist_memory.REQUEST_KINDS): the market_probe
-    investigations, a buyer's or a shop's profile from market_picture, nothing for a "question" (the model answers
-    it). Keyed by the role that asked; each result capped at PROBE_CHARS."""
+    investigations, a buyer's or a shop's profile from market_picture, "knobs" (one SKU's or knob's store entries,
+    episodes and log lines), "trades" (our buyer's matching trade records), nothing for a "question" (the model
+    answers it). Keyed by the role that asked; each result capped at PROBE_CHARS."""
     out = {}
     cat = read_json(HERE / ".market" / "catalog.json", {})
     for e in entries:
@@ -352,6 +409,10 @@ def run_probes(entries):
                     res = (mp.profile_buyer if kind == "buyer" else mp.profile_shop)(str(q.get("name") or ""))
                 elif kind == "question":
                     res = {"note": "no code probe: answered by the curator from WATCH, MARKET and the digest"}
+                elif kind == "knobs":
+                    res = probe_knobs(q)
+                elif kind == "trades":
+                    res = probe_trades(q)
                 else:
                     import market_probe as probe
                     res = probe.QUERIES[kind](q, cat)

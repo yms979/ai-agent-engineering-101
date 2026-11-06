@@ -81,6 +81,7 @@ from pathlib import Path
 import harness
 from buyer import RpcError, Seller, next_move, read_ask, receipt, said, state
 from harness import as_int, decide, log
+from buyer_value import expected, table as value_table
 from policy import buyer_params
 
 HERE = Path(__file__).resolve().parent
@@ -89,6 +90,7 @@ INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))   # re
 MAX_ROUNDS = 8
 DEADLINE = 240          # the kit and the test stop the buyer at 300 s
 SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed receipt
+WARRANTY_MIN = 6          # goods break within 6 h of the sale: a warranty this long covers every break
 GRADE_C_MEMORY = 6 * 3600   # a shop that offered a grade-C unit of a SKU is not asked for that SKU again for this long
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
 TOOLS_SHARE = 0.25         # deals paid through the shop's ACP tools (the model drives ~12 s of checkout);
@@ -147,6 +149,8 @@ def failed_last(mem, name):
     if not ts or time.time() - ts[-1].get("t", 0) > FAIL_MEMORY:
         return None
     last = ts[-1]
+    if "grade C" in str(last.get("outcome", "")):     # a grade-C unit: only that SKU is skipped (grade_c_skip)
+        return None
     if str(last.get("outcome", "")).startswith(("error", "unpaid")):
         return f"last visit failed: {last['outcome']}"
     if last.get("outcome") == "rejected" and not last.get("asks"):
@@ -213,7 +217,11 @@ def rivals_above():
         return set()
 
 
-def choose(shops, mem, item, budget, ask_model=True):
+def choose(shops, mem, item, budget, ask_model=True, ctx=None):
+    """Round 3 (ctx: stats, kind, cat, bp): the allowed shop whose deals add most to the saved rate (buyer_value:
+    the whole market's realized saved per deal there, shrunk to the market mean), plus conv_weight x our close
+    rate there, minus rival_penalty for a classmate ranked above us. Returns pick None (skip the order) when the
+    best one is expected under skip_below: a deal under our running mean only pulls the score down."""
     views = {}
     for s in shops:
         text, avg, flags, nver = review_view(s)
@@ -251,6 +259,25 @@ def choose(shops, mem, item, budget, ask_model=True):
             or sorted(took[s["name"]])[len(took[s["name"]]) // 2] < SLOW_SECS]
     allowed = fast or allowed
     rivals = rivals_above()          # buying from a player ranked above us adds to their revenue and book
+    if ctx is not None:              # user 11-06: buyer score first; a rival is a penalty, not a wall
+        bp = ctx["bp"]
+
+        def value(s):
+            e = expected(ctx["stats"], s["name"], ctx["kind"], ctx["cat"])
+            v = seen.get(s["name"], [0, 0])
+            conv = (v[1] + 1) / (v[0] + 2) if v[0] >= 5 else 0.6
+            return e["saved"] + bp["conv_weight"] * conv - (bp["rival_penalty"] if s["name"] in rivals else 0), e, conv
+        ranked = sorted(((value(s), s) for s in allowed), key=lambda x: -x[0][0])
+    if ctx is not None and ranked:
+        (score, e, conv), pick = ranked[0]
+        skipped = [n for n in views if n not in {s["name"] for s in allowed}]
+        why = (f"value: {pick['name']} expected saved {e['saved']:.3f} per deal ({e['n']} market deals, "
+               f"median {e['p50']:.2f} of list, warranty {e['warranty']:.0%}), our close rate {conv:.2f}"
+               + (", a rival above us" if pick["name"] in rivals else "")
+               + "; next: " + ", ".join(f"{s['name']} {v[1]['saved']:.3f}" for v, s in ranked[1:4]))
+        if e["saved"] < bp["skip_below"]:
+            return None, f"skip: best expected saved {e['saved']:.3f} < skip_below {bp['skip_below']} ({why})", skipped, views
+        return pick, why, skipped, views
     lower = [s for s in allowed if s["name"] not in rivals]
     allowed = lower or allowed
 
@@ -412,6 +439,7 @@ def main():
         except (OSError, ValueError):
             order = {}
     acceptable = order.get("acceptable") or []
+    ctx = None
     md = Path(a.order).parent if a.order else HERE / ".market"
     regime, bp = "STEADY", {}
     if acceptable:
@@ -428,6 +456,7 @@ def main():
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
         share = (bp.get("cat_auto", {}).get(a.item) or {}).get("cap", bp["value_share"])   # buyer_strategist.py
         cskip = grade_c_skip(mem)
+        ctx = {"stats": value_table(), "kind": order.get("kind") or "goods", "cat": order.get("category"), "bp": bp}
         shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, share, cskip)]
         prices = [(catalog.get(k) or {}).get("list_price") or 0 for k in acceptable]
         try:                                       # for our shop's restock: which prices this order accepts,
@@ -444,17 +473,31 @@ def main():
             return
 
     for attempt in range(MAX_SHOPS):              # a shop that turns me away before any ask: try the next one
-        pick, why, skipped, views = choose(shops, mem, a.item, a.budget, ask_model=attempt == 0)
+        pick, why, skipped, views = choose(shops, mem, a.item, a.budget, ask_model=attempt == 0, ctx=ctx)
         t_shop = time.time()
+        if pick is None:                           # every shop is expected under skip_below: no deal beats a bad one
+            log("buyer", why)
+            mem["trades"].append({"t": int(time.time()), "secs": 0, "shop": "", "item": "", "budget": a.budget,
+                                  "order": order.get("order"), "category": a.item, "kind": order.get("kind"),
+                                  "outcome": "skipped (low value)", "price": None, "asks": [], "agreed": None,
+                                  "honest": True, "signed": True, "void": ""})
+            save_memory(mem)
+            no_deal(f"Skipped: no shop sells {a.item} cheaply enough for me now.")
+            return
         print(f"WHY: picked {pick['name']} ({views[pick['name']]['text']}; memory: {views[pick['name']]['mem']}). {why}"
               + (f" Not entered: {', '.join(skipped)}." if skipped else ""), flush=True)
 
-        item, label, cap, accept = a.item, f"a {a.item}", a.budget, None
+        item, label, cap, accept, aim = a.item, f"a {a.item}", a.budget, None, ""
         first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
         if acceptable:
             want = pick_sku(pick, acceptable, catalog, a.budget, share, cskip)
             item, label = want["sku"], f"{want['name']} ({want['sku']})"
             cap = min(a.budget, int(want["list_price"] * share))
+            ev = expected(ctx["stats"], pick["name"], ctx["kind"], ctx["cat"])
+            if ev["n"] >= 10:      # do not pay above what this shop usually takes from other buyers
+                cap = min(cap, int(want["list_price"] * (ev["p50"] + bp["cap_margin"])))
+                aim = (f"Other buyers usually settle with this shop at {int(want['list_price'] * ev['p25'])}-"
+                       f"{int(want['list_price'] * ev['p50'])}; aim for the low end.")
             hours = order.get("use_within_hours")
             first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else
                                                  " Grade A or B only, please." if order.get("kind") == "goods" else "")
@@ -494,9 +537,9 @@ def main():
                     continue
                 action, offer, ask2, say = next_move(
                     "buyer", label, cap, history, t, chat=True,
-                    ledger=(f"Another shop sold this item for {elsewhere[0]} recently; aim near that, but this shop "
-                            f"ends the talk after 2 or 3 low offers, so rather pay up to {cap} than lose the deal."
-                            if ceiling_note else ""))
+                    ledger=((f"Another shop sold this item for {elsewhere[0]} recently; aim near that, but this shop "
+                             f"ends the talk after 2 or 3 low offers, so rather pay up to {cap} than lose the deal. "
+                             if ceiling_note else "") + aim).strip())
                 if ask2 is not None and ask2 not in asks:
                     asks.append(ask2)
                 if action == "walk":
@@ -533,7 +576,13 @@ def main():
                 price = as_int(rec.get("price"))
                 outcome = "deal"
                 claim = rec.get("claim")
-                if acceptable and order.get("kind") == "goods" and claim in ("A", "B", "C") \
+                warranty = as_int(rec.get("warranty_hours")) or 0
+                if acceptable and order.get("kind") == "goods" and warranty >= WARRANTY_MIN:
+                    # a broken unit under warranty is refunded and counts +1 instead of -1, so any grade pays
+                    # (C breaks 7 % of the time: with a warranty that is worth more than an A without one)
+                    accept["grades"] = ["A", "B", "C"]
+                    accept["warranty_hours"] = WARRANTY_MIN
+                elif acceptable and order.get("kind") == "goods" and claim in ("A", "B", "C") \
                         and claim not in bp["goods_grades"]:
                     # the kit refuses to pay for it at checkout anyway (40 orders lost this way on 11-06):
                     # leave the receipt unpaid and try the next shop while there is time

@@ -107,7 +107,11 @@
         "B"
       ],
       "food_extra_hours": 1,
-      "quick_accept": 0.7
+      "quick_accept": 0.7,
+      "conv_weight": 0.1,
+      "rival_penalty": 0.04,
+      "skip_below": 0.25,
+      "cap_margin": 0.03
     },
     "END_SALE": {},
     "LOW_FILL": {}

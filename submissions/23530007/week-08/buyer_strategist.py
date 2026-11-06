@@ -41,6 +41,10 @@ GLOBAL = {                                    # role, bounds, step
     "value_share": ((0.65, 0.85), 0.03),      # the most the buyer pays, as a share of list price
     "quick_accept": ((0.55, 0.75), 0.03),     # an ask at or under this share of list is taken at once
     "food_extra_hours": ((1, 12), 2),         # food must last the order's hours + this (a spoiled deal counts -1)
+    "skip_below": ((0.15, 0.33), 0.02),       # skip an order when the best shop's expected saved per deal is under this
+    "conv_weight": ((0.0, 0.3), 0.05),        # shop pick: expected saved + this x our close rate there
+    "rival_penalty": ((0.0, 0.1), 0.02),      # shop pick: minus this for a classmate shop ranked above us
+    "cap_margin": ((0.0, 0.1), 0.02),         # cap at most (shop's median price / list + this) x list
 }
 CAT = {"cap": ((0.6, 0.85), 0.04)}            # per category: replaces value_share for orders of that category
 METRICS = ("deals_next_6h", "mean_saved_next_6h", "conversion_next_6h")

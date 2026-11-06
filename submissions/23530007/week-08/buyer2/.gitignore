@@ -1,5 +1,0 @@
-.market/
-*.pem
-review_state.json
-vote_state.json
-logs/supervisor.out

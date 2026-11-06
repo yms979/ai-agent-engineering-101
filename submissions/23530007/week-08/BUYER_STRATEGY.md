@@ -1,10 +1,27 @@
 # Buyer strategy (Round 3, from 11-06)
 
-Goal (user, 11-06): our buyer **first among buyers on buyer ALL, as fast as possible**. The buyer score comes
-before the shop score when the two conflict. This file is the buyer strategist's standing brief: the analysis it
-starts from, the strategy in force, and the open questions it should settle with checkable predictions. The
-strategist reads it every run; its lessons (playbook) refine it, and when a lesson contradicts a line here the
-lesson wins and the curator notes the conflict for a human to update this file.
+Goal (user, 11-06, revised): **our player first on the midterm rank** (student_total = shop ALL + buyer ALL among
+students), not necessarily the buyer first among buyers. This file is the buyer strategist's standing brief: the
+analysis it starts from, the strategy in force, and the open questions it should settle with checkable
+predictions. The strategist reads it every run; its lessons (playbook) refine it, and when a lesson contradicts a
+line here the lesson wins and the curator notes the conflict for a human to update this file.
+
+## 0. The target (board 11-06 02:40 UTC, students only)
+
+| player | shop | buyer | total |
+|---|---|---|---|
+| inextro | 0.929 | 0.777 | 1.706 |
+| Lee-sungsoo | 0.795 | 0.878 | 1.673 |
+| gom31 | 0.810 | 0.780 | 1.590 |
+| yms979 (us) | 0.938 | 0.549 | 1.487 |
+
+With the shop at ~0.94, first place needs **buyer ALL ≥ 0.77 to tie inextro and ~0.80-0.82 with a margin**.
+inextro's buyer can still rise, and Lee-sungsoo's shop too. That is about the 3rd-4th student buyer, not the 1st.
+Our components now: saved percentile ~0.46, forum ~0.72, deals ~0.54, posts ~0.74 (0.5/0.3/0.1/0.1).
+Saved 0.28 (percentile ~0.90) alone gives +0.22, which is buyer ALL ~0.79. So the plan is **saved to 0.28-0.29 while
+forum, deals and posts hold**. Pushing saved to 0.31+ by skipping many orders would cost deals percentile for
+little gain. Running-mean arithmetic: the sum is ~772 over a denominator of ~3500. Reaching 0.28 takes ~5200 new deals at
+0.32 per deal (~3 days at 70/h), or ~3500 at 0.34 (~2 days).
 
 ## 1. How the score works (patch 3.4)
 
@@ -52,7 +69,7 @@ buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, each a mid-rank perce
 
 | knob | range | raises saved when | costs |
 |---|---|---|---|
-| skip_below | 0.15-0.33 | raised toward our target mean | deals (orders skipped) |
+| skip_below | 0.15-0.33 | raised toward the target mean (0.28-0.30) | deals (orders skipped); keep deals/h near 70+ |
 | cap per category / value_share | 0.60-0.85 | lowered | conversion |
 | cap_margin | 0-0.10 | lowered | conversion at that shop |
 | conv_weight | 0-0.30 | lowered (price over close rate) | time per order, deals |

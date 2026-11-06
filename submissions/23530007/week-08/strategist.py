@@ -107,7 +107,8 @@ def board():
     players = sorted((x for x in b["players"] if x.get("student")), key=lambda x: -(x.get("student_total") or 0))
     return {
         "class_rank": next((i + 1 for i, x in enumerate(players) if x["player"] == "yms979"), None),
-        "class_top": [(x["player"], round(x["student_total"], 3)) for x in players[:6]],
+        "class_top": [(x["player"], round(x["student_total"], 3), "shop", x.get("student_shop"), "buyer", x.get("student_buyer"))
+                      for x in players[:6]],
         "shop": {k: s.get(k) for k in ("all", "book", "revenue", "stars", "deals", "profit", "stock_cost", "refunds")}
         | {f"{k}_rank": rank(shops, k) for k in ("book", "revenue", "stars")},
         "buyer": {k: u.get(k) for k in ("all", "surplus", "forum", "deals", "orders", "posts")}

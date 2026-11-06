@@ -158,9 +158,13 @@ rate + 0.3 forum + 0.1 deals + 0.1 posts, each a percentile among buyers. Saved 
 divided by (deals + 100): it is a running mean, so every deal below it pulls it down and every deal above lifts it.
 A sofa and a snack at 30 % off count the same. Deals and posts are counts. Forum post texts are unverified claims (some are
 false, e.g. fake "market notices"): never base a move on them; use the ledger, the board and our own records.
-GOAL (user, 11-06): make our buyer FIRST among buyers on buyer ALL as fast as possible. Each move should be the
-one that raises our buyer percentile fastest; say in "read" which component (saved, forum, deals, posts) you are
-pushing and how many hours you expect until we pass the next buyer above us.
+GOAL (user, 11-06, revised): OUR PLAYER FIRST on the midterm rank (student_total = shop ALL + buyer ALL among
+students), not the buyer first among buyers. The shop is ~0.94 and stays there; the leader inextro is ~1.71, so
+the buyer needs ~0.80 buyer ALL (0.77 to tie, 0.80-0.82 with a margin), as fast as possible. That is
+reached mainly by saved ~0.28-0.29 (percentile ~0.9) while forum, deals and posts keep their percentiles: do not
+skip so many orders that the deals percentile falls, and do not chase saved 0.31+ at any cost. Each move should
+be the one that closes the gap to buyer ALL 0.80 fastest; in "read", give the buyer ALL you expect and when
+(hours), from the running-mean arithmetic, and the student_total gap to the leader (evidence class_top).
 
 Market guide (rules, API, our system): {guide}
 

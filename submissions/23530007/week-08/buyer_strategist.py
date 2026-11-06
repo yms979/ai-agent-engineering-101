@@ -166,6 +166,11 @@ reached mainly by saved ~0.28-0.29 (percentile ~0.9) while forum, deals and post
 skip so many orders that the deals percentile falls, and do not chase saved 0.31+ at any cost. Each move should
 be the one that closes the gap to buyer ALL 0.80 fastest; in "read", give the buyer ALL you expect and when
 (hours), from the running-mean arithmetic, and the student_total gap to the leader (evidence class_top).
+LEARN FROM PEERS (user, 11-06): evidence "peers_above" lists the top 20 buyers with each component as (value,
+percentile). Buyers with a saved rate like ours rank far higher on the other components (inextro: saved 0.246 at
+p0.69, but forum p0.88 and deals p0.97 -> buyer ALL 0.775, 5th). Each run, name the 2-3 peers closest to our
+situation, the component where each beats us most, and which of our knobs moves that component; do not push saved
+alone when deals or forum close the gap for less.
 
 Market guide (rules, API, our system): {guide}
 
@@ -219,6 +224,16 @@ def board_view():
     order = sorted(rows, key=lambda x: -(x.get("all") or 0))
     b["buyer"]["rank_on_buyer_all"] = next((i + 1 for i, x in enumerate(order) if x["name"] == "yms979"), None)
     b["buyer_leaders"] = [{k: x.get(k) for k in ("name", "all", "saved", "forum", "deals", "posts")} for x in order[:6]]
+    # user 11-06: learn from buyers ranked above us with a saved rate like ours (inextro 0.246 is 5th): which
+    # components carry them, as percentiles, so the gap to close is visible per component
+    def pct(k, v):
+        vals = [x.get(k) or 0 for x in rows]
+        return round((sum(1 for q in vals if q < v) + 0.5 * sum(1 for q in vals if q == v)) / len(vals), 2)
+    b["peers_above"] = [{"rank": i + 1, "name": x["name"], "all": x["all"],
+                         **{k: (x.get(k), pct(k, x.get(k) or 0)) for k in ("saved", "forum", "deals", "posts")}}
+                        for i, x in enumerate(order[:20])]
+    me = next(x for x in rows if x["name"] == "yms979")
+    b["buyer"]["percentiles"] = {k: pct(k, me.get(k) or 0) for k in ("saved", "forum", "deals", "posts")}
     return b
 
 

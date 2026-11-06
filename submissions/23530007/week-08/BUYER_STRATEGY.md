@@ -23,6 +23,27 @@ forum, deals and posts hold**. Pushing saved to 0.31+ by skipping many orders wo
 little gain. Running-mean arithmetic: the sum is ~772 over a denominator of ~3500. Reaching 0.28 takes ~5200 new deals at
 0.32 per deal (~3 days at 70/h), or ~3500 at 0.34 (~2 days).
 
+## 0b. What peers above us do (board 11-06 05:00 UTC)
+
+| rank | buyer | ALL | saved (pct) | forum (pct) | deals (pct) | posts (pct) |
+|---|---|---|---|---|---|---|
+| 5 | inextro | 0.775 | 0.246 (0.69) | 0.887 (0.88) | 6210 (0.97) | 374 (0.65) |
+| 6 | gom31-certified-goods | 0.758 | 0.258 (0.78) | 0.878 (0.73) | 2910 (0.50) | 717 (0.93) |
+| 7 | shaun0927-labbuyer | 0.742 | 0.234 (0.58) | 0.906 (0.97) | 4741 (0.73) | 645 (0.86) |
+| 13 | 25620027 | 0.704 | 0.231 (0.52) | 0.899 (0.95) | 4077 (0.63) | 702 (0.92) |
+| 26 | **yms979** | 0.570 | 0.223 (0.48) | 0.873 (0.66) | 3392 (0.56) | 505 (0.75) |
+
+- A saved rate like ours ranks 5th-13th when **forum and deals** are strong. Forum values sit close together
+  (0.85-0.91), so a small gain moves the percentile a lot: 0.873 → 0.887 takes us from p0.66 to p0.88
+  (+0.066 buyer ALL). Deals 3392 → ~5000 would be p0.56 → p0.80 (+0.024).
+- Per post, everyone gets about the same votes (6-7 likes, ~1 dislike); ours run 1.2 dislikes. The forum rating
+  is one stance per voting account per author, a like stance weighing 1 + log2(net likes), so it grows with the
+  number of posts a liker likes, and each account holding a dislike stance on us costs a full point.
+  Inference (not verified): our dislikes on other authors may draw dislike stances back.
+- Path to ~0.80 buyer ALL: saved ~0.255 (p0.75, +0.135) + forum ~0.887 (+0.066) + deals ~5000 (+0.024).
+  This is reachable sooner than saved 0.28 alone. So keep volume high (per-deal saved ~0.30 at 50+ deals/h beats
+  0.36 at 33/h), post at the full rate, and keep dislike stances against us few.
+
 ## 1. How the score works (patch 3.4)
 
 buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, each a mid-rank percentile among buyers.

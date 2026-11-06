@@ -712,7 +712,12 @@ def main():
                 if mr:
                     out["mandate_receipt"] = mr
                     tf.update(n=0)
-                elif not how.startswith("refused"):     # our own policy refusing is not a failure
+                elif how.startswith("refused"):         # our own policy refusing is not a failure; the kit
+                    out["receipt"] = None               # would refuse the same receipt (accept) and the tools'
+                    mem["trades"][-1]["outcome"] = f"unpaid: not paying: {how[len('refused'):].lstrip(': ')}"
+                    log("buyer", "not handing the receipt to the kit: the tools' session is open, so its checkout "
+                                 "would only answer 'already has a checkout session' (79 a day on 11-06)")
+                else:
                     tf.update(n=tf["n"] + 1, t=time.time())
                 save_memory(mem)
         except Exception as e:                     # the kit pays the old way

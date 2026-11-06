@@ -93,7 +93,7 @@ SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed re
 WARRANTY_MIN = 6          # goods break within 6 h of the sale: a warranty this long covers every break
 GRADE_C_MEMORY = 6 * 3600   # a shop that offered a grade-C unit of a SKU is not asked for that SKU again for this long
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
-TOOLS_SHARE = 0.25         # deals paid through the shop's ACP tools (the model drives ~12 s of checkout);
+TOOLS_SHARE = 0.05         # deals paid through the shop's ACP tools (the model drives ~12 s of checkout);
                            # the kit pays the rest by code, so orders keep flowing
 RIVALS_EVERY = 600         # seconds between Players board reads (user, 11-05: buy from players ranked below us)
 ME = "yms979"
@@ -551,10 +551,13 @@ def main():
                     mine = [p for k, p in history if k == "you offered"]
                     history.append(("seller asked", ask))
                     lp = want["list_price"]
+                    prev = [a for k, a in history[:-1] if k == "seller asked"]
                     if ask <= cap:
                         action, offer = "offer", ask
+                    elif len(mine) >= 3 and prev and ask >= prev[-1]:
+                        action, offer = "walk", None       # the shop stopped coming down: next shop
                     elif len(mine) >= 3:
-                        action, offer = "walk", None
+                        action, offer = "offer", cap       # still coming down (rounds take < 1 s): hold at the cap
                     elif not mine:
                         action, offer = "offer", min(cap, int(lp * max(0.4, (p25 or cap / lp) - 0.02)))
                     elif len(mine) == 1:

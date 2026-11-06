@@ -273,7 +273,9 @@ def choose(shops, mem, item, budget, ask_model=True, ctx=None):
                     e, conv)
         ranked = sorted(((value(s), s) for s in allowed), key=lambda x: -x[0][0])
         # skip only when no allowed shop reaches skip_below; else the best score among those that do
-        worth = [r for r in ranked if r[0][1]["saved"] >= bp["skip_below"]]
+        # user 11-06: food 0.279 vs goods 0.194 saved per deal (goods breaks count -1): a bar per kind
+        thr = bp.get(f"skip_below_{ctx['kind']}", bp["skip_below"])
+        worth = [r for r in ranked if r[0][1]["saved"] >= thr]
     if ctx is not None and ranked:
         (score, e, conv), pick = (worth or ranked)[0]
         skipped = [n for n in views if n not in {s["name"] for s in allowed}]
@@ -281,8 +283,8 @@ def choose(shops, mem, item, budget, ask_model=True, ctx=None):
                f"median {e['p50']:.2f} of list, warranty {e['warranty']:.0%}), our close rate {conv:.2f}"
                + (", a rival above us" if pick["name"] in rivals else "")
                + "; next: " + ", ".join(f"{s['name']} {v[1]['saved']:.3f}" for v, s in ranked[1:4]))
-        if e["saved"] < bp["skip_below"]:
-            return None, f"skip: best expected saved {e['saved']:.3f} < skip_below {bp['skip_below']} ({why})", skipped, views
+        if e["saved"] < thr:
+            return None, f"skip: best expected saved {e['saved']:.3f} < skip_below_{ctx['kind']} {thr} ({why})", skipped, views
         return pick, why, skipped, views
     lower = [s for s in allowed if s["name"] not in rivals]
     allowed = lower or allowed

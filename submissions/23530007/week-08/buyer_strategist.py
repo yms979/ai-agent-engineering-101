@@ -45,6 +45,8 @@ GLOBAL = {                                    # role, bounds, step
     "quick_accept": ((0.55, 0.75), 0.03),     # an ask at or under this share of list is taken at once
     "food_extra_hours": ((1, 12), 2),         # food must last the order's hours + this (a spoiled deal counts -1)
     "skip_below": ((0.15, 0.33), 0.02),       # skip an order when the best shop's expected saved per deal is under this
+    "skip_below_food": ((0.05, 0.33), 0.03),  # the same bar for food orders (user 11-06: take every food order that lasts)
+    "skip_below_goods": ((0.15, 0.4), 0.03),  # the same bar for goods orders (goods ran 0.194 per deal with breaks at -1)
     "conv_weight": ((0.0, 0.3), 0.05),        # shop pick: expected saved + this x our close rate there
     "rival_penalty": ((0.0, 0.1), 0.02),      # shop pick: minus this for a classmate shop ranked above us
     "cap_margin": ((0.0, 0.1), 0.02),         # cap at most (shop's median price / list + this) x list
@@ -261,7 +263,8 @@ re-offers a floor the shop names. Goods: A/B, or any grade with a 6 h+ warranty.
 food_extra_hours. Evidence "now"/"by_*" count saved as the score does (a break -1, a refunded one +1).
 
 Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75), "food_extra_hours" (1-12),
-"skip_below" (0.15-0.33), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1), "near_cap" (0-0.04),
+"skip_below" (0.15-0.33), "skip_below_food" (0.05-0.33) and "skip_below_goods" (0.15-0.4) (per-kind bars that
+replace skip_below; see BUYER_STRATEGY.md 0a2), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1), "near_cap" (0-0.04),
 "open_offset" (0-0.08), "max_shops" (1-6); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
 added to its value score) and "shop_cap" (-0.05..0.05, added to the cap there as a share of list);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in

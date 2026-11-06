@@ -76,6 +76,10 @@ DOOM_HOURS = 24          # food this close to its date goes out first, said plai
 DOOM_SHARE = 0.25        # once under DOOM_SHARE of its shelf life is left too (orders ask 10/25/50/75 % of it):
 DOOM_ASK = 0.5           # a fresh 24 h item is under 24 h from the start and must not go at half price
 DEADLINE = float(os.environ.get("SELLER_DEADLINE", "6"))
+# 11-06 (user: remove time bottlenecks): the model only worded the reply, and waited up to DEADLINE for it, so an
+# ask took 9 s to a deal (p90 21 s) and fast buyers skip slow shops; replies are now the fixed lines at once.
+# SELLER_WORDS=1 brings the model wording back.
+WORDS_MODEL = os.environ.get("SELLER_WORDS") == "1"
 SKU = re.compile(r"\bG[0-9a-f]{8}\b")
 NEED = re.compile(r"(\d+(?:\.\d+)?)\s*(?:h\b|hours?|시간)", re.I)
 NUMBER = re.compile(r"\d{1,3}(?:,\d{3})+|\d+")
@@ -251,6 +255,8 @@ class Shop(AgentExecutor):
                 del self.open[tid]
 
     async def words(self, move, d, text, fallback):
+        if not WORDS_MODEL:
+            return fallback
         u = d["unit"]
         prompt = WORDS.format(shop=NAME, move=move, name=u["name"], grade=d["grade"],
                               grade_text=GRADE_TEXT[u.get("kind", "goods")].get(d["grade"], ""), text=text[:500])
@@ -395,7 +401,8 @@ def build(port):
         name=NAME,
         description=("Real stock, honest grades: every unit ships with the market's certificate, "
                      f"{cover}, and asks never go above the list price. Ask for an item by "
-                     f"name or SKU. Prices are decided in code; a coding harness ({HARNESS_CMD.split()[0]}) words them."),
+                     "name or SKU. Prices and replies are decided in code, so answers come at once."
+                     + (f" A coding harness ({HARNESS_CMD.split()[0]}) words them." if WORDS_MODEL else "")),
         version="3.0.0",
         default_input_modes=["text/plain"],
         default_output_modes=["application/json", "text/plain"],

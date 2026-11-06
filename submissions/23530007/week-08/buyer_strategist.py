@@ -24,7 +24,7 @@ from pathlib import Path
 import market_probe as probe
 import strategist as shop
 from harness import last_json_object
-from strategist_memory import Memory
+from strategist_memory import Memory, post_board, read_board
 
 HERE = Path(__file__).resolve().parent
 AUTO = HERE / "params_auto_buyer.json"
@@ -72,6 +72,21 @@ def summary(rows):
             if any(r.get("asks") and r.get("list") for r in rows) else None}
 
 
+def shop_prices(now):
+    """What our own shop got per category in 24 h, as a share of list: the discount buyers actually win from a
+    shop pricing like ours (seller_r3_log.jsonl deals)."""
+    cat, by = shop.read(CATALOG, {}), {}
+    for line in open(HERE / "seller_r3_log.jsonl", encoding="utf-8").readlines()[-30000:]:
+        if '"deal"' not in line:
+            continue
+        e = json.loads(line)
+        lp = (cat.get(e.get("sku")) or {}).get("list_price")
+        if e.get("event") == "deal" and e.get("t", 0) >= now - 86400 and lp:
+            by.setdefault(str(e.get("category") or "").split(">")[-1], []).append(e["price"] / lp)
+    return {k: {"sales": len(v), "price_over_list_median": round(sorted(v)[len(v) // 2], 2)}
+            for k, v in sorted(by.items(), key=lambda kv: -len(kv[1]))[:15]}
+
+
 def measure(pred, since, now):
     rows = [r for r in trades(since, now) if not pred.get("category") or r.get("category") == pred["category"]]
     s = summary(rows)
@@ -98,6 +113,8 @@ def evidence(mem, b, auto, params):
                                 for k, v in top_c},
             "by_shop_24h": {k: summary(v) for k, v in top_s},
             "knobs_now": {k: (auto.get("globals") or {}).get(k, params.get(k)) for k in GLOBAL},
+            "from_shop_strategist": read_board("buyer"),
+            "our_shop_sells_at_24h": shop_prices(now),
             "investigations_you_asked_for": mem.d["working"].get("findings", []),
             "your_watch_list": mem.d["working"].get("watch", [])}
 
@@ -202,6 +219,9 @@ def run(force=False):
         mem.save()
         return
     log(f"[{mode}] read: {str(ans.get('read'))[:1200]}")
+    post_board("buyer", ans.get("read"), {"moves": [(m.get("knob"), m.get("category"), m.get("value"))
+                                                   for m in (ans.get("moves") or [])][:8],
+                                          "categories_24h": {k: v.get("mean_saved") for k, v in ev["by_category_24h"].items()}})
     mem.edit_lessons(ans.get("lessons"), log)
     mem.d["working"]["queries"] = (ans.get("investigate") or [])[:probe.MAX_QUERIES]
     cats = set(ev["by_category_24h"])

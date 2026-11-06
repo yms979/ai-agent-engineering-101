@@ -182,3 +182,26 @@ class Memory:
         tmp = self.path.with_suffix(".tmp")
         tmp.write_text(json.dumps(self.d, ensure_ascii=False), encoding="utf-8")
         tmp.replace(self.path)
+
+
+BOARD = HERE / ".market" / "strategy_board.json"   # shared between the shop and the buyer strategists
+
+
+def post_board(role, read, findings):
+    """Leave this strategist's market read and key findings for the other one (user, 11-06: share, not split)."""
+    try:
+        b = json.loads(BOARD.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        b = {}
+    b[role] = {"t": time.time(), "read": str(read)[:1500], "findings": findings}
+    tmp = BOARD.with_suffix(".tmp")
+    tmp.write_text(json.dumps(b, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(BOARD)
+
+
+def read_board(role):
+    """The other strategist's latest entry (or {})."""
+    try:
+        return json.loads(BOARD.read_text(encoding="utf-8")).get("buyer" if role == "shop" else "shop", {})
+    except (OSError, ValueError):
+        return {}

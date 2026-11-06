@@ -14,7 +14,8 @@ One run:
                  with the lessons they cited and rewrites, retires or adds lessons: the analysis method corrects
                  itself, not only the moves
   4. evidence    a pack: board components and ranks, our stock by SKU with its age, own and market sales rates,
-                 market stock and shops, cost surge, the results of investigations it asked for last time, its
+                 market stock and shops, cost surge, competitors' quotes to our buyer per SKU, unserved orders, the buyer
+                 strategist's latest read (shared board), the results of investigations it asked for last time, its
                  record (hit rates, calibration, misses), its playbook and MARKET_GUIDE.md (rules, API, our system)
   5. decide      MODEL (opus) answers in JSON: a market read, moves on whitelisted knobs each with a checkable
                  prediction and the lessons it relies on, lesson edits, up to 5 investigations for next time and
@@ -40,7 +41,7 @@ from pathlib import Path
 import market_probe as probe
 import product_memory as pm
 from harness import last_json_object
-from strategist_memory import Memory
+from strategist_memory import Memory, post_board, read_board
 
 HERE = Path(__file__).resolve().parent
 AUTO = HERE / "params_auto.json"
@@ -145,8 +146,25 @@ def evidence(m, mem, b):
             "market_units": (rs.get("mkt_units") or {}).get(sku, 0), "market_shops": (rs.get("mkt_shops") or {}).get(sku, 0),
             "cost_surge": surge.get(sku), "knobs_now": (auto.get("sku") or {}).get(sku),
         }))
+    quotes = {}                                       # what our buyer was quoted by other shops, last 6 h
+    try:
+        for line in open(HERE / "market_intel.jsonl", encoding="utf-8").readlines()[-20000:]:
+            if '"first_ask"' in line:
+                q = json.loads(line)
+                if q.get("t", 0) >= now - 6 * 3600 and q.get("list_price"):
+                    quotes.setdefault(q["sku"], []).append((q["first_ask"] / q["list_price"],
+                                                            (q.get("min_ask") or q["first_ask"]) / q["list_price"]))
+    except OSError:
+        pass
+    for _, r in rows:
+        v = sorted(quotes.get(r["sku"], []))
+        if v:
+            r["competitor_quotes_6h"] = {"n": len(v), "first_ask_over_list_median": round(v[len(v) // 2][0], 2),
+                                         "lowest_ask_over_list": round(min(x[1] for x in v), 2)}
     w = mem.d["working"]
-    return {"time_utc": time.strftime("%Y-%m-%d %H:%M", time.gmtime()), "round_ends": "2026-11-17T23:59 KST",
+    return {"from_buyer_strategist": read_board("shop"),
+            "unserved_orders_24h": probe.q_unserved({}, {}),
+            "time_utc": time.strftime("%Y-%m-%d %H:%M", time.gmtime()), "round_ends": "2026-11-17T23:59 KST",
             "cash": inv.get("balance"), "stock_cost": sum(u.get("cost") or 0 for u in inv.get("units", [])),
             "board": b, "skus": [r for _, r in sorted(rows, key=lambda x: -x[0])[:TOP_SKUS]],
             "globals_now": {k: (auto.get("globals") or {}).get(k) for k in GLOBAL},
@@ -329,6 +347,8 @@ def run(force=False):
         mem.save()
         return
     log(f"[{mode}] market read: {str(ans.get('market_read'))[:1200]}")
+    post_board("shop", ans.get("market_read"), {"moves": [(m.get("knob"), m.get("sku"), m.get("value"))
+                                                          for m in (ans.get("moves") or [])][:12]})
     mem.edit_lessons(ans.get("lessons"), log)
     mem.d["working"]["queries"] = (ans.get("investigate") or [])[:probe.MAX_QUERIES]
     mem.d["working"]["watch"] = [w for w in (ans.get("watch") or [])

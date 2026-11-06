@@ -85,10 +85,10 @@ Write (one JSON object, keys exactly as in the template at the end):
 1. "market_flow": 4-8 sentences with numbers: what sells now (MARKET.what_sells: categories and SKUs, value, price
    level p50_x = price / list, trend vs the previous 6 h), what buyers buy (kind mix, warranty, grades, the orders our
    buyer sees, what buyers asked our shop for), and what changed since the CURRENT digest's market_flow.
-2. "rankers_playbook": up to 8 items {who, role: shop|buyer, what, numbers}: what each top shop and top buyer
+2. "rankers_playbook": up to 8 items {{who, role: shop|buyer, what, numbers}}: what each top shop and top buyer
    (MARKET.top_shops / top_buyers, and the peers near our saved) is scoring on, e.g. a buyer at 80 % food from two
    shops at x 0.62 with 90 deals/h, or a shop selling one SKU at x 0.85 with a 72 h warranty. Compare with MARKET.ours.
-3. "answers_for_buyer" / "answers_for_shop": one item {request, answer} per request in the entries' "requests"
+3. "answers_for_buyer" / "answers_for_shop": one item {{request, answer}} per request in the entries' "requests"
    (PROBES holds the code results, keyed by the role that asked; a "question" you answer from everything you have,
    or say what cannot be measured and put it in "wanted_data"). Keep the numbers; say when a result was measured.
 4. "briefing_buyer" / "briefing_shop": up to 6 items each, what that strategist must weigh now, with numbers.

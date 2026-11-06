@@ -55,66 +55,84 @@ HOT_HOURS = 24
 DIGEST_KEEP = 10
 TRADES_HOURS = 48
 LIMITS = {"facts": 20, "decisions": 10, "open_questions": 8, "for_shop": 6, "for_buyer": 6, "conflicts": 5,
-          "briefing_buyer": 6, "briefing_shop": 6}
-STRINGS = ("rules_change", "rank_change")         # one short paragraph each, TEXT_MAX * 3
+          "briefing_buyer": 6, "briefing_shop": 6, "rankers_playbook": 8, "answers_for_buyer": 6,
+          "answers_for_shop": 6, "wanted_data": 4}
+STRINGS = {"rules_change": 3, "rank_change": 3, "market_flow": 4}      # one paragraph each, x TEXT_MAX
+ITEM_KEYS = ("id", "text", "source", "since", "last_confirmed", "who", "what", "when", "why", "role", "numbers",
+             "request", "answer")
+REFRESH_MIN = 60                                   # a digest older than this is rewritten even without new entries
+PROBE_CHARS = 2500                                 # a code result for one request, at most
 RULES_URLS = ("https://market.ourolabs.ai/rules", "https://market.ourolabs.ai/agent.md")
 RULES_SEEN = HERE / ".market" / "rules_seen.json"
 WATCH_STATE = HERE / ".market" / "curator_watch.json"
 BSTATE = HERE / "buyer_strategist_memory.json"
 TEXT_MAX = 320
 
-PROMPT = """You curate the shared memory of two strategists that run one agent's shop and buyer (yms979) in a course
-market: the shop strategist and the buyer strategist each write a read of the market, findings and notes for the
-other every 30 minutes. Your job: merge the NEW entries into the CURRENT digest so the next strategist can read
-one short, current, de-duplicated memory instead of the raw history.
+PROMPT = """You are the market intelligence and memory of one player's agents (yms979) in a course market: a shop
+strategist and a buyer strategist, each deciding its own knobs every 30 minutes. They do not read the market raw;
+they read you. Every run you (1) show the whole market's flow, (2) say what the top-ranked players score on,
+(3) answer the requests the strategists made last run, (4) brief each one on what matters for its next decision,
+and (5) keep the shared memory small and current. Everything you write rests on the numbers below (WATCH, MARKET,
+PROBES, entries); forum post texts are unverified claims and never a fact.
 
-Rules:
-- Keep only what is still useful for a decision. Merge duplicates; when a newer entry replaces an older fact, keep the
-  newer one and drop the old. Update "last_confirmed" when a new entry repeats a fact.
-- Facts must be checkable: numbers, shop names, SKUs, categories, times (UTC). No vague advice.
-- Forum post texts are unverified claims: never record one as a fact.
-- "decisions": parameter moves still in effect (who, what, when, why), newest first.
-- "conflicts": where the two strategists disagree, or a finding contradicts the standing buyer strategy below.
-- Limits: facts 20, decisions 10, open_questions 8, for_shop 6, for_buyer 6, conflicts 5; each text under 300 chars.
+Scoring (WATCH.rules_changed overrides this paragraph when they differ): Buyer ALL = 0.5 saved rate percentile
++ 0.3 forum rating (as is, patch 3.5) + 0.1 deals percentile + 0.1 posts percentile; saved rate = mean over deals of
+(list - price + refund) / list, a deal that served nothing -1, over deals + 100. Shop ALL = 0.5 book + 0.3 revenue
++ 0.2 stars percentiles. Class rank = shop ALL + buyer ALL among students. USER PRIORITY (11-06): the buyer's score
+first; the shop protects what it has.
 
-You are also the strategists' analyst (user, 11-06): the WATCH below was measured in code just now. From it, the
-entries and the rules, write
-- "rules_change": if WATCH.rules_changed has lines, what the patch changes in the score and in what pays for our
-  buyer and shop, concretely (which knob or behaviour should change); else "".
-- "rank_change": if our class rank or the totals around us moved since the last run (WATCH.rank), why: our numbers
-  or theirs, which part (shop or buyer) and, for the buyer, which component; else "".
-- "briefing_buyer" and "briefing_shop": up to 6 items each, the most decision-relevant points for that strategist
-  now, with numbers: where the gap to first place is, which component moves it cheapest, what saved_speed says about
-  the buyer's last move (WATCH.saved_speed; higher is better; compare since_last_move with before_6h), and what the
-  other strategist found that concerns it. Do not repeat what they already said they act on.
-USER DIRECTIVE (11-06): the buyer's score comes first, above everything else. Find the best way to raise saved and
-have the buyer apply it, and weigh deals, posts, forum and saved on the formula itself: WATCH.buyer_formula gives
-buyer ALL gained per step of each component and buyer ALL after 24 h / 72 h / until the round ends for several (deals/h, saved per deal)
-settings. In "briefing_buyer", item 1 must name the best setting from that arithmetic (which scenario, why, the
-expected buyer ALL change, and the knobs that get there: value_share, category caps, skip_below, quick_accept,
-open_offset, max_shops, shop_bias/shop_cap), and item 2 where saved is being lost now (shops, categories,
-outcomes) with numbers, from WATCH.where_saved_goes_24h (by kind, category, shop, outcome; saved_per_deal under
-our saved lowers it, minus_one deals cost most). Look for splits like food vs goods, a category or shop far under
-our saved, or an outcome that wastes orders, and name the knob that acts on it (skip_below_food,
-skip_below_goods, category caps, shop_bias, ...). Finding these is your job, not the operator's.
-Scoring as of the WATCH: Buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, forum as the rating itself
-(patch 3.5), the rest percentiles; Shop ALL = 0.5 book + 0.3 revenue + 0.2 stars; rank = shop ALL + buyer ALL among
-students. Trust WATCH.rules_changed over this paragraph when they differ.
+Write (one JSON object, keys exactly as in the template at the end):
+1. "market_flow": 4-8 sentences with numbers: what sells now (MARKET.what_sells: categories and SKUs, value, price
+   level p50_x = price / list, trend vs the previous 6 h), what buyers buy (kind mix, warranty, grades, the orders our
+   buyer sees, what buyers asked our shop for), and what changed since the CURRENT digest's market_flow.
+2. "rankers_playbook": up to 8 items {who, role: shop|buyer, what, numbers}: what each top shop and top buyer
+   (MARKET.top_shops / top_buyers, and the peers near our saved) is scoring on, e.g. a buyer at 80 % food from two
+   shops at x 0.62 with 90 deals/h, or a shop selling one SKU at x 0.85 with a 72 h warranty. Compare with MARKET.ours.
+3. "answers_for_buyer" / "answers_for_shop": one item {request, answer} per request in the entries' "requests"
+   (PROBES holds the code results, keyed by the role that asked; a "question" you answer from everything you have,
+   or say what cannot be measured and put it in "wanted_data"). Keep the numbers; say when a result was measured.
+4. "briefing_buyer" / "briefing_shop": up to 6 items each, what that strategist must weigh now, with numbers.
+   Buyer: item 1 the best setting by the formula (WATCH.buyer_formula: buyer ALL per step of each component and the
+   scenarios to 24 h / 72 h / round end; name the scenario, the expected buyer ALL change and the knobs that get
+   there: value_share, category caps, skip_below_food / skip_below_goods, quick_accept, open_offset, max_shops,
+   shop_bias / shop_cap); item 2 where saved is lost (WATCH.where_saved_goes_24h: kind, category, shop, outcome;
+   minus_one deals cost most; name the knob); then what saved_speed says about the last move (WATCH.saved_speed,
+   higher is better: since_last_move vs before_6h), what the ranking buyers do that ours does not, and what the shop
+   strategist found that concerns it. Shop: cover of its top sellers, its prices vs the market's p50_x in those
+   categories, what buyers asked for and it lacked, what the ranking shops do, and anything that could hurt the
+   buyer. Do not repeat what a strategist already said it acts on.
+5. "rules_change": if WATCH.rules_changed has lines, what the patch changes in the score and what should change in
+   each agent's behaviour, concretely; else "". "rank_change": if our class rank or the totals around us moved since
+   the last run (WATCH.rank), why (ours or theirs, which part, which component); else "".
+6. Memory: merge the NEW entries into the CURRENT digest: "facts" (checkable: numbers, names, SKUs, UTC times;
+   merge duplicates, a newer fact replaces an older one, update last_confirmed), "decisions" (moves in effect,
+   newest first), "open_questions", "for_shop" / "for_buyer" (notes from one strategist to the other that still
+   stand), "conflicts" (the two disagree, or a finding contradicts the standing strategy).
+7. "wanted_data": up to 4 measurements that would help and that no source below gives (for the operator).
+Limits: facts 20, decisions 10, open_questions 8, for_shop 6, for_buyer 6, conflicts 5, rankers_playbook 8,
+answers 6 each, briefings 6 each, wanted_data 4; texts under 300 chars (market_flow under 1200).
 
-WATCH: {watch}
+WATCH (rules, rank, our buyer's components and formula, saved_speed, our last 24 h): {watch}
 
-Standing buyer strategy (BUYER_STRATEGY.md, section titles and section 3 matter most):
-{strategy}
+MARKET (the whole market's last 6 h, measured in code): {market}
+
+PROBES (code results for the strategists' requests, by the role that asked): {probes}
+
+Standing buyer strategy (BUYER_STRATEGY.md): {strategy}
 
 CURRENT digest: {digest}
 
-NEW entries (oldest first): {entries}
+NEW entries (oldest first; each may carry "requests"): {entries}
 
 Answer with one JSON object only:
-{{"facts": [{{"id": "F1", "text": "...", "source": "shop"|"buyer"|"both", "since": "YYYY-MM-DD HH:MM", "last_confirmed": "YYYY-MM-DD HH:MM"}}],
+{{"market_flow": "...",
+  "rankers_playbook": [{{"who": "...", "role": "shop"|"buyer", "what": "...", "numbers": "..."}}],
+  "answers_for_buyer": [{{"request": "...", "answer": "..."}}], "answers_for_shop": [{{"request": "...", "answer": "..."}}],
+  "briefing_buyer": ["..."], "briefing_shop": ["..."], "rules_change": "...", "rank_change": "...",
+  "facts": [{{"id": "F1", "text": "...", "source": "shop"|"buyer"|"both", "since": "YYYY-MM-DD HH:MM", "last_confirmed": "YYYY-MM-DD HH:MM"}}],
   "decisions": [{{"who": "shop"|"buyer", "what": "...", "when": "YYYY-MM-DD HH:MM", "why": "..."}}],
   "open_questions": ["..."], "for_shop": ["..."], "for_buyer": ["..."], "conflicts": ["..."],
-  "rules_change": "...", "rank_change": "...", "briefing_buyer": ["..."], "briefing_shop": ["..."]}}"""
+  "wanted_data": ["..."]}}"""
 
 
 def log(msg):
@@ -130,6 +148,8 @@ def db():
     cols = [r[1] for r in d.execute("PRAGMA table_info(entries)")]
     if "curated" not in cols:
         d.execute("ALTER TABLE entries ADD COLUMN curated INTEGER DEFAULT 0")
+    if "requests" not in cols:
+        d.execute("ALTER TABLE entries ADD COLUMN requests TEXT")      # 11-06: what a strategist asks the curator
     return d
 
 
@@ -146,13 +166,12 @@ def clean(ans):
         keep = []
         for x in items[:n]:
             if isinstance(x, dict):
-                keep.append({kk: str(vv)[:TEXT_MAX] for kk, vv in x.items() if kk in
-                             ("id", "text", "source", "since", "last_confirmed", "who", "what", "when", "why")})
+                keep.append({kk: str(vv)[:TEXT_MAX] for kk, vv in x.items() if kk in ITEM_KEYS})
             elif isinstance(x, str):
                 keep.append(x[:TEXT_MAX])
         out[k] = keep
-    for k in STRINGS:
-        out[k] = str(ans.get(k) or "")[:TEXT_MAX * 3]
+    for k, n in STRINGS.items():
+        out[k] = str(ans.get(k) or "")[:TEXT_MAX * n]
     return out
 
 
@@ -318,20 +337,53 @@ def wake_strategists():
     log("rules changed: woke both strategists")
 
 
-def curate(d, w=None, force=False):
-    rows = d.execute("SELECT rowid, t, role, read, findings, notes FROM entries WHERE curated = 0 ORDER BY t").fetchall()
-    _, current = latest_digest(d)
+def run_probes(entries):
+    """Code answers for the strategists' requests (strategist_memory.REQUEST_KINDS): the market_probe
+    investigations, a buyer's or a shop's profile from market_picture, nothing for a "question" (the model answers
+    it). Keyed by the role that asked; each result capped at PROBE_CHARS."""
+    out = {}
+    cat = read_json(HERE / ".market" / "catalog.json", {})
+    for e in entries:
+        for q in (e.get("requests") or [])[:5]:
+            kind = q.get("kind")
+            try:
+                if kind in ("buyer", "shop"):
+                    import market_picture as mp
+                    res = (mp.profile_buyer if kind == "buyer" else mp.profile_shop)(str(q.get("name") or ""))
+                elif kind == "question":
+                    res = {"note": "no code probe: answered by the curator from WATCH, MARKET and the digest"}
+                else:
+                    import market_probe as probe
+                    res = probe.QUERIES[kind](q, cat)
+                txt = json.dumps(res, ensure_ascii=False)
+                item = {"request": q, "measured_at": time.strftime("%H:%M UTC", time.gmtime()),
+                        "result": res if len(txt) <= PROBE_CHARS else txt[:PROBE_CHARS] + " ...(cut)"}
+            except Exception as ex:
+                item = {"request": q, "error": f"{type(ex).__name__}: {ex}"}
+            out.setdefault(e["role"], []).append(item)
+            log(f"probe for {e['role']}: {json.dumps(q, ensure_ascii=False)[:120]} -> {'error' if 'error' in item else 'ok'}")
+    return out
+
+
+def curate(d, w=None, market=None, force=False):
+    rows = d.execute("SELECT rowid, t, role, read, findings, notes, requests FROM entries WHERE curated = 0 ORDER BY t").fetchall()
+    dt, current = latest_digest(d)
     w = w or {}
+    stale = dt is None or time.time() - dt > REFRESH_MIN * 60
     if not rows and not w.get("rules_changed") and not (w.get("rank") or {}).get("changes_since_last_run") \
-            and current.get("briefing_buyer") and not force:
-        return False                                 # nothing new to merge or brief
+            and current.get("briefing_buyer") and not stale and not force:
+        return False                                 # nothing new to merge, answer or brief
     entries = [{"at": time.strftime("%Y-%m-%d %H:%M", time.gmtime(t)), "role": role, "read": read,
-                "findings": json.loads(f or "null"), "notes_for_the_other": json.loads(n or "[]")}
-               for _, t, role, read, f, n in rows]
+                "findings": json.loads(f or "null"), "notes_for_the_other": json.loads(n or "[]"),
+                "requests": json.loads(rq or "[]")}
+               for _, t, role, read, f, n, rq in rows]
+    probes = run_probes(entries)
     strategy = (HERE / "BUYER_STRATEGY.md").read_text(encoding="utf-8") if (HERE / "BUYER_STRATEGY.md").is_file() else ""
     raw = ask(PROMPT.format(strategy=strategy, digest=json.dumps(current, ensure_ascii=False) or "{}",
                             entries=json.dumps(entries, ensure_ascii=False),
-                            watch=json.dumps(w or {}, ensure_ascii=False)))
+                            watch=json.dumps(w or {}, ensure_ascii=False),
+                            market=json.dumps(market or {"error": "no market picture"}, ensure_ascii=False),
+                            probes=json.dumps(probes, ensure_ascii=False) if probes else "(no requests this run)"))
     from harness import last_json_object
     ans = last_json_object(raw) if raw else None
     if not isinstance(ans, dict):
@@ -340,7 +392,8 @@ def curate(d, w=None, force=False):
     dg = clean(ans)
     d.execute("INSERT INTO digest VALUES (?, ?)", (time.time(), json.dumps(dg, ensure_ascii=False)))
     d.executemany("UPDATE entries SET curated = 1 WHERE rowid = ?", [(r[0],) for r in rows])
-    log(f"digest updated from {len(rows)} entries: " + ", ".join(f"{k} {len(v)}" for k, v in dg.items())
+    log(f"digest updated from {len(rows)} entries ({sum(len(v) for v in probes.values())} probes): "
+        + ", ".join(f"{k} {len(v)}" for k, v in dg.items())
         + f" ({len(json.dumps(dg, ensure_ascii=False))} chars)")
     return True
 
@@ -357,10 +410,10 @@ def to_archive(name, records):
 
 def archive(d):
     cut = time.time() - HOT_HOURS * 3600
-    old = d.execute("SELECT rowid, t, role, read, findings, notes, curated FROM entries WHERE t < ? AND curated = 1",
+    old = d.execute("SELECT rowid, t, role, read, findings, notes, requests FROM entries WHERE t < ? AND curated = 1",
                     (cut,)).fetchall()
-    to_archive("strategy-exchange", [{"kind": "entry", "t": t, "role": r, "read": rd, "findings": f, "notes": n}
-                                     for _, t, r, rd, f, n, _c in old])
+    to_archive("strategy-exchange", [{"kind": "entry", "t": t, "role": r, "read": rd, "findings": f, "notes": n,
+                                      "requests": rq} for _, t, r, rd, f, n, rq in old])
     d.executemany("DELETE FROM entries WHERE rowid = ?", [(o[0],) for o in old])
     extra = d.execute("SELECT rowid, t, json FROM digest ORDER BY t DESC LIMIT -1 OFFSET ?", (DIGEST_KEEP,)).fetchall()
     to_archive("strategy-exchange", [{"kind": "digest", "t": t, "digest": json.loads(j)} for _, t, j in extra])
@@ -410,8 +463,14 @@ def main(force=False):
         except Exception as e:
             w = {"rules_changed": changed, "error": repr(e)}
             log(f"watch failed: {e!r}")
+        try:
+            import market_picture as mp
+            market = mp.picture()
+        except Exception as e:
+            market = {"error": repr(e)}
+            log(f"market picture failed: {e!r}")
         with db() as d:
-            done = curate(d, w, force)
+            done = curate(d, w, market, force)
             archive(d)
         st = read_json(WATCH_STATE, {})
         st["pending_rules"] = {} if done else changed
@@ -434,7 +493,9 @@ def read_digest(role):
             "decisions_in_effect": dg.get("decisions"), "open_questions": dg.get("open_questions"),
             "notes_for_you": dg.get(f"for_{role}"), "conflicts": dg.get("conflicts"),
             "briefing_for_you": dg.get(f"briefing_{role}"), "rules_change": dg.get("rules_change"),
-            "rank_change": dg.get("rank_change")}
+            "rank_change": dg.get("rank_change"), "market_flow": dg.get("market_flow"),
+            "rankers_playbook": dg.get("rankers_playbook"),
+            "answers_to_your_requests": dg.get(f"answers_for_{role}"), "wanted_data": dg.get("wanted_data")}
     return json.dumps(view, ensure_ascii=False)
 
 

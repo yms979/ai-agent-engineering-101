@@ -128,6 +128,9 @@ echo "${hash:-$old_hash} ${round:-$old_round} $health" > "$STATE"
 "$HERE/.venv/bin/python" "$HERE/market_probe.py" --check >/dev/null 2>&1 || true   # its watch list may wake it early
 nohup "$HERE/.venv/bin/python" "$HERE/strategist.py" >/dev/null 2>&1 &
 nohup "$HERE/.venv/bin/python" "$HERE/buyer_strategist.py" >/dev/null 2>&1 &   # the buyer's own analyst
+# the curator (memory + market intelligence) also runs on every tick: refreshes its market picture and briefing
+# when the digest is an hour old even if no strategist posted, and sees rule patches within 15 min
+nohup "$HERE/.venv/bin/python" "$HERE/memory_curator.py" >/dev/null 2>&1 &
 
 # hourly status push for the user (summary.py sends at most once an hour)
 "$HERE/.venv/bin/python" "$HERE/summary.py" >/dev/null 2>&1 || true

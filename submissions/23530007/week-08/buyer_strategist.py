@@ -17,7 +17,8 @@ so the buyer gets its own loop, the same shape:
             and per category "cap"; each with a checkable prediction
   act       mode as the shop strategist's (params.json strategist.mode); "apply" writes params_auto_buyer.json,
             which policy.py lays over the buyer's parameters (market_buyer reads the category cap)
-  briefing  (11-06, user) memory_curator.py watches rules, rank and saved_speed and briefs it through the digest;
+  curator   (11-06, user) memory_curator.py measures the market (market_picture.py), watches rules, rank and
+            saved_speed, answers this strategist's "requests" and briefs it through the digest (read_digest);
             moves are judged on saved_speed = deals/h x (saved per deal - our saved) (predictions scored after 1-6 h)
 Log: logs/buyer_strategist.log.
 """
@@ -30,7 +31,7 @@ from pathlib import Path
 import market_probe as probe
 import strategist as shop
 from harness import last_json_object
-from strategist_memory import Memory, my_turn, post_board, read_board, read_digest
+from strategist_memory import Memory, market_picture, my_turn, post_board, read_board, read_digest, valid_requests
 
 HERE = Path(__file__).resolve().parent
 AUTO = HERE / "params_auto_buyer.json"
@@ -207,7 +208,7 @@ def evidence(mem, b, auto, params):
             "rules_by_shop_6h": rules_by_shop(r6),
             "throughput": throughput(r6),
             "our_shop_sells_at_24h": shop_prices(now),
-            "investigations_you_asked_for": mem.d["working"].get("findings", []),
+            "market_picture": market_picture(),
             "your_watch_list": mem.d["working"].get("watch", [])}
 
 
@@ -271,11 +272,19 @@ per category "cap" (0.6-0.85, replaces value_share for that category; "category"
 TOP PRIORITY (user, 11-06): raise buyer ALL above everything else. Find the best way to raise saved and apply it,
 weighing deals, posts, forum and saved on the formula itself (the curator's briefing item 1 gives the arithmetic
 and its best setting; check it against your evidence and act on it unless the evidence contradicts it).
-THE CURATOR'S BRIEFING (user, 11-06): the memory curator between the strategists watches the market's rules, the
-student board and how fast our saved rises, and writes you a briefing (in the shared memory below: "briefing_for_you",
-"rules_change", "rank_change"). Act on it: a rules change is decided this run, and moves are judged on
-saved_speed = deals/h x (saved per deal - our saved) (metric "saved_speed", same units; "hours": 2 when ~140 deals
-are enough to read a move); revert a move that lowered it. Say in "read" what you took from the briefing.
+THE CURATOR (user, 11-06): a memory / market-intelligence agent sits between you and the shop strategist. It
+measures the whole market (evidence "market_picture": what sells, what buyers buy, the top shops and buyers and
+what they do, our own numbers in the same shape) and writes the shared memory you get below: "market_flow",
+"rankers_playbook" (what the ranking players score on), "briefing_for_you" (what to weigh now, item 1 the best
+setting by the formula, item 2 where saved is lost), "rules_change", "rank_change", and
+"answers_to_your_requests" (what you asked for last run). Read them first; say in "read" what you take from them
+and how we should move. Then ask for what you need next in "requests" (up to 5): {{"kind": "sku_prices", "sku"}},
+{{"kind": "category", "category"}}, {{"kind": "competitor", "shop"}}, {{"kind": "unserved"}}, {{"kind": "rules",
+"term"}}, {{"kind": "buyer", "name"}} (a buyer's 6 h profile: shops, kinds, prices, saved per deal),
+{{"kind": "shop", "name"}} (a shop's: what it sells, prices, buyers, stock), {{"kind": "question", "text"}} (anything
+else; it answers from its data or says what it cannot measure). Answers arrive before your next run. A rules
+change is decided this run. Moves are judged on saved_speed = deals/h x (saved per deal - our saved) (metric
+"saved_speed", same units; "hours": 2 when ~140 deals are enough to read a move); revert a move that lowered it.
 HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often the best answer. Move a knob
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
 predictions are not yet due, when the numbers are on track, or when the evidence is thin or noisy, hold and say
@@ -294,7 +303,7 @@ Answer with one JSON object only:
   "moves": [{{"knob": "<a knob above>", "category": "<for cap>", "shop": "<for shop_bias/shop_cap>", "value": n, "why": "...",
              "uses": [...], "prediction": {{...}}}}],
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "...", "text": "...", "why": "..."}}],
-  "investigate": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules", ...}}],
+  "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"question", ...}}],
   "notes_for_shop": ["<what the shop strategist should know or check: competitor prices, stock-outs, demand>"]
 }}
 The shop strategist (it ran 15 minutes before you and runs again 15 minutes after) left you its reads and notes
@@ -369,7 +378,6 @@ def run(force=False):
         shop.LOGF, keep = LOGF, shop.LOGF                     # the critic logs into the buyer's log
         shop.reflect(mem)
         shop.LOGF = keep
-    mem.d["working"]["findings"] = probe.run_queries(mem.d["working"].get("queries"), log)
     b = board_view()
     bp = params.get("buyer", {}).get("base", {})
     ev = evidence(mem, b, auto, bp)
@@ -390,12 +398,14 @@ def run(force=False):
         mem.save()
         return
     log(f"[{mode}] read: {str(ans.get('read'))[:1200]}")
+    requests = valid_requests(ans.get("requests") or ans.get("investigate"))
     post_board("buyer", ans.get("read"), {"moves": [(m.get("knob"), m.get("category"), m.get("value"))
                                                    for m in (ans.get("moves") or [])][:8],
                                           "categories_24h": {k: v.get("mean_saved") for k, v in ev["by_category_24h"].items()}},
-               ans.get("notes_for_shop"))
+               ans.get("notes_for_shop"), requests)
+    for q in requests:
+        log(f"asked the curator: {json.dumps(q, ensure_ascii=False)[:160]}")
     mem.edit_lessons(ans.get("lessons"), log)
-    mem.d["working"]["queries"] = (ans.get("investigate") or [])[:probe.MAX_QUERIES]
     cats = set(ev["by_category_24h"])
     shops_known = set(ev["by_shop_24h"]) | set(ev["rules_by_shop_6h"]) | {
         x["shop"] for k in ("food", "goods") for x in (ev["market_value_6h"].get(k) or {}).get("best_shops", [])}

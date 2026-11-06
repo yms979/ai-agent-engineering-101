@@ -25,6 +25,48 @@ small, current memory, and nothing is deleted. Old data moves to a compressed ar
 | kit log (logs/market-kit.log) | current file | none | `market-kit-*.log.gz` | the supervisor's log rotation |
 | seller_memory.json (18 MB) | none: Round 1-2 memory, no longer written | none | stays as it is (graded history) | none |
 
+## The information loop (11-06)
+
+The curator is not only the archivist. It is the market-intelligence hub between the two strategists (user, 11-06):
+it shows the whole market's flow, says what the ranking players score on, answers what the strategists asked for,
+and briefs each one; the strategists decide their own knobs from that and tell the curator what they need next.
+
+```
+   market rules · board · ledger settles (6 h, all buyers) · shops' stock · our orders and sales
+                                   │
+                                   ▼
+               memory_curator.py  (sonnet; after every strategist post, and every 15 min)
+                 code measures:  market_picture.py  (what sells, what buyers buy, top shops / buyers, ours)
+                                 rules_watch, rank_watch, buyer_formula, saved_speed, where_saved_goes_24h,
+                                 probes for the strategists' requests (market_probe, profile_buyer / profile_shop)
+                 model writes:   market_flow, rankers_playbook, briefing_buyer / briefing_shop,
+                                 answers_for_buyer / answers_for_shop, rules_change, rank_change,
+                                 facts, decisions, open_questions, for_shop / for_buyer, conflicts, wanted_data
+                                   │ digest (read_digest(role))
+                     ┌─────────────┴─────────────┐
+                     ▼                           ▼
+          buyer_strategist.py (:00, :30)   strategist.py (:15, :45)      opus; each reads the digest, the raw
+          moves its buyer knobs            moves its shop knobs          market_picture and its own evidence
+                     │ read · moves · notes for the other · REQUESTS     │
+                     └─────────────┬─────────────────────────────────────┘
+                                   ▼
+                    strategy_exchange.db (entries) → post_board() starts the curator at once
+```
+
+- **Requests** (`requests` in a strategist's answer, up to 5, validated by `strategist_memory.valid_requests`):
+  `sku_prices {sku}`, `category {category}`, `competitor {shop}`, `unserved`, `rules {term}` (market_probe.py, code),
+  `buyer {name}` and `shop {name}` (market_picture.py profiles, code), `question {text}` (the model answers from
+  its data, or says what cannot be measured and lists it under `wanted_data` for the operator).
+- **Timing**: a post at :00 starts the curator; its digest is ready by ~:02; the shop reads it at :15, the buyer
+  at :30, so every request is answered before the asker's next run. The cron tick every 15 min also runs the
+  curator, which rewrites the digest when it is an hour old even if nobody posted, and checks the rule pages (a
+  patch wakes both strategists out of turn with `rules_change`).
+- **Sizes**: market_picture ≤ ~12 KB, each probe result ≤ 2,500 chars, digest lists capped (`LIMITS`), the
+  curator's prompt ~60 KB. The strategists get the digest (interpretation) and the raw picture (exact numbers).
+- **What each agent owns**: the curator measures and interprets, never moves a knob; a strategist moves only its
+  own knobs and never reads the market raw beyond its evidence; the operator adds probes when `wanted_data`
+  names something no source gives.
+
 ## How the curator works (memory_curator.py)
 
 1. `post_board()` starts it, detached, after every strategist entry. A lock means one curator runs at a time.

@@ -199,15 +199,43 @@ def _db():
     import sqlite3
     db = sqlite3.connect(EXCHANGE, timeout=30)
     db.execute("CREATE TABLE IF NOT EXISTS entries (t REAL, role TEXT, read TEXT, findings TEXT, notes TEXT)")
+    cols = [r[1] for r in db.execute("PRAGMA table_info(entries)")]
+    if "requests" not in cols:
+        db.execute("ALTER TABLE entries ADD COLUMN requests TEXT")      # the curator adds "curated" the same way
     return db
 
 
-def post_board(role, read, findings, notes=None):
-    """Store this strategist's read, findings and notes for the other one."""
+# What a strategist may ask the curator for (user 11-06: the strategists tell the memory agent what they need
+# next; the curator answers in its next digest, under answers_to_your_requests). kind -> required keys.
+REQUEST_KINDS = {"sku_prices": ("sku",), "category": ("category",), "competitor": ("shop",), "unserved": (),
+                 "rules": ("term",), "buyer": ("name",), "shop": ("name",), "question": ("text",)}
+MAX_REQUESTS = 5
+
+
+def valid_requests(items):
+    out = []
+    for q in items or []:
+        if isinstance(q, dict) and q.get("kind") in REQUEST_KINDS \
+                and all(isinstance(q.get(k), str) and q[k].strip() for k in REQUEST_KINDS[q["kind"]]):
+            out.append({k: (v if isinstance(v, (str, int, float)) else str(v)) for k, v in q.items()})
+    return out[:MAX_REQUESTS]
+
+
+def market_picture():
+    """The curator's code-measured market (market_picture.py), for a strategist's evidence; never raises."""
+    try:
+        from market_picture import picture
+        return picture()
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
+def post_board(role, read, findings, notes=None, requests=None):
+    """Store this strategist's read, findings, notes for the other one and requests to the curator."""
     with _db() as db:
-        db.execute("INSERT INTO entries (t, role, read, findings, notes) VALUES (?, ?, ?, ?, ?)",   # curator adds a column
+        db.execute("INSERT INTO entries (t, role, read, findings, notes, requests) VALUES (?, ?, ?, ?, ?, ?)",
                    (time.time(), role, str(read)[:2000], json.dumps(findings, ensure_ascii=False),
-                    json.dumps(notes or [], ensure_ascii=False)))
+                    json.dumps(notes or [], ensure_ascii=False), json.dumps(requests or [], ensure_ascii=False)))
     # the curator merges it into the digest and archives old entries (memory_curator.py), detached
     import subprocess
     import sys

@@ -117,6 +117,21 @@ VOTES = HERE / "vote_state.json"
 STANCES_PER_HOUR = 3            # new dislike stances an hour that are free (patch 3.4)
 
 
+# smear (user, 11-06): accusations, calls to boycott or avoid us, insults. A factual complaint (broke, short shelf
+# life, too dear) is not a smear and gets no dislike.
+SMEAR = re.compile(r"사기|scam|fraud|거짓말|\blie[sd]?\b|lying|cheat|속이|속임|조작|rigg|불매|보이콧|boycott|"
+                   r"피하세요|피하시|거래하지 ?마|가지 ?마세요|\bavoid\b|don'?t (buy|trade)|쓰레기|최악|worst|trash|"
+                   r"악질|양아치|가짜|fake|사기꾼|먹튀|scammer", re.I)
+
+
+def smears_us(text):
+    """A post that names our shop in a sentence or list item with an accusation, a boycott call or an insult."""
+    for part in re.split(r"[\n•|;]|(?<=[.!?。])\s", text):
+        if ABOUT_US.search(part) and SMEAR.search(part) and not PRAISE.search(part):
+            return True
+    return False
+
+
 def about_us_badly(text):
     """A post naming our shop next to a complaint or a warning, true or not (user's call, 11-05: a dislike is an
     opinion). Checked on the text around each mention, so a market list that names us among others with a
@@ -130,7 +145,8 @@ def about_us_badly(text):
 
 
 def answer_boycotts(forum, outbox):
-    """Dislike forum posts that call on agents to stop trading with yms979 (totato2203-r3's "30분 거래 쉬어가기"
+    """User 11-06: only smears (smears_us) and boycott calls, and only the free new stances (STANCES_PER_HOUR).
+    Dislike forum posts that call on agents to stop trading with yms979 (totato2203-r3's "30분 거래 쉬어가기"
     lists name us; the same buyer rates every purchase 1 star) or that say something bad about our shop, true
     or not (user, 11-05). Patch 3.4 (11-06): the rating takes one stance per account per author, and past 3 new
     dislike stances an hour each costs 20,000 x (k - 3). So: one dislike per author (more add nothing), at most
@@ -145,7 +161,7 @@ def answer_boycotts(forum, outbox):
         if not isinstance(x, dict) or x.get("id") in done or x.get("author") in (None, "yms979"):
             continue
         text = str(x.get("text") or "")
-        if not (BOYCOTT.search(text) or about_us_badly(text)):
+        if not (BOYCOTT.search(text) or smears_us(text)):     # smears only (user, 11-06), not every complaint
             continue
         if x["author"] in authors:                     # stance already held: nothing to add
             done.add(x["id"])

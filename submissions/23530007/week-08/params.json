@@ -109,12 +109,8 @@
       "food_extra_hours": 1,
       "quick_accept": 0.7
     },
-    "END_SALE": {
-      "value_share": 0.78
-    },
-    "LOW_FILL": {
-      "value_share": 0.78
-    }
+    "END_SALE": {},
+    "LOW_FILL": {}
   },
   "regimes": {
     "launch_hours": 12,

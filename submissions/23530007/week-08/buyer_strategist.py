@@ -1,0 +1,258 @@
+"""Buyer strategist: the buyer's own analyst, beside strategist.py (the shop's) (user, 11-06).
+
+    python buyer_strategist.py [--force]      (watch_round.sh runs it every 15 min; it works once an hour)
+
+Since Round 3 patch 3.4 the buyer scores 0.5 saved rate (the mean share of list price kept per deal; a deal that
+served nothing counts -1) + 0.3 forum + 0.1 deals + 0.1 posts. The shop's strategist does not see any of that,
+so the buyer gets its own loop, the same shape:
+  memory    buyer_memory.json (every visit: shop, SKU, category, asks, outcome, price) read in windows
+  learn     its 6 h predictions are scored from buyer_memory; per-kind step limits, reverts, playbook rollback and
+            a critic call after misses, all through strategist_memory.Memory (its own file)
+  evidence  the buyer's board components with the ladder above it, our saved rate per deal now vs the running
+            mean, per category and per shop: visits, deals, conversion, mean saved, first ask / list
+  decide    MODEL (opus) moves whitelisted knobs: value_share (cap, share of list), quick_accept, food_extra_hours,
+            and per category "cap"; each with a checkable prediction
+  act       mode as the shop strategist's (params.json strategist.mode); "apply" writes params_auto_buyer.json,
+            which policy.py lays over the buyer's parameters (market_buyer reads the category cap)
+Log: logs/buyer_strategist.log.
+"""
+import argparse
+import json
+import time
+from pathlib import Path
+
+import market_probe as probe
+import strategist as shop
+from harness import last_json_object
+from strategist_memory import Memory
+
+HERE = Path(__file__).resolve().parent
+AUTO = HERE / "params_auto_buyer.json"
+STATE = HERE / "buyer_strategist_memory.json"
+LOGF = HERE / "logs" / "buyer_strategist.log"
+BMEM = HERE / "buyer_memory.json"
+CATALOG = HERE / ".market" / "catalog.json"
+EVERY = 3600 - 120
+MAX_MOVES = 8
+GLOBAL = {                                    # role, bounds, step
+    "value_share": ((0.65, 0.85), 0.03),      # the most the buyer pays, as a share of list price
+    "quick_accept": ((0.55, 0.75), 0.03),     # an ask at or under this share of list is taken at once
+    "food_extra_hours": ((1, 12), 2),         # food must last the order's hours + this (a spoiled deal counts -1)
+}
+CAT = {"cap": ((0.6, 0.85), 0.04)}            # per category: replaces value_share for orders of that category
+METRICS = ("deals_next_6h", "mean_saved_next_6h", "conversion_next_6h")
+
+
+def log(text):
+    line = f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime())} UTC {text}"
+    print(line)
+    with open(LOGF, "a", encoding="utf-8") as f:
+        f.write(line + "\n")
+
+
+def trades(since, until=None):
+    cat = shop.read(CATALOG, {})
+    out = []
+    for t in shop.read(BMEM, {}).get("trades", []):
+        if t.get("t", 0) < since or (until and t["t"] > until):
+            continue
+        lp = (cat.get(t.get("item")) or {}).get("list_price")
+        saved = 1 - t["price"] / lp if t.get("outcome") == "deal" and t.get("price") and lp else None
+        out.append(dict(t, list=lp, saved=saved))
+    return out
+
+
+def summary(rows):
+    deals = [r for r in rows if r.get("outcome") == "deal"]
+    sv = [r["saved"] for r in deals if r["saved"] is not None]
+    return {"visits": len(rows), "deals": len(deals), "conversion": round(len(deals) / len(rows), 2) if rows else None,
+            "mean_saved": round(sum(sv) / len(sv), 3) if sv else None,
+            "first_ask_over_list": round(sorted(r["asks"][0] / r["list"] for r in rows if r.get("asks") and r.get("list"))
+                                         [len([1 for r in rows if r.get("asks") and r.get("list")]) // 2], 2)
+            if any(r.get("asks") and r.get("list") for r in rows) else None}
+
+
+def measure(pred, since, now):
+    rows = [r for r in trades(since, now) if not pred.get("category") or r.get("category") == pred["category"]]
+    s = summary(rows)
+    return {"deals_next_6h": s["deals"], "mean_saved_next_6h": s["mean_saved"] or 0,
+            "conversion_next_6h": s["conversion"] or 0}[pred["metric"]]
+
+
+def evidence(mem, b, auto, params):
+    now = time.time()
+    r6, r24 = trades(now - 6 * 3600), trades(now - 24 * 3600)
+    cats, shops = {}, {}
+    for r in r24:
+        cats.setdefault(r.get("category") or "?", []).append(r)
+        shops.setdefault(r.get("shop") or "?", []).append(r)
+    top_c = sorted(cats.items(), key=lambda kv: -len(kv[1]))[:20]
+    top_s = sorted(shops.items(), key=lambda kv: -len(kv[1]))[:15]
+    rows = [x for x in b["buyers_all"] if x.get("saved") is not None]
+    ladder = sorted({round(x["saved"], 3) for x in rows if x["saved"] > b["buyer"]["saved"]})[:6]
+    return {"time_utc": time.strftime("%Y-%m-%d %H:%M", time.gmtime()), "round_ends": "2026-11-17T23:59 KST",
+            "buyer_board": b["buyer"], "saved_values_just_above_us": ladder,
+            "class_rank": b["class_rank"], "class_top": b["class_top"],
+            "now": {"last_6h": summary(r6), "last_24h": summary(r24)},
+            "by_category_24h": {k: summary(v) | {"cap_now": ((auto.get("category") or {}).get(k) or {}).get("cap")}
+                                for k, v in top_c},
+            "by_shop_24h": {k: summary(v) for k, v in top_s},
+            "knobs_now": {k: (auto.get("globals") or {}).get(k, params.get(k)) for k in GLOBAL},
+            "investigations_you_asked_for": mem.d["working"].get("findings", []),
+            "your_watch_list": mem.d["working"].get("watch", [])}
+
+
+DECIDE = """You run the BUYER of yms979 in a course market (the shop has its own strategist). Buyer ALL = 0.5 saved
+rate + 0.3 forum + 0.1 deals + 0.1 posts, each a percentile among buyers. Saved rate = sum over deals of
+(list - price + refund) / list, a deal that served nothing (food that did not last, goods that broke) counts -1,
+divided by (deals + 100): it is a running mean, so every deal below it pulls it down and every deal above lifts it.
+A sofa and a snack at 30 % off count the same. Deals and posts are counts. Goal: first place overall.
+
+Market guide (rules, API, our system): {guide}
+
+How the buyer works: per order it picks a shop (avoiding slow shops, shops that rarely close with us, classmates
+ranked above us), asks for a SKU, takes any ask <= quick_accept x list at once, else haggles (haiku) up to the cap
+= value_share x list (or the category's cap), and re-offers a shop's stated floor if it is under the cap. Goods:
+grades A/B only. Food: must last the order's hours + food_extra_hours.
+
+Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75), "food_extra_hours" (1-12);
+per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
+the evidence). Steps allowed now: {steps}. At most {max_moves} moves, each with a prediction checkable 6 h later
+from our records: {{"metric": one of {metrics}, "category": "<optional>", "op": ">=" or "<=", "value": n}}, and
+"uses": the lesson ids it relies on. Think about the trade: a lower cap raises saved per deal but loses deals.
+
+Your record: {record}
+Your playbook: {playbook}
+Evidence: {evidence}
+
+Answer with one JSON object only:
+{{"read": "<6-10 sentences>",
+  "moves": [{{"knob": "value_share"|"quick_accept"|"food_extra_hours"|"cap", "category": "...", "value": n, "why": "...",
+             "uses": [...], "prediction": {{...}}}}],
+  "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "...", "text": "...", "why": "..."}}],
+  "investigate": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"forum"|"rules", ...}}]
+}}"""
+
+
+def board_view():
+    b = shop.board()
+    full = json.load(__import__("urllib.request").request.urlopen(f"{shop.MARKET}/api/board?round=3", timeout=30))
+    me = next(x for x in full["buyers"] if x["name"] == "yms979")
+    b["buyer"] = {k: me.get(k) for k in ("all", "saved", "forum", "deals", "orders", "posts")} | \
+        {k: v for k, v in b["buyer"].items() if k.endswith("_rank")}
+    b["buyers_all"] = [{"name": x["name"], "saved": x.get("saved")} for x in full["buyers"] if x.get("all") is not None]
+    return b
+
+
+def run(force=False):
+    mem = Memory(STATE)
+    if not force and time.time() - mem.d["t"] < EVERY:
+        return
+    mem.d["t"] = time.time()
+    params = shop.read(shop.PARAMS, {})
+    mode = params.get("strategist", {}).get("mode", "propose")
+    auto = shop.read(AUTO, {"globals": {}, "category": {}})
+    now = time.time()
+    for e in mem.due(now):                                   # learn
+        got = measure(e["prediction"], e["t"], now)
+        p = e["prediction"]
+        ok = got >= p["value"] if p["op"] == ">=" else got <= p["value"]
+        mem.score(e, got, ok)
+        log(f"scored {e['knob']} {e.get('sku') or ''} {p['metric']} {p['op']} {p['value']}: got {got} -> {'HIT' if ok else 'MISS'}")
+        if not ok:
+            mem.d["unreflected"] = mem.d.get("unreflected", 0) + 1
+            if e.get("applied"):
+                if e["knob"] in CAT:
+                    ((auto.setdefault("category", {})).get(e["sku"]) or {}).pop(e["knob"], None)
+                else:
+                    auto.setdefault("globals", {}).pop(e["knob"], None)
+                log(f"reverted {e['knob']} {e.get('sku') or ''}: its prediction failed")
+    rec = mem.record()
+    for knob, k in rec["by_kind"].items():
+        if len(k["last"]) >= 8:
+            base = (GLOBAL.get(knob) or CAT.get(knob))[1]
+            old = mem.d["steps"].get(knob, base)
+            rate = sum(k["last"]) / len(k["last"])
+            new = max(base / 8, old / 2) if rate < 0.5 else min(base, old * 1.5) if rate > 0.75 else old
+            if new != old:
+                mem.d["steps"][knob] = new
+                log(f"method: {knob} hit {rate:.0%}; step limit {old:g} -> {new:g}")
+    mem.maybe_rollback(log)
+    mem.fold()
+    if mem.d.get("unreflected", 0) >= shop.REFLECT_MISSES:
+        shop.LOGF, keep = LOGF, shop.LOGF                     # the critic logs into the buyer's log
+        shop.reflect(mem)
+        shop.LOGF = keep
+    mem.d["working"]["findings"] = probe.run_queries(mem.d["working"].get("queries"), log)
+    b = board_view()
+    bp = params.get("buyer", {}).get("base", {})
+    ev = evidence(mem, b, auto, bp)
+    steps = {k: mem.d["steps"].get(k, v[1]) for k, v in (GLOBAL | CAT).items()}
+    lessons = [{k: x[k] for k in ("id", "text", "for", "against")} for x in mem.lessons()]
+    prompt = DECIDE.format(guide=shop.GUIDE.read_text(encoding="utf-8"), steps=json.dumps(steps), max_moves=MAX_MOVES,
+                           metrics=", ".join(METRICS), record=json.dumps(mem.record(), ensure_ascii=False),
+                           playbook=json.dumps(lessons, ensure_ascii=False) if lessons else "(empty: write one)",
+                           evidence=json.dumps(ev, ensure_ascii=False))
+    raw = shop.ask_model(prompt, "buyer strategist")
+    ans = last_json_object(raw) or {}
+    (HERE / "buyer_strategist_last.json").write_text(json.dumps({"t": mem.d["t"], "answer": ans, "raw": raw[-4000:]},
+                                                                ensure_ascii=False, indent=1), encoding="utf-8")
+    if not ans:
+        log(f"no usable answer ({len(raw)} chars)")
+        mem.save()
+        return
+    log(f"[{mode}] read: {str(ans.get('read'))[:1200]}")
+    mem.edit_lessons(ans.get("lessons"), log)
+    mem.d["working"]["queries"] = (ans.get("investigate") or [])[:probe.MAX_QUERIES]
+    cats = set(ev["by_category_24h"])
+    for mv in (ans.get("moves") or [])[:MAX_MOVES]:
+        knob, pred = mv.get("knob"), mv.get("prediction") or {}
+        try:
+            value = float(mv.get("value"))
+        except (TypeError, ValueError):
+            continue
+        if pred.get("metric") not in METRICS or pred.get("op") not in (">=", "<=") or "value" not in pred:
+            log(f"dropped {knob}: no checkable prediction")
+            continue
+        if knob in CAT:
+            key = mv.get("category")
+            if key not in cats:
+                log(f"dropped {knob} {key}: not a category in the evidence")
+                continue
+            (lo, hi), _ = CAT[knob]
+            cur = ((auto.get("category") or {}).get(key) or {}).get(knob, bp.get("value_share", 0.78))
+        elif knob in GLOBAL:
+            key = None
+            (lo, hi), _ = GLOBAL[knob]
+            cur = (auto.get("globals") or {}).get(knob, bp.get(knob, value))
+        else:
+            log(f"dropped unknown knob {knob!r}")
+            continue
+        new = round(min(hi, max(lo, cur - steps[knob], min(cur + steps[knob], value))), 3)
+        log(f"[{mode}] {knob} {key or ''} {cur:g} -> {new:g} (asked {value:g}) | {str(mv.get('why'))[:200]} "
+            f"| predicts {pred['metric']} {pred.get('category', '')} {pred['op']} {pred['value']} | uses {mv.get('uses')}")
+        applied = mode == "apply"
+        if applied:
+            if knob in CAT:
+                auto.setdefault("category", {}).setdefault(key, {})[knob] = new
+            else:
+                auto.setdefault("globals", {})[knob] = new
+        mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + 6 * 3600, "knob": knob, "sku": key, "value": new,
+                         "why": str(mv.get("why")), "uses": [str(x) for x in (mv.get("uses") or [])][:5],
+                         "prediction": pred, "applied": applied})
+    if mode == "apply":
+        auto["t"] = mem.d["t"]
+        AUTO.write_text(json.dumps(auto, ensure_ascii=False, indent=1), encoding="utf-8")
+    mem.save()
+
+
+if __name__ == "__main__":
+    import fcntl
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--force", action="store_true")
+    lock = open(HERE / ".market" / "buyer_strategist.lock", "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        raise SystemExit(0)
+    run(ap.parse_args().force)

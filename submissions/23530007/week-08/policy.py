@@ -109,15 +109,17 @@ def clearance(stock_in_cat, rate, hours_left, window):
 
 
 AUTO = Path(os.environ.get("PARAMS_AUTO", HERE / "params_auto.json"))   # strategist.py, mode "apply"
+AUTO_BUYER = Path(os.environ.get("PARAMS_AUTO_BUYER", HERE / "params_auto_buyer.json"))   # buyer_strategist.py
 
 
 def merged(cfg, role, regime):
     p = json.loads(json.dumps(cfg[role]["base"]))
-    auto = read_json(AUTO, {})                  # the strategist's moves sit between base and the regime
-    for k, v in (auto.get("globals") or {}).items():
+    auto = read_json(AUTO if role == "shop" else AUTO_BUYER, {})   # the strategists' moves sit between base
+    for k, v in (auto.get("globals") or {}).items():               # and the regime (shop and buyer each own one)
         if k in p:
             p[k] = v
     p["sku_auto"] = auto.get("sku") or {}
+    p["cat_auto"] = auto.get("category") or {}
     for k, v in cfg[role].get(regime, {}).items():
         p[k] = dict(p[k], **v) if isinstance(v, dict) and isinstance(p.get(k), dict) else v
     return p

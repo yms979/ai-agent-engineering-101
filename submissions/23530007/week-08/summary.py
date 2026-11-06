@@ -30,7 +30,17 @@ def strategist_line():
     rate = f"{hit}/{len(scored)} 적중" if scored else "채점 전"
     return (f"\n전략({'적용' if mode == 'apply' and not m.get('suspended') else '제안'}): 예측 {rate}, "
             f"원칙 {len(m.get('lessons', []))}개 v{(m.get('versions') or [{}])[-1].get('v', 0)}, "
-            f"감시 {len((m.get('working') or {}).get('watch') or [])}개")
+            f"감시 {len((m.get('working') or {}).get('watch') or [])}개" + buyer_line())
+
+
+def buyer_line():
+    try:
+        m = json.loads((HERE / "buyer_strategist_memory.json").read_text())
+    except (OSError, ValueError):
+        return ""
+    scored = [e for e in m.get("episodes", []) if e.get("outcome")]
+    hit = sum(e["outcome"]["hit"] for e in scored)
+    return f" | 구매 전략: 예측 {f'{hit}/{len(scored)} 적중' if scored else '채점 전'}, 원칙 {len(m.get('lessons', []))}개"
 
 
 def main():

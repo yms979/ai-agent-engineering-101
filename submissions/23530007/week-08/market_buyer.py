@@ -414,7 +414,8 @@ def main():
         note_payments(mem, md)
         note_broken(mem, md)
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
-        shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, bp["value_share"])]
+        share = (bp.get("cat_auto", {}).get(a.item) or {}).get("cap", bp["value_share"])   # buyer_strategist.py
+        shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, share)]
         prices = [(catalog.get(k) or {}).get("list_price") or 0 for k in acceptable]
         try:                                       # for our shop's restock: which prices this order accepts,
             with open(INTEL, "a", encoding="utf-8") as f:   # and whether any shop could serve it
@@ -438,9 +439,9 @@ def main():
         item, label, cap, accept = a.item, f"a {a.item}", a.budget, None
         first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
         if acceptable:
-            want = pick_sku(pick, acceptable, catalog, a.budget, bp["value_share"])
+            want = pick_sku(pick, acceptable, catalog, a.budget, share)
             item, label = want["sku"], f"{want['name']} ({want['sku']})"
-            cap = min(a.budget, int(want["list_price"] * bp["value_share"]))
+            cap = min(a.budget, int(want["list_price"] * share))
             hours = order.get("use_within_hours")
             first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else "")
             accept = {"cert": True}

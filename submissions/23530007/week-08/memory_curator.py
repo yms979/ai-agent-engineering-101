@@ -353,6 +353,10 @@ def probe_knobs(q):
                                  "category": (auto_b.get("category") or {}).get(key),
                                  "shop": (auto_b.get("shop") or {}).get(key),
                                  "written": time.strftime("%m-%d %H:%M", time.gmtime(auto_b.get("t") or 0))},
+           "entries_holding_this_knob": {
+               "shop_sku": {k: v for k, v in (auto_s.get("sku") or {}).items() if isinstance(v, dict) and key in v},
+               "buyer_shop": {k: v for k, v in (auto_b.get("shop") or {}).items() if isinstance(v, dict) and key in v},
+               "buyer_category": {k: v for k, v in (auto_b.get("category") or {}).items() if isinstance(v, dict) and key in v}},
            "episodes": [], "log_lines": []}
     for role, path in (("shop", HERE / "strategist_memory.json"), ("buyer", BSTATE)):
         for e in read_json(path, {}).get("episodes", []):
@@ -387,11 +391,23 @@ def probe_trades(q):
     for t in rows:
         o = str(t.get("outcome") or "")[:60]
         counts[o] = counts.get(o, 0) + 1
-    keep = ("shop", "item", "category", "kind", "outcome", "price", "asks", "cap", "list", "warranty", "secs", "budget")
+    keep = ("shop", "item", "category", "kind", "outcome", "price", "cap", "list", "warranty", "expected")
+    bands = {}                                       # expected saved per deal (market_buyer records it) -> what happened
+    for t in rows:
+        x = t.get("expected")
+        if isinstance(x, (int, float)):
+            b = bands.setdefault(f"{int(x * 20) / 20:.2f}", {"n": 0, "deals": 0, "realized": []})
+            b["n"] += 1
+            if t.get("outcome") == "deal" and t.get("price") and t.get("list"):
+                b["deals"] += 1
+                b["realized"].append(1 - t["price"] / t["list"])
     return {"filter": want, "matches_24h": len(rows),
             "outcomes": dict(sorted(counts.items(), key=lambda kv: -kv[1])[:12]),
+            "by_expected_band": {k: {"n": v["n"], "deals": v["deals"],
+                                     "realized_saved": round(sum(v["realized"]) / len(v["realized"]), 3) if v["realized"] else None}
+                                 for k, v in sorted(bands.items())} or "no 'expected' on these records yet (recorded since 11-06 08:40 UTC)",
             "last": [{"at": time.strftime("%H:%M", time.gmtime(t.get("t") or 0))}
-                     | {k: (str(t[k])[:160] if k == "outcome" else t[k]) for k in keep if k in t} for t in rows[-20:]]}
+                     | {k: (str(t[k])[:100] if k == "outcome" else t[k]) for k in keep if k in t} for t in rows[-8:]]}
 
 
 def run_probes(entries):
@@ -419,7 +435,8 @@ def run_probes(entries):
                     res = probe.QUERIES[kind](q, cat)
                 txt = json.dumps(res, ensure_ascii=False)
                 item = {"request": q, "measured_at": time.strftime("%H:%M UTC", time.gmtime()),
-                        "result": res if len(txt) <= PROBE_CHARS else txt[:PROBE_CHARS] + " ...(cut)"}
+                        "result": res if len(txt) <= PROBE_CHARS else
+                        {"cut_to_chars": PROBE_CHARS, "of": len(txt), "head": txt[:PROBE_CHARS]}}
             except Exception as ex:
                 item = {"request": q, "error": f"{type(ex).__name__}: {ex}"}
             out.setdefault(e["role"], []).append(item)

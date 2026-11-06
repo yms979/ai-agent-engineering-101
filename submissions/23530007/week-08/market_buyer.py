@@ -219,6 +219,13 @@ def rivals_above():
         return set()
 
 
+def expected_in(why):
+    """The expected saved per deal that choose() named for the picked (or best, when skipping) shop, so the
+    curator can show what each expectation band realized (the buyer strategist asked for it on 11-06)."""
+    m = re.search(r"expected saved ([0-9.]+)", str(why or ""))
+    return round(float(m.group(1)), 3) if m else None
+
+
 def choose(shops, mem, item, budget, ask_model=True, ctx=None):
     """Round 3 (ctx: stats, kind, cat, bp): the allowed shop whose deals add most to the saved rate (buyer_value:
     the whole market's realized saved per deal there, shrunk to the market mean), plus conv_weight x our close
@@ -489,7 +496,7 @@ def main():
             mem["trades"].append({"t": int(time.time()), "secs": 0, "shop": "", "item": "", "budget": a.budget,
                                   "order": order.get("order"), "category": a.item, "kind": order.get("kind"),
                                   "outcome": "skipped (low value)", "price": None, "asks": [], "agreed": None,
-                                  "honest": True, "signed": True, "void": ""})
+                                  "honest": True, "signed": True, "void": "", "expected": expected_in(why)})
             save_memory(mem)
             no_deal(f"Skipped: no shop sells {a.item} cheaply enough for me now.")
             return
@@ -685,7 +692,8 @@ def main():
                           "outcome": outcome, "price": price, "asks": asks, "agreed": agreed, "honest": honest,
                           "signed": not void, "void": void,
                           "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
-                          "cap": cap, "list": want["list_price"] if acceptable else None})
+                          "cap": cap, "list": want["list_price"] if acceptable else None,
+                          "expected": expected_in(why)})      # the shop's expected saved per deal when chosen
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")
                  + f", {time.time() - start:.0f} s, harness calls {harness.CALLS['n']}")

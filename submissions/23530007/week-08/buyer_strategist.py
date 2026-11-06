@@ -209,6 +209,12 @@ reached mainly by saved ~0.28-0.29 (percentile ~0.9) while forum, deals and post
 skip so many orders that the deals percentile falls, and do not chase saved 0.31+ at any cost. Each move should
 be the one that closes the gap to buyer ALL 0.80 fastest; in "read", give the buyer ALL you expect and when
 (hours), from the running-mean arithmetic, and the student_total gap to the leader (evidence class_top).
+DEALS FIRST (user, 11-06, after patch 3.5): pull the deal count up as fast as saved allows. A deal at saved s
+changes the final saved by (s - final saved) / final denominator; with saved weighing 0.5 at ~9 percentile points
+per 0.01 and deals 0.1 at ~1.6 points per 1000 deals, a deal pays off when s >= ~0.235. So caps (value_share,
+category caps) may go up to ~0.76 x list and skip_below down to ~0.24; do not tighten them back to buy a higher
+per-deal saved unless the measured saved per deal falls under ~0.26. Since 11-06 07:00 UTC: value_share 0.75,
+category caps >= 0.74, skip_below 0.24, cap_margin 0.05 (set by the operator, measure them before moving).
 LEARN FROM PEERS (user, 11-06): evidence "peers_above" lists the top 20 buyers with each component as (value,
 percentile). Buyers with a saved rate like ours rank far higher on the other components (inextro: saved 0.246 at
 p0.69, but deals p0.97 -> buyer ALL ~0.74; before patch 3.5 forum p0.88 also carried it). Each run, name the 2-3 peers closest to our

@@ -23,6 +23,7 @@
 import base64
 import hashlib
 import json
+import os
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -60,8 +61,9 @@ def build_tools(card):
     return tools
 
 
-def pay(order, mandates, shop_url, shop_pub, receipt, accept, key_path=HERE / "buyer_key.pem"):
+def pay(order, mandates, shop_url, shop_pub, receipt, accept, key_path=None):
     """(mandate_receipt or None, how): how is 'tools', 'tools+code' or why it did not pay."""
+    key_path = Path(key_path or os.environ.get("BUYER_KEY") or HERE / "buyer_key.pem")   # buyer2/ has its own key
     c = httpx.Client(timeout=60)
     try:
         r = c.get(f"{shop_url}/.well-known/acp.json")

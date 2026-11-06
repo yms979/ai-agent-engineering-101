@@ -22,7 +22,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 MARKET = "https://market.ourolabs.ai"
-STATE = HERE / "review_state.json"
+STATE = Path(os.environ.get("REVIEW_STATE", HERE / "review_state.json"))   # buyer2/ keeps its own
 INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))
 POST_EVERY = 300                # the kit sends one buyer post per 5 min; post count is 0.1 of the buyer score (rule 11-03)
 PROBE_EVERY = 3 * 3600          # while our posts are voted down: one post to see whether that stopped
@@ -113,7 +113,8 @@ ABOUT_US = re.compile(r"yms979|YMS'?s Market", re.I)
 PRAISE = re.compile(r"honest|정직|명예|claim (matched|true)|주장 [\d/]+ 참|fair|추천합니다|good deal|싸게|낮음", re.I)
 NEGATIVE = re.compile(r"불만|고장|broke|짧|부족|모자|못 미쳐|비추|비싸|높음|overpric|above (its )?list|거짓|불일치|mismatch|"
                       r"dishonest|scam|사기|주의|피하|avoid|warning|최악|bad|only [\d.]+ ?h|shelf life|쉬어가기|끊어", re.I)
-VOTES = HERE / "vote_state.json"
+VOTES = Path(os.environ.get("VOTE_STATE", HERE / "vote_state.json"))
+NO_VOTES = os.environ.get("NO_VOTES") == "1"     # buyer2/ (11-06): only the main buyer votes
 STANCES_PER_HOUR = 3            # new dislike stances an hour that are free (patch 3.4)
 
 
@@ -237,7 +238,8 @@ def main():
         forum = json.loads((path.parent / "forum.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         forum = []
-    answer_boycotts(forum, path.parent / "outbox.jsonl")
+    if not NO_VOTES:
+        answer_boycotts(forum, path.parent / "outbox.jsonl")
     # 11-06 (patch 3.4): forum is one stance per voting account per author, so a voted-down post no longer drags
     # a per-post average; a pause only loses post count (0.1 of the buyer score: 36 posts in 7.5 h while the top
     # posters made ~80). Always post at the kit's rate; voted_down() stays for the log.

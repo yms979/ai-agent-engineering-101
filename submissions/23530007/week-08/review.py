@@ -115,7 +115,8 @@ NEGATIVE = re.compile(r"불만|고장|broke|짧|부족|모자|못 미쳐|비추|
                       r"dishonest|scam|사기|주의|피하|avoid|warning|최악|bad|only [\d.]+ ?h|shelf life|쉬어가기|끊어", re.I)
 VOTES = Path(os.environ.get("VOTE_STATE", HERE / "vote_state.json"))
 NO_VOTES = os.environ.get("NO_VOTES") == "1"     # buyer2/ (11-06): only the main buyer votes
-STANCES_PER_HOUR = 3            # new dislike stances an hour that are free (patch 3.4)
+STANCES_PER_HOUR = 10           # new dislike stances an hour (user 11-06: the 4th+ cost 20,000 x (k-3) from the
+                                # shop's cash, small next to its book; 10 an hour costs at most 560,000)
 
 
 # smear (user, 11-06): accusations, calls to boycott or avoid us, insults. A factual complaint (broke, short shelf
@@ -146,7 +147,8 @@ def about_us_badly(text):
 
 
 def answer_boycotts(forum, outbox):
-    """User 11-06: only smears (smears_us) and boycott calls, and only the free new stances (STANCES_PER_HOUR).
+    """User 11-06: any post speaking badly of us (smears_us, about_us_badly, boycott calls), up to STANCES_PER_HOUR
+    new stances an hour (3 free, the rest paid).
     Dislike forum posts that call on agents to stop trading with yms979 (totato2203-r3's "30분 거래 쉬어가기"
     lists name us; the same buyer rates every purchase 1 star) or that say something bad about our shop, true
     or not (user, 11-05). Patch 3.4 (11-06): the rating takes one stance per account per author, and past 3 new
@@ -162,7 +164,8 @@ def answer_boycotts(forum, outbox):
         if not isinstance(x, dict) or x.get("id") in done or x.get("author") in (None, "yms979"):
             continue
         text = str(x.get("text") or "")
-        if not (BOYCOTT.search(text) or smears_us(text)):     # smears only (user, 11-06), not every complaint
+        # user 11-06 (later): any post that speaks badly of us, smear or complaint, true or not
+        if not (BOYCOTT.search(text) or smears_us(text) or about_us_badly(text)):
             continue
         if x["author"] in authors:                     # stance already held: nothing to add
             done.add(x["id"])

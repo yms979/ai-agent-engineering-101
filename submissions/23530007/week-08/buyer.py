@@ -181,6 +181,12 @@ def receipt(t: dict) -> dict:
     return {}
 
 
+ASK_WORDS = re.compile(r"(?:asking(?: price)?|counter-?offer|our (?:lowest|price|best price) is|final price(?: is)?|"
+                       r"price is now|we can do|ask(?:ing)? now)\s*[:=]?\s*(?:KRW|₩)?\s*(\d[\d,]*)(?![\d,]*\s*(?:h\b|hours?|시간|%))",
+                       re.I)
+ASK_BEFORE = re.compile(r"(\d[\d,]*)\s*(?:원\s*)?(?:is (?:our|the) (?:lowest|final|best)|is as low as we go)", re.I)
+
+
 def read_ask(t: dict):
     """(ask, how). ask is None when the harness has to read it from the text."""
     meta = t.get("status", {}).get("message", {}).get("metadata") or {}
@@ -191,6 +197,14 @@ def read_ask(t: dict):
     nums = numbers(text)
     if not nums:
         return None, "none"
+    # 11-06: 632 asks went to the model (~4 s each) only because the number sat in a longer sentence; the shops'
+    # usual wordings, read in code: "asking price 2951417", "Asking 35403", "List price 16800, asking 12096",
+    # "Counteroffer: 577474", "521151 is our lowest", "final price is 1200"
+    m = ASK_WORDS.search(text) or ASK_BEFORE.search(text)
+    if m:
+        v = as_int(m.group(1).replace(",", ""))
+        if v:
+            return v, "phrase"
     if len(text) <= SHORT and len(nums) <= 2:
         return nums[-1], "last number"
     return None, "harness"

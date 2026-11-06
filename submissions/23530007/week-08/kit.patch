@@ -1,5 +1,5 @@
 --- ../../../scripts/market_kit.py	2026-10-30 17:30:03.113049874 +0000
-+++ market_kit.py	2026-11-03 12:24:10.679985204 +0000
++++ market_kit.py	2026-11-06 04:21:59.251922304 +0000
 @@ -1,6 +1,15 @@
  #!/usr/bin/env python3
  """Week-07 market kit. Puts your week-06 shop and buyer into the class market.
@@ -69,3 +69,20 @@
          if not isinstance(b, dict):
              continue
          for _ in range(3):
+@@ -1049,12 +1068,16 @@
+         n = 0
+         while a.orders == 0 or n < a.orders:
+             try:                                        # nothing in one order may end the kit
++                t_ask = time.time()
+                 r = market.call("POST", "/api/orders")
++                if time.time() - t_ask > 3:                 # yms979 change 4: where the time between orders goes
++                    log(f"[market] order request took {time.time() - t_ask:.1f} s ({r.status_code})")
+                 if r.status_code == 429:
+                     try:
+                         wait = float(r.json().get("wait", 5))
+                     except Exception:
+                         wait = 5
++                    log(f"[market] no order yet (429), waiting {min(max(wait, 1), 30):.0f} s")   # yms979 change 4
+                     time.sleep(min(max(wait, 1), 30))
+                     continue
+                 if r.status_code == 401:                # the market forgot this buyer (e.g. a reset): join again

@@ -1068,12 +1068,16 @@ def cmd_join(a):
         n = 0
         while a.orders == 0 or n < a.orders:
             try:                                        # nothing in one order may end the kit
+                t_ask = time.time()
                 r = market.call("POST", "/api/orders")
+                if time.time() - t_ask > 3:                 # yms979 change 4: where the time between orders goes
+                    log(f"[market] order request took {time.time() - t_ask:.1f} s ({r.status_code})")
                 if r.status_code == 429:
                     try:
                         wait = float(r.json().get("wait", 5))
                     except Exception:
                         wait = 5
+                    log(f"[market] no order yet (429), waiting {min(max(wait, 1), 30):.0f} s")   # yms979 change 4
                     time.sleep(min(max(wait, 1), 30))
                     continue
                 if r.status_code == 401:                # the market forgot this buyer (e.g. a reset): join again

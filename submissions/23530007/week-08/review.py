@@ -222,7 +222,10 @@ def main():
     except (OSError, ValueError):
         forum = []
     answer_boycotts(forum, path.parent / "outbox.jsonl")
-    every = PROBE_EVERY if voted_down(forum, st) and not posting_pays(st) else POST_EVERY
+    # 11-06 (patch 3.4): forum is one stance per voting account per author, so a voted-down post no longer drags
+    # a per-post average; a pause only loses post count (0.1 of the buyer score: 36 posts in 7.5 h while the top
+    # posters made ~80). Always post at the kit's rate; voted_down() stays for the log.
+    every = POST_EVERY
     if now - st["last_post"] >= every:
         facts = [f"{shop}", f"{name} ({sku})", f"{price:,}원" + (f", 정가 {listp:,}원 대비 {off}% 저렴" if listp else ""),
                  f"등급 {s.get('grade')}" + (f" (주장 {s.get('claim')}, " + ("정직" if s.get("claim_honest") else "불일치!") + ")"

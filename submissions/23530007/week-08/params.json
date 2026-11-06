@@ -73,7 +73,7 @@
     "FLUSH": {
       "extra": 8,
       "max_goods_price": 1000000,
-      "max_stock_share": 0.95
+      "max_stock_share": 0.98
     },
     "WIND_DOWN": {
       "tier_count": 0

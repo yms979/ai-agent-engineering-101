@@ -77,6 +77,9 @@ buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, each a mid-rank perce
 | quick_accept | 0.55-0.75 | lowered | speed |
 | food_extra_hours | 1-12 | raised (fewer −1 spoils) | fewer food shops qualify |
 
+**Holding is a strategy (user, 11-06).** When the numbers are on track, the last moves' predictions are not yet
+due, or the evidence is thin, make no move and say why. Changing settings every run hides what worked.
+
 Rule of thumb: a deal raises the running mean only if its saved > the mean. Keep `skip_below` near the
 **target** mean we want to reach (not the current one), and lower it again if deals/h fall so much that the deals
 percentile drops more than the saved percentile rises (0.1 vs 0.5 weight).

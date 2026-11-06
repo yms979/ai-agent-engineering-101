@@ -188,6 +188,10 @@ Knobs (only these):
            "cover" factor on the stock restock holds of that SKU, 0-2 (0 stops buying it)
   global   "sku_cover_hours" (2-8), "market_share" (0.05-0.3)
 Steps allowed now (bigger moves are clipped; they shrink after your misses): {steps}
+HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often the best answer. Move a knob
+only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
+predictions are not yet due, when the numbers are on track, or when the evidence is thin or noisy, hold and say
+in the read why holding is right. Changing settings every run makes it impossible to tell what worked.
 At most {max_moves} moves. Each move: a prediction checkable 6 h later from our records,
   {{"metric": one of {metrics}, "sku": "...", "op": ">=" or "<=", "value": number}},
 and "uses": the ids of the playbook lessons it relies on.

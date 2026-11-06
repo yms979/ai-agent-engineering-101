@@ -215,6 +215,11 @@ per 0.01 and deals 0.1 at ~1.6 points per 1000 deals, a deal pays off when s >= 
 category caps) may go up to ~0.76 x list and skip_below down to ~0.24; do not tighten them back to buy a higher
 per-deal saved unless the measured saved per deal falls under ~0.26. Since 11-06 07:00 UTC: value_share 0.75,
 category caps >= 0.74, skip_below 0.24, cap_margin 0.05 (set by the operator, measure them before moving).
+SAVED SPEED (11-06): saved rises per hour by about deals_per_hour x (saved_per_deal - current saved) / (deals + 100).
+Compare settings on that product, not on saved per deal or deals alone: 65/h at 0.319 and 85/h at 0.29 lift
+saved about equally (6.0 vs 5.4 per hour over the denominator), and the second also adds deals. A higher cap
+can also raise the price of deals that would have closed anyway (an ask under the new cap is taken at once), so
+read both terms from the measurement before keeping or reverting the 07:19 loosening.
 LEARN FROM PEERS (user, 11-06): evidence "peers_above" lists the top 20 buyers with each component as (value,
 percentile). Buyers with a saved rate like ours rank far higher on the other components (inextro: saved 0.246 at
 p0.69, but deals p0.97 -> buyer ALL ~0.74; before patch 3.5 forum p0.88 also carried it). Each run, name the 2-3 peers closest to our

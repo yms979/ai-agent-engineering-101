@@ -205,7 +205,7 @@ def _db():
 def post_board(role, read, findings, notes=None):
     """Store this strategist's read, findings and notes for the other one."""
     with _db() as db:
-        db.execute("INSERT INTO entries VALUES (?, ?, ?, ?, ?)",
+        db.execute("INSERT INTO entries (t, role, read, findings, notes) VALUES (?, ?, ?, ?, ?)",   # curator adds a column
                    (time.time(), role, str(read)[:2000], json.dumps(findings, ensure_ascii=False),
                     json.dumps(notes or [], ensure_ascii=False)))
     # the curator merges it into the digest and archives old entries (memory_curator.py), detached

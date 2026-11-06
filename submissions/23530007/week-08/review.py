@@ -24,6 +24,7 @@ HERE = Path(__file__).resolve().parent
 MARKET = "https://market.ourolabs.ai"
 STATE = Path(os.environ.get("REVIEW_STATE", HERE / "review_state.json"))   # buyer2/ keeps its own
 INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))
+QUEUE_AFTER = 200               # write the next post this long after the last one (it waits in the outbox)
 POST_EVERY = 300                # the kit sends one buyer post per 5 min; post count is 0.1 of the buyer score (rule 11-03)
 PROBE_EVERY = 3 * 3600          # while our posts are voted down: one post to see whether that stopped
 DOWNVOTED_SCORE = 0.31         # what a post of ours scores while it is being downvoted (6 likes, 4 dislikes)
@@ -199,6 +200,14 @@ def posting_pays(st):
     return st.get("pays", False)
 
 
+def post_waiting(outbox):
+    """True while a buyer post we wrote is still in the outbox (not yet taken by the market)."""
+    try:
+        return any('"post"' in line and '"buyer"' in line for line in outbox.read_text(encoding="utf-8").splitlines())
+    except OSError:
+        return False
+
+
 def voted_down(forum, st):
     """True while our recent buyer posts score under LOW_SCORE (last 5 with 5+ votes in .market/forum.json);
     with none of ours in view (the file holds the last 100 posts), the last answer stands."""
@@ -247,7 +256,10 @@ def main():
     # a per-post average; a pause only loses post count (0.1 of the buyer score: 36 posts in 7.5 h while the top
     # posters made ~80). Always post at the kit's rate; voted_down() stays for the log.
     every = POST_EVERY
-    if now - st["last_post"] >= every:
+    # user 11-06 (post as many price reports as the market allows): the market takes one buyer post per 5 min (429
+    # beyond, the kit keeps it and retries every ~10 s), and gaps ran 5.0-7.6 min. Keep exactly one post waiting in
+    # the outbox, written from QUEUE_AFTER s on, so the kit sends it the moment the 5 minutes are up.
+    if now - st["last_post"] >= QUEUE_AFTER and not post_waiting(path.parent / "outbox.jsonl"):
         facts = [f"{shop}", f"{name} ({sku})", f"{price:,}원" + (f", 정가 {listp:,}원 대비 {off}% 저렴" if listp else ""),
                  f"등급 {s.get('grade')}" + (f" (주장 {s.get('claim')}, " + ("정직" if s.get("claim_honest") else "불일치!") + ")"
                                             if s.get("claim") else ""),

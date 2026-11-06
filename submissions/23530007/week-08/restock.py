@@ -40,10 +40,8 @@ and food gets the lines left). Food is not dropped: it is most of our sales coun
 Price tiers (tier_wants): valuable goods categories also get one unit at each of up to 3 price points chosen to
 answer the most orders (sofas: 86 % of our buyer's sofa orders found no shop on 11-03).
 Below the bankruptcy line with (almost) nothing left to sell it files ("bankrupt": true).
-Forum demand: a post that asks for something ("구합니다", "찾습니다", "wanted", "looking for", ...) and names a
-category from demand.json (its item, e.g. 김치) counts as half a sale's worth of heat for that category, decaying the
-same way. Matching is plain text in code: forum posts never reach the model, so nothing written there can
-instruct our agents.
+The forum is not read (user, 11-06): posts are unverified, so demand comes only from the ledger, our own logs and
+our buyer's orders.
 It also keeps the shop's reputation for policy.py: the average stars of our newest Round 3 reviews on
 /api/shops (the market shows the last 10), in restock_state.json "rep".
 State (ledger position, decayed counts) in restock_state.json; every run logs one line to stderr.
@@ -65,7 +63,6 @@ HERE = Path(__file__).resolve().parent
 MARKET = "https://market.ourolabs.ai"
 STATE = Path(os.environ.get("RESTOCK_STATE", HERE / "restock_state.json"))
 SHOP_NAME = os.environ.get("SHOP_NAME", "yms979")
-WANTED = re.compile(r"구합니다|구해요|구함|찾습니다|찾아요|삽니다|사고 ?싶|필요합니다|wanted|\bwtb\b|looking for|need(?:s|ed)? (?:a|some)", re.I)
 SALES_LOG = Path(os.environ.get("SELLER_LOG", HERE / "seller_r3_log.jsonl"))
 HALF_LIFE = 6.0
 LEAD = 60                    # seconds before a window opens that a run may already send its lines
@@ -285,20 +282,9 @@ def main():
     now = time.time()
     hours = (now - st["t"]) / 3600
     st["cat"], st["sku"], st["own_cat"] = decay(st["cat"], hours), decay(st["sku"], hours), decay(st["own_cat"], hours)
-    st["forum_cat"] = decay(st.get("forum_cat", {}), hours)
-    seen = set(st.get("forum_seen", []))                    # forum demand: "wanted" posts naming a category
-    for post in read_json(md / "forum.json", []):
-        if not isinstance(post, dict) or post.get("id") in seen or post.get("author") == SHOP_NAME:
-            continue
-        seen.add(post.get("id"))
-        text = str(post.get("text") or "")
-        if not WANTED.search(text):
-            continue
-        for d in demand:
-            names = [d.get("item") or ""] + (d.get("item") or "").split("/")
-            if any(len(n) >= 2 and n in text for n in names):
-                st["forum_cat"][d["category"]] = st["forum_cat"].get(d["category"], 0) + 1
-    st["forum_seen"] = list(seen)[-1000:]
+    # forum "wanted" posts are no longer demand (user, 11-06: the forum can carry false information; only the
+    # ledger, our own records and the market's files count)
+    st["forum_cat"] = {}
     st["t"] = now
 
     market_sales(st, catalog)

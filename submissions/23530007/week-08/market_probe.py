@@ -11,7 +11,6 @@ Investigations:
   category     {"category"}        market sales per SKU in a category (ledger, decayed), our share of them
   competitor   {"shop"}            a shop's stock (SKUs, units, list value) and its board numbers
   unserved     {}                  orders our buyer saw in 24 h that no shop could serve, by category
-  forum        {"term"}            the last 100 forum posts that mention a term (author, likes, a snippet)
   rules        {"term"}            the market's rules (agent.md) around a term
 Watch conditions: {"metric": "surge"|"market_units"|"our_stock"|"class_rank", "sku": ..., "op": ">="|"<=",
 "value": n, "why": ...}
@@ -105,13 +104,6 @@ def q_unserved(a, cat):
     return [{"category": k.split(">")[-1], "orders": n[k], "unserved": v} for k, v in c.most_common(10) if v]
 
 
-def q_forum(a, cat):
-    term = str(a.get("term", ""))[:40]
-    posts = read(MD / "forum.json", [])
-    return [{"author": p.get("author"), "likes": p.get("likes"), "dislikes": p.get("dislikes"),
-             "text": str(p.get("text"))[:160]} for p in posts if term and term in str(p.get("text"))][:8]
-
-
 def q_rules(a, cat):
     """Lines of the market's rules (agent.md, re-fetched once a day into .market/agent.md) around a term."""
     path = MD / "agent.md"
@@ -124,7 +116,7 @@ def q_rules(a, cat):
 
 
 QUERIES = {"rules": q_rules, "sku_prices": q_sku_prices, "category": q_category, "competitor": q_competitor,
-           "unserved": q_unserved, "forum": q_forum}
+           "unserved": q_unserved}      # no forum investigation: posts are unverified (user, 11-06)
 
 
 def run_queries(queries, log):

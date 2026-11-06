@@ -441,7 +441,7 @@ def main():
         except (OSError, ValueError):
             order = {}
     acceptable = order.get("acceptable") or []
-    ctx = None
+    vctx = None
     md = Path(a.order).parent if a.order else HERE / ".market"
     regime, bp = "STEADY", {}
     if acceptable:
@@ -458,7 +458,7 @@ def main():
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
         share = (bp.get("cat_auto", {}).get(a.item) or {}).get("cap", bp["value_share"])   # buyer_strategist.py
         cskip = grade_c_skip(mem)
-        ctx = {"stats": value_table(), "kind": order.get("kind") or "goods", "cat": order.get("category"), "bp": bp}
+        vctx = {"stats": value_table(), "kind": order.get("kind") or "goods", "cat": order.get("category"), "bp": bp}
         shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, share, cskip)]
         prices = [(catalog.get(k) or {}).get("list_price") or 0 for k in acceptable]
         try:                                       # for our shop's restock: which prices this order accepts,
@@ -475,7 +475,7 @@ def main():
             return
 
     for attempt in range(MAX_SHOPS):              # a shop that turns me away before any ask: try the next one
-        pick, why, skipped, views = choose(shops, mem, a.item, a.budget, ask_model=attempt == 0, ctx=ctx)
+        pick, why, skipped, views = choose(shops, mem, a.item, a.budget, ask_model=attempt == 0, ctx=vctx)
         t_shop = time.time()
         if pick is None:                           # every shop is expected under skip_below: no deal beats a bad one
             log("buyer", why)
@@ -495,7 +495,7 @@ def main():
             want = pick_sku(pick, acceptable, catalog, a.budget, share, cskip)
             item, label = want["sku"], f"{want['name']} ({want['sku']})"
             cap = min(a.budget, int(want["list_price"] * share))
-            ev = expected(ctx["stats"], pick["name"], ctx["kind"], ctx["cat"])
+            ev = expected(vctx["stats"], pick["name"], vctx["kind"], vctx["cat"])
             if ev["n"] >= 10:      # do not pay above what this shop usually takes from other buyers
                 cap = min(cap, int(want["list_price"] * (ev["p50"] + bp["cap_margin"])))
                 aim = (f"Other buyers usually settle with this shop at {int(want['list_price'] * ev['p25'])}-"

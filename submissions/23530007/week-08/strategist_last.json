@@ -1,233 +1,251 @@
 {
- "t": 1793887306.3968158,
- "mode": "propose",
+ "t": 1793931303.2464309,
+ "mode": "apply",
  "answer": {
-  "market_read": "We are 2nd in class (1.612 vs inextro 1.659). The gap is on the shop side: book is 197.7M (rank 8/53) against inextro's 500M and dae-yangkim's 411M, while revenue (rank 6) and buyer surplus (rank 5) are already strong. That is a margin problem, not a volume problem. A 9,192-deal count with only ~10M profit means we turn over a lot of goods at thin spreads. Big-ticket sofas and beds still carry the margin: Mate 342k/unit, Avenuel 232k, Lacloud 205k, Simmons Beautyrest 165k. The Mate sofa is now crowded (15 shops, cost surge 1.164) but still clears instantly (avg hold 0h, 46 sold in 6h), so it can take a higher ask. Avenuel and Simmons Beautyrest show the opposite pattern: stock is 5-7h old and walkaways are about 1.6-2x sales. Since most walkaways make no offer when we are not the lowest ask, a small ask cut should convert some of them while keeping 15-20% margin per unit. Several thin-competition SKUs (Riposo recliner with 2 shops, Cloud Luxe and Borneo Coco with 3, Bedrium folding mattress with 3) ran to 0-3 units with sold-out asks and no surge, so more cover should be cheap volume. Apples keep selling out (20 sold-out asks) but surge is 1.134 and margin is only 4.3k/unit, so I raise the price rather than chase volume. The 23-shop Zinus Green Tea mattress is a commodity at ~12% margin; I hold it per L5. Stars at rank 25 move slowly and are partly poisoned by totato2203-r3's blanket 1-star reviews, so I do not spend knobs on them.",
+  "market_read": "Our shop is 1st among shops (ALL 0.951, revenue 2nd, book 3rd). Class rank is 6 at 1.487 against inextro 1.719, and the gap is almost all buyer ALL (0.565). Following the user's priority, shop moves this round protect book and free cash; they do not chase revenue rank. Cash is 44.6M against 442M of stock (inextro 135M), so storage at ~1%/day costs us about 4.4M of book a day, and the cheapest book gain is shrinking piles that turn slowly or earn thin margin. Three engines need no moves: Mate 4-seat (150 sold/6h, 0.3h hold), Plana 4 swing (24/6h, 434k/unit, 3 shops) and Ace BMA, all pinned or clearing fast. The aged piles are Zinus Lumi (33 units, 10.9h old, 9 sold/6h, already at the 0.85 ask floor and cover 0.25), Simmons Hub (10 units, 7.2h, 5/6h) and the GS loess sofa (8.9h). The low-margin crowded piles are Zinus Ultima SS (55 units, 11% margin, 17 shops, ~6h of our sales), Zinus Cloud (60 units, walk-aways 77 vs sold 53, market paid 0.61-0.73) and the mattress pad (113 units, surge 1.104). Recent cover-cut predictions overshot by about 2x (Lumi predicted 30 and got 12, then 20 and got 9), so I predict cuts at ~35% of last-6h sales. Stock-0 raises missed again (Avenuel Shrunken, Plana Basic 3, Sealy, GS sofa), so stock-0 lines stay untouched (L3). The cash freed goes to small, cheap, fast-clearing lines with few shops and 12-18% margin: the folding mattress, vegan duvet and drawer chest. Apples are at surge 1.174 and stay held under L7. Plana 3 is aging (4.3h) at ask 1.04 while competitors open at 0.75, so it gets a 5% ask trim.",
   "moves": [
    {
-    "knob": "ask",
-    "sku": "G8ec51935",
-    "value": 1.05,
-    "why": "Mate sofa: surge 1.164, 15 shops, yet 0h hold and 46 sold in 6h; raise price to protect margin as cost climbs",
+    "knob": "cover",
+    "sku": "Gc1297f36",
+    "value": 0.0,
+    "why": "Zinus Lumi: 33 units at 10.9h, 9 sold/6h, ask at the 0.85 floor and cover already 0.25. The pile holds ~22h of our sales. Stop buying and let it drain to free cash and cut storage.",
     "uses": [
-     "L2",
-     "L6",
+     "L22",
+     "L19",
+     "L17",
+     "L29"
+    ],
+    "prediction": {
+     "metric": "sold_next_6h",
+     "sku": "Gc1297f36",
+     "op": ">=",
+     "value": 3
+    }
+   },
+   {
+    "knob": "cover",
+    "sku": "G3e0d6c67",
+    "value": 0.75,
+    "why": "Simmons Hub: 10 units at 7.2h, 5 sold/6h, ask already at the 0.85 floor (effective ~0.77, top of the 0.72-0.77 band). Only cover is left to cut.",
+    "uses": [
+     "L22",
+     "L21",
+     "L19"
+    ],
+    "prediction": {
+     "metric": "sold_next_6h",
+     "sku": "G3e0d6c67",
+     "op": ">=",
+     "value": 2
+    }
+   },
+   {
+    "knob": "cover",
+    "sku": "G07ec17d5",
+    "value": 0.75,
+    "why": "Zinus Ultima SS: 55 units (~6h of sales), oldest 5.2h, 32k/unit (11%), 17 shops, walk-aways 89 vs sold 56. A crowded thin-margin pile is the best cash source; no price cut (L5).",
+    "uses": [
+     "L19",
+     "L5",
+     "L11",
+     "L17"
+    ],
+    "prediction": {
+     "metric": "sold_next_6h",
+     "sku": "G07ec17d5",
+     "op": ">=",
+     "value": 20
+    }
+   },
+   {
+    "knob": "cover",
+    "sku": "G754bf0ca",
+    "value": 0.75,
+    "why": "Zinus Cloud: 60 units (~6.8h of sales), walk-aways 77 vs sold 53, market paid 0.61-0.73 with the cheapest shop at 0.61. Trim the pile rather than cut an 11.6% margin.",
+    "uses": [
+     "L19",
+     "L11",
      "L1"
     ],
     "prediction": {
      "metric": "sold_next_6h",
-     "sku": "G8ec51935",
+     "sku": "G754bf0ca",
      "op": ">=",
-     "value": 28
+     "value": 20
     }
    },
    {
-    "knob": "ask",
-    "sku": "G8adbc159",
-    "value": 0.96,
-    "why": "Avenuel: oldest stock 6.7h, 40 walkaways vs 22 sold, margin ~16% of selling price leaves room for a 4% cut",
+    "knob": "cover",
+    "sku": "G75f11c19",
+    "value": 1.0,
+    "why": "Mattress pad: 113 units (~5.8h of sales) at surge 1.104. Further buying raises our own unit cost, so hold the pile size down.",
     "uses": [
-     "L4",
-     "L6"
+     "L2",
+     "L11",
+     "L19"
     ],
     "prediction": {
      "metric": "sold_next_6h",
-     "sku": "G8adbc159",
+     "sku": "G75f11c19",
      "op": ">=",
-     "value": 16
+     "value": 45
     }
    },
    {
-    "knob": "ask",
-    "sku": "Gb5d0dde7",
-    "value": 0.96,
-    "why": "Simmons Beautyrest queen: oldest 5.6h, 67 walkaways vs 41 sold, ~20% margin per unit",
+    "knob": "cover",
+    "sku": "G021aae64",
+    "value": 0.25,
+    "why": "GS loess sofa G208SF: oldest 8.9h, 12 shops, ~10% margin. Do not refill an aged thin-margin line.",
     "uses": [
-     "L4",
-     "L6"
+     "L17",
+     "L19"
     ],
     "prediction": {
      "metric": "sold_next_6h",
-     "sku": "Gb5d0dde7",
-     "op": ">=",
-     "value": 30
-    }
-   },
-   {
-    "knob": "ask",
-    "sku": "G9357d6c2",
-    "value": 0.95,
-    "why": "Zinus Ultima Lux Q: oldest 4.3h, 22 walkaways vs 3 sold, ~14% margin, only 5 shops",
-    "uses": [
-     "L4"
-    ],
-    "prediction": {
-     "metric": "sold_next_6h",
-     "sku": "G9357d6c2",
+     "sku": "G021aae64",
      "op": ">=",
      "value": 3
     }
    },
    {
     "knob": "ask",
-    "sku": "G8095ddd6",
-    "value": 1.03,
-    "why": "Ace BMA SS: surge 1.082 crosses the crowding line, 0h hold; modest raise",
+    "sku": "G2698c6f8",
+    "value": 0.99,
+    "why": "Plana 3: oldest 4.3h, 16 units, ask 1.04 while competitor first asks sit at 0.75 median. At 353k/unit, a 5% trim keeps margin and slows aging.",
     "uses": [
-     "L2",
+     "L21",
+     "L4",
      "L8"
     ],
     "prediction": {
      "metric": "sold_next_6h",
-     "sku": "G8095ddd6",
+     "sku": "G2698c6f8",
      "op": ">=",
-     "value": 9
-    }
-   },
-   {
-    "knob": "ask",
-    "sku": "Gef4d3036",
-    "value": 1.05,
-    "why": "Apples: 20 sold-out asks but surge 1.134 and 4.3k margin; price up instead of adding perishable cover",
-    "uses": [
-     "L2",
-     "L7"
-    ],
-    "prediction": {
-     "metric": "sold_next_6h",
-     "sku": "Gef4d3036",
-     "op": ">=",
-     "value": 70
-    }
-   },
-   {
-    "knob": "cover",
-    "sku": "G9f7c7d1b",
-    "value": 1.5,
-    "why": "Riposo recliner: stock 0, sold-out ask, 2 shops, no surge, 220k margin/unit",
-    "uses": [
-     "L3",
-     "L6"
-    ],
-    "prediction": {
-     "metric": "sold_next_6h",
-     "sku": "G9f7c7d1b",
-     "op": ">=",
-     "value": 6
-    }
-   },
-   {
-    "knob": "cover",
-    "sku": "G754bf0ca",
-    "value": 1.5,
-    "why": "Zinus Cloud Luxe Q: stock 0, 2 sold-out asks, 3 shops, no surge",
-    "uses": [
-     "L3"
-    ],
-    "prediction": {
-     "metric": "sold_next_6h",
-     "sku": "G754bf0ca",
-     "op": ">=",
-     "value": 10
-    }
-   },
-   {
-    "knob": "cover",
-    "sku": "G45c54b01",
-    "value": 1.5,
-    "why": "Borneo Coco LED bed: stock 0, sold-out ask, 3 shops, no surge",
-    "uses": [
-     "L3"
-    ],
-    "prediction": {
-     "metric": "sold_next_6h",
-     "sku": "G45c54b01",
-     "op": ">=",
-     "value": 6
+     "value": 7
     }
    },
    {
     "knob": "cover",
     "sku": "G25fe9221",
-    "value": 1.5,
-    "why": "Bedrium folding mattress: 78 sold in 6h, stock down to 3, 3 shops, no surge; cover is the binding limit",
+    "value": 1.25,
+    "why": "Folding mattress: 0.1h hold, sold-out asks, only 4 shops, 37 sold/6h on 10 units, 12.5% margin, low cost per unit. Cheap to fund from the cuts above.",
     "uses": [
-     "L3",
+     "L11",
      "L8"
     ],
     "prediction": {
      "metric": "sold_next_6h",
      "sku": "G25fe9221",
      "op": ">=",
-     "value": 50
+     "value": 8
+    }
+   },
+   {
+    "knob": "cover",
+    "sku": "Ge7edc329",
+    "value": 1.25,
+    "why": "Vegan goose duvet: 0.5h hold, 5 shops, 20 sold/6h on 11 units, ~18% margin, 209k list.",
+    "uses": [
+     "L11",
+     "L8",
+     "L1"
+    ],
+    "prediction": {
+     "metric": "sold_next_6h",
+     "sku": "Ge7edc329",
+     "op": ">=",
+     "value": 7
+    }
+   },
+   {
+    "knob": "cover",
+    "sku": "G445ada94",
+    "value": 1.25,
+    "why": "Borneo drawer chest: 17 sold/6h on 6 units, 5 shops, 12.5% margin, unserved storage-furniture orders. Small cash outlay.",
+    "uses": [
+     "L11",
+     "L8"
+    ],
+    "prediction": {
+     "metric": "sold_next_6h",
+     "sku": "G445ada94",
+     "op": ">=",
+     "value": 5
     }
    }
   ],
   "lessons": [
    {
-    "op": "add",
-    "id": "L9",
-    "text": "Cover raises on SKUs at 0 stock depend on thin supply windows; predict sold_next_6h at about 40-60% of the last 6h, not 70-85%.",
-    "why": "Restocking near-monopolies is limited by market_units (often 3-6), so volume after a cover raise lags demand."
+    "op": "rewrite",
+    "id": "L19",
+    "text": "Cover cuts on piles holding more than 6h of our own sales free cash reliably, but sales also slow. Predict sold_next_6h at about 35% of last 6h, or about 25% if our ask sits above the market's settle band (sku_prices). Measured: Lumi predicted 30 and got 12, predicted 20 and got 9.",
+    "why": "Cover-cut predictions at 50% overshot twice on Lumi; the median outcome was ~40% of the prediction."
    },
    {
     "op": "add",
-    "id": "L10",
-    "text": "Book gap to the top shops (2-2.5x) is the main lever on midterm rank; prefer ask raises on fast-clearing big-ticket SKUs over volume pushes.",
-    "why": "Revenue rank 6 and surplus rank 5 are already high; book rank 8 with profit ~10M on 1.58B revenue shows thin spreads."
+    "id": "L30",
+    "text": "With the buyer score first (11-06), each round spend cash from crowded thin-margin piles (15+ shops, margin <12%) on cheap fast-clearing lines with few shops (<=5) and margin 12-20%. Keep big-ticket pinned engines untouched.",
+    "why": "This protects book without speculative stock-0 raises, which keep missing."
    }
   ],
   "investigate": [
    {
-    "kind": "competitor",
-    "shop": "inextro"
-   },
-   {
-    "kind": "competitor",
-    "shop": "dae-yangkim"
+    "kind": "sku_prices",
+    "sku": "G3e0d6c67"
    },
    {
     "kind": "sku_prices",
-    "sku": "G8ec51935"
+    "sku": "G07ec17d5"
    },
    {
-    "kind": "unserved"
+    "kind": "sku_prices",
+    "sku": "G2698c6f8"
+   },
+   {
+    "kind": "sku_prices",
+    "sku": "G75f11c19"
    },
    {
     "kind": "category",
-    "category": "소파/의자/스툴"
+    "category": "침구"
    }
   ],
   "watch": [
    {
+    "metric": "our_stock",
+    "sku": "Gc1297f36",
+    "op": "<=",
+    "value": 8,
+    "why": "Lumi pile nearly drained; reconsider cover from 0 if it clears faster than expected."
+   },
+   {
     "metric": "surge",
-    "sku": "G8ec51935",
+    "sku": "G75f11c19",
     "op": ">=",
-    "value": 1.3,
-    "why": "If Mate cost keeps climbing, margin per unit erodes; cut cover and lean on the ask"
+    "value": 1.15,
+    "why": "Mattress pad cost climbing; cut cover further or raise the ask."
    },
    {
     "metric": "our_stock",
-    "sku": "G8adbc159",
+    "sku": "G07ec17d5",
     "op": ">=",
-    "value": 30,
-    "why": "Avenuel stock piling up after the cut would mean demand is gone, not price-limited"
-   },
-   {
-    "metric": "market_units",
-    "sku": "G9f7c7d1b",
-    "op": ">=",
-    "value": 12,
-    "why": "More Riposo stock in the market means new competitors; revisit the cover raise"
+    "value": 65,
+    "why": "Zinus Ultima growing after the cut would mean restock is not honouring the factor."
    },
    {
     "metric": "class_rank",
-    "sku": "",
-    "op": ">=",
-    "value": 3,
-    "why": "Wake if SungJinho or psyoung82 overtake us"
+    "op": "<=",
+    "value": 5,
+    "why": "Confirms whether the buyer-side gains are moving class rank."
    }
+  ],
+  "notes_for_buyer": [
+   "Shop moves this round only trim our own piles and add small bedding/storage lines. None of them change prices other shops offer your buyer, so they should not hurt the buyer score.",
+   "Bedding supply is surging (mattress pad G75f11c19 at 1.104). Other shops' cost floors on bedding rise with it, so the 0.66 bedding cap may close less often. Check bedding conversion in your 6h read.",
+   "Competitor first asks on beds/sofas this 6h: median 0.74-0.83 of list, lowest 0.55-0.64 (Zinus Lumi 0.55, Dahas and Simmons Hub 0.58, Simmons Suite 0.58). At cap 0.70, closes will come mostly from the lowest-quote shops. The Mate 4-seat has 94 quotes with the lowest at 0.64, so that is where your 0.70 cap is most likely to land.",
+   "Plana 4 swing paid 0.64-0.74, Zinus Cloud 0.61-0.73, Bedrium LED 0.69-0.72 (ledger). These are near or below your 0.70 cap and are good targets for high saved.",
+   "Your unserved food lines (ready meals, shellfish, fish, oil) are noted. Our shop stocking them would not serve your buyer (it cannot buy from our shop), so I am not adding them for the buyer's sake."
   ]
  },
- "raw": "ld and 46 sold in 6h; raise price to protect margin as cost climbs\", \"uses\": [\"L2\", \"L6\", \"L1\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G8ec51935\", \"op\": \">=\", \"value\": 28}},\n    {\"knob\": \"ask\", \"sku\": \"G8adbc159\", \"value\": 0.96, \"why\": \"Avenuel: oldest stock 6.7h, 40 walkaways vs 22 sold, margin ~16% of selling price leaves room for a 4% cut\", \"uses\": [\"L4\", \"L6\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G8adbc159\", \"op\": \">=\", \"value\": 16}},\n    {\"knob\": \"ask\", \"sku\": \"Gb5d0dde7\", \"value\": 0.96, \"why\": \"Simmons Beautyrest queen: oldest 5.6h, 67 walkaways vs 41 sold, ~20% margin per unit\", \"uses\": [\"L4\", \"L6\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"Gb5d0dde7\", \"op\": \">=\", \"value\": 30}},\n    {\"knob\": \"ask\", \"sku\": \"G9357d6c2\", \"value\": 0.95, \"why\": \"Zinus Ultima Lux Q: oldest 4.3h, 22 walkaways vs 3 sold, ~14% margin, only 5 shops\", \"uses\": [\"L4\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G9357d6c2\", \"op\": \">=\", \"value\": 3}},\n    {\"knob\": \"ask\", \"sku\": \"G8095ddd6\", \"value\": 1.03, \"why\": \"Ace BMA SS: surge 1.082 crosses the crowding line, 0h hold; modest raise\", \"uses\": [\"L2\", \"L8\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G8095ddd6\", \"op\": \">=\", \"value\": 9}},\n    {\"knob\": \"ask\", \"sku\": \"Gef4d3036\", \"value\": 1.05, \"why\": \"Apples: 20 sold-out asks but surge 1.134 and 4.3k margin; price up instead of adding perishable cover\", \"uses\": [\"L2\", \"L7\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"Gef4d3036\", \"op\": \">=\", \"value\": 70}},\n    {\"knob\": \"cover\", \"sku\": \"G9f7c7d1b\", \"value\": 1.5, \"why\": \"Riposo recliner: stock 0, sold-out ask, 2 shops, no surge, 220k margin/unit\", \"uses\": [\"L3\", \"L6\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G9f7c7d1b\", \"op\": \">=\", \"value\": 6}},\n    {\"knob\": \"cover\", \"sku\": \"G754bf0ca\", \"value\": 1.5, \"why\": \"Zinus Cloud Luxe Q: stock 0, 2 sold-out asks, 3 shops, no surge\", \"uses\": [\"L3\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G754bf0ca\", \"op\": \">=\", \"value\": 10}},\n    {\"knob\": \"cover\", \"sku\": \"G45c54b01\", \"value\": 1.5, \"why\": \"Borneo Coco LED bed: stock 0, sold-out ask, 3 shops, no surge\", \"uses\": [\"L3\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G45c54b01\", \"op\": \">=\", \"value\": 6}},\n    {\"knob\": \"cover\", \"sku\": \"G25fe9221\", \"value\": 1.5, \"why\": \"Bedrium folding mattress: 78 sold in 6h, stock down to 3, 3 shops, no surge; cover is the binding limit\", \"uses\": [\"L3\", \"L8\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G25fe9221\", \"op\": \">=\", \"value\": 50}}\n  ],\n  \"lessons\": [\n    {\"op\": \"add\", \"id\": \"L9\", \"text\": \"Cover raises on SKUs at 0 stock depend on thin supply windows; predict sold_next_6h at about 40-60% of the last 6h, not 70-85%.\", \"why\": \"Restocking near-monopolies is limited by market_units (often 3-6), so volume after a cover raise lags demand.\"},\n    {\"op\": \"add\", \"id\": \"L10\", \"text\": \"Book gap to the top shops (2-2.5x) is the main lever on midterm rank; prefer ask raises on fast-clearing big-ticket SKUs over volume pushes.\", \"why\": \"Revenue rank 6 and surplus rank 5 are already high; book rank 8 with profit ~10M on 1.58B revenue shows thin spreads.\"}\n  ],\n  \"investigate\": [\n    {\"kind\": \"competitor\", \"shop\": \"inextro\"},\n    {\"kind\": \"competitor\", \"shop\": \"dae-yangkim\"},\n    {\"kind\": \"sku_prices\", \"sku\": \"G8ec51935\"},\n    {\"kind\": \"unserved\"},\n    {\"kind\": \"category\", \"category\": \"소파/의자/스툴\"}\n  ],\n  \"watch\": [\n    {\"metric\": \"surge\", \"sku\": \"G8ec51935\", \"op\": \">=\", \"value\": 1.3, \"why\": \"If Mate cost keeps climbing, margin per unit erodes; cut cover and lean on the ask\"},\n    {\"metric\": \"our_stock\", \"sku\": \"G8adbc159\", \"op\": \">=\", \"value\": 30, \"why\": \"Avenuel stock piling up after the cut would mean demand is gone, not price-limited\"},\n    {\"metric\": \"market_units\", \"sku\": \"G9f7c7d1b\", \"op\": \">=\", \"value\": 12, \"why\": \"More Riposo stock in the market means new competitors; revisit the cover raise\"},\n    {\"metric\": \"class_rank\", \"sku\": \"\", \"op\": \">=\", \"value\": 3, \"why\": \"Wake if SungJinho or psyoung82 overtake us\"}\n  ]\n}"
+ "raw": ", \"why\": \"Plana 3: oldest 4.3h, 16 units, ask 1.04 while competitor first asks sit at 0.75 median. At 353k/unit, a 5% trim keeps margin and slows aging.\", \"uses\": [\"L21\", \"L4\", \"L8\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G2698c6f8\", \"op\": \">=\", \"value\": 7}},\n    {\"knob\": \"cover\", \"sku\": \"G25fe9221\", \"value\": 1.25, \"why\": \"Folding mattress: 0.1h hold, sold-out asks, only 4 shops, 37 sold/6h on 10 units, 12.5% margin, low cost per unit. Cheap to fund from the cuts above.\", \"uses\": [\"L11\", \"L8\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G25fe9221\", \"op\": \">=\", \"value\": 8}},\n    {\"knob\": \"cover\", \"sku\": \"Ge7edc329\", \"value\": 1.25, \"why\": \"Vegan goose duvet: 0.5h hold, 5 shops, 20 sold/6h on 11 units, ~18% margin, 209k list.\", \"uses\": [\"L11\", \"L8\", \"L1\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"Ge7edc329\", \"op\": \">=\", \"value\": 7}},\n    {\"knob\": \"cover\", \"sku\": \"G445ada94\", \"value\": 1.25, \"why\": \"Borneo drawer chest: 17 sold/6h on 6 units, 5 shops, 12.5% margin, unserved storage-furniture orders. Small cash outlay.\", \"uses\": [\"L11\", \"L8\"], \"prediction\": {\"metric\": \"sold_next_6h\", \"sku\": \"G445ada94\", \"op\": \">=\", \"value\": 5}}\n  ],\n  \"lessons\": [\n    {\"op\": \"rewrite\", \"id\": \"L19\", \"text\": \"Cover cuts on piles holding more than 6h of our own sales free cash reliably, but sales also slow. Predict sold_next_6h at about 35% of last 6h, or about 25% if our ask sits above the market's settle band (sku_prices). Measured: Lumi predicted 30 and got 12, predicted 20 and got 9.\", \"why\": \"Cover-cut predictions at 50% overshot twice on Lumi; the median outcome was ~40% of the prediction.\"},\n    {\"op\": \"add\", \"id\": \"L30\", \"text\": \"With the buyer score first (11-06), each round spend cash from crowded thin-margin piles (15+ shops, margin <12%) on cheap fast-clearing lines with few shops (<=5) and margin 12-20%. Keep big-ticket pinned engines untouched.\", \"why\": \"This protects book without speculative stock-0 raises, which keep missing.\"}\n  ],\n  \"investigate\": [\n    {\"kind\": \"sku_prices\", \"sku\": \"G3e0d6c67\"},\n    {\"kind\": \"sku_prices\", \"sku\": \"G07ec17d5\"},\n    {\"kind\": \"sku_prices\", \"sku\": \"G2698c6f8\"},\n    {\"kind\": \"sku_prices\", \"sku\": \"G75f11c19\"},\n    {\"kind\": \"category\", \"category\": \"침구\"}\n  ],\n  \"watch\": [\n    {\"metric\": \"our_stock\", \"sku\": \"Gc1297f36\", \"op\": \"<=\", \"value\": 8, \"why\": \"Lumi pile nearly drained; reconsider cover from 0 if it clears faster than expected.\"},\n    {\"metric\": \"surge\", \"sku\": \"G75f11c19\", \"op\": \">=\", \"value\": 1.15, \"why\": \"Mattress pad cost climbing; cut cover further or raise the ask.\"},\n    {\"metric\": \"our_stock\", \"sku\": \"G07ec17d5\", \"op\": \">=\", \"value\": 65, \"why\": \"Zinus Ultima growing after the cut would mean restock is not honouring the factor.\"},\n    {\"metric\": \"class_rank\", \"op\": \"<=\", \"value\": 5, \"why\": \"Confirms whether the buyer-side gains are moving class rank.\"}\n  ],\n  \"notes_for_buyer\": [\n    \"Shop moves this round only trim our own piles and add small bedding/storage lines. None of them change prices other shops offer your buyer, so they should not hurt the buyer score.\",\n    \"Bedding supply is surging (mattress pad G75f11c19 at 1.104). Other shops' cost floors on bedding rise with it, so the 0.66 bedding cap may close less often. Check bedding conversion in your 6h read.\",\n    \"Competitor first asks on beds/sofas this 6h: median 0.74-0.83 of list, lowest 0.55-0.64 (Zinus Lumi 0.55, Dahas and Simmons Hub 0.58, Simmons Suite 0.58). At cap 0.70, closes will come mostly from the lowest-quote shops. The Mate 4-seat has 94 quotes with the lowest at 0.64, so that is where your 0.70 cap is most likely to land.\",\n    \"Plana 4 swing paid 0.64-0.74, Zinus Cloud 0.61-0.73, Bedrium LED 0.69-0.72 (ledger). These are near or below your 0.70 cap and are good targets for high saved.\",\n    \"Your unserved food lines (ready meals, shellfish, fish, oil) are noted. Our shop stocking them would not serve your buyer (it cannot buy from our shop), so I am not adding them for the buyer's sake.\"\n  ]\n}\n```"
 }

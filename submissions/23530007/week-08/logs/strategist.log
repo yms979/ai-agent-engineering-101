@@ -33,3 +33,554 @@
 2026-11-05 14:02:46 UTC [propose] cover G754bf0ca 1 -> 1.5 (asked 1.5) | Zinus Cloud Luxe Q: stock 0, 2 sold-out asks, 3 shops, no surge | predicts sold_next_6h >= 10 | uses ['L3']
 2026-11-05 14:02:46 UTC [propose] cover G45c54b01 1 -> 1.5 (asked 1.5) | Borneo Coco LED bed: stock 0, sold-out ask, 3 shops, no surge | predicts sold_next_6h >= 6 | uses ['L3']
 2026-11-05 14:02:46 UTC [propose] cover G25fe9221 1 -> 1.5 (asked 1.5) | Bedrium folding mattress: 78 sold in 6h, stock down to 3, 3 shops, no surge; cover is the binding limit | predicts sold_next_6h >= 50 | uses ['L3', 'L8']
+2026-11-05 14:10:09 UTC probe: competitor {"shop": "inextro"} done
+2026-11-05 14:10:12 UTC probe: competitor {"shop": "dae-yangkim"} done
+2026-11-05 14:10:36 UTC probe: sku_prices {"sku": "G8ec51935"} done
+2026-11-05 14:10:36 UTC probe: unserved {} done
+2026-11-05 14:10:36 UTC probe: category {"category": "소파/의자/스툴"} done
+2026-11-05 14:11:26 UTC strategist: model answered in 50 s (34707 chars in)
+2026-11-05 14:11:26 UTC [apply] market read: We are #2 in class (1.599 vs inextro 1.659), and book is still the weak axis: 199M, 8th of 53, against 300-500M at the top shops. Revenue (6th) and buyer surplus (6th) are strong. Stock is 179M at cost against only 25M cash, so we sit near the 95%-of-equity cap. Any cover raise only lands if capital is freed elsewhere, so this round reallocates rather than adds. The Mate 4-seat sofa is our biggest earner (340k a unit, 47 sold in 6h, 0h hold), but 15 shops are crowding it and its cost has surged to 1.144. Settlements cluster at 0.70-0.76 of list, so a small ask raise is safer than more stock (L2). The Zinus Green Tea mattress sold 457 in 24h but only 38 in the last 6h, earns ~9% across 23 shops, and has 58 units ageing to 5.4h: that capital belongs in big-ticket items. Avenuel is slowing too (22 in 6h vs 140 in 24h, oldest unit 6.8h, 40 walk-aways), but at ~16% margin it can take a 4% cut and stay above 10% (L4). Several thin-competition SKUs sit at 0 stock with sold-out asks and no surge: Riposo recliner (2 shops), Bedrium folding mattress (3 shops, 81 sold in 6h), Zinus Cloud (3 shops), Boruneo Coco and Geumgang (3 shops each). These are L3 cover raises, priced against supply-wind
+2026-11-05 14:11:26 UTC memory: lesson L11 added: Stock is near the 95%-of-equity cap (179M stock vs 25M cash): pair every cover raise with a cover cut on low-margin crowded SKUs, or the raise will not be funded.
+2026-11-05 14:11:26 UTC memory: lesson L7 rewritten: Perishable food: only add cover where hold time is about 0h and sold-out asks are recurring. -> Perishable food: only add cover where hold time is about 0h, sold-out asks recur, cost_surge < 1.08 and margin per unit is above ~15%; otherwise hold.
+2026-11-05 14:11:26 UTC asked to investigate: {"kind": "sku_prices", "sku": "G8adbc159"}
+2026-11-05 14:11:26 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gc1297f36"}
+2026-11-05 14:11:26 UTC asked to investigate: {"kind": "sku_prices", "sku": "G1515d951"}
+2026-11-05 14:11:26 UTC asked to investigate: {"kind": "competitor", "shop": "Kiro729"}
+2026-11-05 14:11:26 UTC asked to investigate: {"kind": "rules", "term": "storage"}
+2026-11-05 14:11:26 UTC watching: surge Gc1297f36 >= 1.08 (The Lumi ask raise assumes no crowding; a surge means others piled in)
+2026-11-05 14:11:26 UTC watching: our_stock G1515d951 >= 70 (Green Tea should shrink after the cover cut; growth means restock ignores it)
+2026-11-05 14:11:26 UTC watching: market_units G25fe9221 >= 20 (Bedrium near-monopoly ending would undo the L3 cover raise)
+2026-11-05 14:11:26 UTC watching: class_rank  >= 3 (Wake if SungJinho or psyoung82 overtake us)
+2026-11-05 14:11:26 UTC [apply] ask G8ec51935 1 -> 1.03 (asked 1.03) | Surge 1.144 with 15 shops; clears at 0h hold, so take margin rather than add cover | predicts margin_next_6h >= 8000000 | uses ['L2', 'L10', 'L8']
+2026-11-05 14:11:26 UTC [apply] ask G8adbc159 1 -> 0.96 (asked 0.96) | Oldest 6.8h, walkaways 40 vs 22 sold, margin ~16% stays >10% after a 4% cut | predicts sold_next_6h >= 18 | uses ['L4', 'L8']
+2026-11-05 14:11:26 UTC [apply] ask Gc1297f36 1 -> 1.03 (asked 1.03) | Near-monopoly frame clearing instantly (74 in 6h, 0h hold), surge only 1.012 | predicts sold_next_6h >= 50 | uses ['L1', 'L8']
+2026-11-05 14:11:26 UTC [apply] cover G1515d951 1 -> 0.5 (asked 0.5) | 23 shops, ~9% margin, 58 units ageing while sales fell; free capital under the equity cap | predicts sold_next_6h >= 25 | uses ['L5', 'L1', 'L6']
+2026-11-05 14:11:26 UTC [apply] cover G9f7c7d1b 1 -> 1.5 (asked 1.5) | 0 stock, 2 shops, sold-out ask, 220k margin, no surge | predicts sold_next_6h >= 6 | uses ['L3', 'L6', 'L9']
+2026-11-05 14:11:26 UTC [apply] cover G25fe9221 1 -> 1.5 (asked 1.5) | 0 stock, 3 shops, 81 sold in 6h, no surge | predicts sold_next_6h >= 35 | uses ['L3', 'L9']
+2026-11-05 14:11:26 UTC [apply] cover G754bf0ca 1 -> 1.5 (asked 1.5) | 0 stock, 3 shops, 2 sold-out asks, 67k margin | predicts sold_next_6h >= 9 | uses ['L3', 'L9']
+2026-11-05 14:11:26 UTC [apply] cover G45c54b01 1 -> 1.5 (asked 1.5) | 0 stock, 3 shops, sold-out ask, 31 walkaways | predicts sold_next_6h >= 5 | uses ['L3', 'L9']
+2026-11-05 14:11:26 UTC [apply] cover G8c325f68 1 -> 1.5 (asked 1.5) | 3 shops, sold-out ask, stock 1, 67k margin | predicts sold_next_6h >= 6 | uses ['L3', 'L9']
+2026-11-05 14:11:26 UTC [apply] cover Gf6b70da8 1 -> 1.5 (asked 1.5) | 398k margin, market sells 22/h and we take <1/h on thin stock | predicts sold_next_6h >= 4 | uses ['L6', 'L10', 'L9']
+2026-11-05 14:11:26 UTC [apply] cover Gbec2b68f 1 -> 1.5 (asked 1.5) | 338k margin, 12/h market rate, our 5 units clear in 0.1h | predicts sold_next_6h >= 5 | uses ['L6', 'L10', 'L9']
+2026-11-05 14:11:26 UTC [apply] cover G010744b7 1 -> 1.5 (asked 1.5) | Food with 6 sold-out asks, 0h hold, no surge, 23% margin | predicts sold_next_6h >= 8 | uses ['L7', 'L9']
+2026-11-05 15:15:51 UTC probe: sku_prices {"sku": "G8adbc159"} done
+2026-11-05 15:16:15 UTC probe: sku_prices {"sku": "Gc1297f36"} done
+2026-11-05 15:16:42 UTC probe: sku_prices {"sku": "G1515d951"} done
+2026-11-05 15:16:51 UTC probe: competitor {"shop": "Kiro729"} done
+2026-11-05 15:16:51 UTC probe: rules {"term": "storage"} done
+2026-11-05 15:17:40 UTC strategist: model answered in 49 s (34274 chars in)
+2026-11-05 15:17:40 UTC [apply] market read: We are 2nd in class (1.609 vs inextro 1.659). The gap is mostly book: we are 8th of 53 at 220M, against inextro 515M, dae-yangkim 420M and 25620027 372M. Revenue (6th) and surplus (5th) are already strong. Cash has recovered to 53.6M against 172M of stock, so the funding squeeze that L11 describes has eased and a few targeted cover raises can be paid for. Big-ticket goods turn over almost instantly: the Mate sofa (avg hold 0.1h), the Jasmine large king (0.3h) and the Dahas stone bed (0.1h). The Plana basic 4-seat (311k margin per unit) and the Zinus Cloud Lux sit at 0 stock while buyers keep walking away, so better-covered big-ticket lines are the cleanest book lever. The Mate sofa is now crowded (17 shops, cost surge 1.112). Under L2 we push its ask rather than its cover, which takes margin from buyers who still clear in about 6 minutes. Avenuel is our one stuck big-ticket line: 17 units, oldest 7.9h, 36 walk-aways against 28 sales. The investigation shows it settling at 0.69–0.72 of list and the cheapest shop near 1.34M, so our ask sits above where the market clears. Green Tea Lux has slumped (31 sales in 6h against 458 in 24h), with 51 units held across a 26-shop field at about 
+2026-11-05 15:17:40 UTC memory: lesson L11 rewritten: Stock is near the 95%-of-equity cap (179M stock vs 25M cash): pair every cover raise with a cover cut on low-margin crowded SKUs, or the raise will not be funded. -> Check cash against stock before raising cover. At 11-05 15:16 cash was 53.6M against 172M stock, so a few big-ticket raises are fundable. When cash drops below ~25M, pair each cover raise with a cut on a low-margin crowd
+2026-11-05 15:17:40 UTC memory: lesson L12 added: Crowded big-ticket SKUs settle at about 0.70-0.76 of list (Avenuel, Lumi, Green Tea on 11-05). When stock ages past 4h on one of them, our effective ask is above that band: cut toward it rather than cutting cover.
+2026-11-05 15:17:40 UTC asked to investigate: {"kind": "sku_prices", "sku": "G8ec51935"}
+2026-11-05 15:17:40 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gbec2b68f"}
+2026-11-05 15:17:40 UTC asked to investigate: {"kind": "competitor", "shop": "inextro"}
+2026-11-05 15:17:40 UTC asked to investigate: {"kind": "unserved"}
+2026-11-05 15:17:40 UTC asked to investigate: {"kind": "sku_prices", "sku": "G00327e80"}
+2026-11-05 15:17:40 UTC watching: surge Gf6b70da8 >= 1.08 (The Dahas cover raise assumes no crowding; per L2 switch to an ask raise if it surges)
+2026-11-05 15:17:40 UTC watching: our_stock G8adbc159 >= 20 (If Avenuel stock keeps growing after the ask cut, restock is overfeeding it and cover should drop)
+2026-11-05 15:17:40 UTC watching: surge G8ec51935 >= 1.2 (If Mate cost keeps climbing, margin at the higher ask erodes; reconsider holding it)
+2026-11-05 15:17:40 UTC watching: our_stock G1515d951 <= 8 (Once Green Tea is sold down, decide whether to restore a small cover)
+2026-11-05 15:17:40 UTC watching: class_rank  >= 3 (Wake if SungJinho or psyoung82 overtake us)
+2026-11-05 15:17:40 UTC [apply] ask G8ec51935 1.03 -> 1.05 (asked 1.05) | Crowded (17 shops, surge 1.112) but clears at 0.1h hold; per L2/L10 take margin through the ask rather than adding cover | predicts sold_next_6h >= 30 | uses ['L2', 'L10', 'L8']
+2026-11-05 15:17:40 UTC [apply] ask G8adbc159 0.96 -> 0.92 (asked 0.92) | Oldest unit 7.9h, walk-aways 36 vs 28 sold, market settles at 0.69-0.72 of list; margin per unit stays well above 10% | predicts sold_next_6h >= 20 | uses ['L4']
+2026-11-05 15:17:40 UTC [apply] cover G1515d951 0.5 -> 0 (asked 0) | Sales slumped, 26 shops, ~12% margin, 51 units held; stop refilling and sell down so the cash can fund big-ticket lines | predicts sold_next_6h >= 20 | uses ['L5', 'L11', 'L1']
+2026-11-05 15:17:40 UTC [apply] ask Gbec2b68f 1 -> 1.03 (asked 1.03) | 4.0M list, 428k margin per unit, 0.3h hold, 5.0 stars, 9 shops, no surge; a fast-clearing big-ticket line where an ask raise lifts book | predicts sold_next_6h >= 7 | uses ['L10', 'L8']
+2026-11-05 15:17:40 UTC [apply] cover Gf6b70da8 1.5 -> 2 (asked 2) | 24 sold in 6h with only 8 in stock, 0.1h hold, 285k margin per unit, surge only 1.03; holding more units carries more margin | predicts sold_next_6h >= 14 | uses ['L6', 'L8']
+2026-11-05 15:17:40 UTC [apply] cover G00327e80 1 -> 1.5 (asked 1.5) | 0 stock, 17 sold in 6h, 311k margin per unit, no surge, 22 walk-aways | predicts sold_next_6h >= 7 | uses ['L6', 'L9']
+2026-11-05 15:17:40 UTC [apply] cover G754bf0ca 1.5 -> 2 (asked 2) | 0 stock, sold-out asks recur, 3 shops, no surge | predicts sold_next_6h >= 9 | uses ['L3', 'L9']
+2026-11-05 15:17:40 UTC [apply] cover G010744b7 1.5 -> 2 (asked 2) | Food meeting the L7 test: 0h hold, 7 sold-out asks, no surge, 23% margin | predicts sold_next_6h >= 10 | uses ['L7', 'L9']
+2026-11-05 15:17:40 UTC [apply] cover G3e0d6c67 1 -> 1.5 (asked 1.5) | 0 stock, 268k margin per unit, 11 walk-aways against 4 sales, 7 shops, no surge | predicts sold_next_6h >= 2 | uses ['L6', 'L9']
+2026-11-05 15:17:40 UTC [apply] ask G021aae64 1 -> 0.96 (asked 0.96) | Oldest unit 4.9h, 71 walk-aways against 22 sold; margin about 15% of the settled price leaves room for a 4% cut | predicts sold_next_6h >= 16 | uses ['L4']
+2026-11-05 15:45:05 UTC woken early by watch condition: {"metric": "our_stock", "sku": "G8adbc159", "op": ">=", "value": 20, "why": "If Avenuel stock keeps growing after the ask cut, restock is overfeeding it and cover should drop", "now": 25}
+2026-11-05 15:45:46 UTC probe: sku_prices {"sku": "G8ec51935"} done
+2026-11-05 15:46:07 UTC probe: sku_prices {"sku": "Gbec2b68f"} done
+2026-11-05 15:46:09 UTC probe: competitor {"shop": "inextro"} done
+2026-11-05 15:46:09 UTC probe: unserved {} done
+2026-11-05 15:46:32 UTC probe: sku_prices {"sku": "G00327e80"} done
+2026-11-05 15:47:18 UTC strategist: model answered in 46 s (34100 chars in)
+2026-11-05 15:47:18 UTC [apply] market read: We are 2nd (1.635 vs inextro 1.659, gap 0.024), and SungJinho is far behind at 1.549, so the risk is mostly upside left unclaimed. Shop book is the weak axis (rank 7/53, 230M vs inextro 518M) while revenue is rank 5. That points to margin per unit and capital efficiency, not volume. Cash is down to 29M against 206M of stock at cost, close to the ~25M line in L11, so any cover raise has to be funded by trimming a slow pile. The woken watch confirms Avenuel is overfed: 25 units, oldest 7.4h, 30 sold in 6h against 38 walk-aways, already at ask 0.92. Its margin is ~12% of list, so a further price cut would push it below the L4 floor; the fix is cover, not price. Simmons Beautyrest holds 42 units (~5.5h of our sales) with walk-aways above sales; it is the other cash sink worth trimming. Mate sofa is clearing in 0.1h at the max ask factor 1.05 with surge 1.136; competitors' cheapest median is ~0.63 of list, so we hold it as is. Dahas (2.33M, 284k margin, no surge, 9 shops, hold 0.2h, cover already at max 2.0) is the clean ask-raise case under L10. Plana basic 4-seat (311k margin), the Riposo recliner (2 shops) and the Bedrium folding mattress (3 shops) all sit at 0 stock while selling. E
+2026-11-05 15:47:18 UTC memory: lesson L11 rewritten: Check cash against stock before raising cover. At 11-05 15:16 cash was 53.6M against 172M stock, so a few big-ticket raises are fundable. When cash drops below ~25M, pair each cover raise with a cut on a low-margin crowd -> Check cash against stock before raising cover. When cash is below ~30M (11-05 15:46: 29M cash vs 206M stock), fund each cover raise by cutting cover on a big pile holding more than ~4h of our own sales (e.g. Avenuel 25 u
+2026-11-05 15:47:18 UTC memory: lesson L13 added: When a SKU's ask factor is already pinned at the 1.05 cap and it still clears in about 0.1h, leave it alone. Look for margin on uncapped big-ticket SKUs that clear just as fast.
+2026-11-05 15:47:18 UTC asked to investigate: {"kind": "sku_prices", "sku": "G8adbc159"}
+2026-11-05 15:47:18 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gf6b70da8"}
+2026-11-05 15:47:18 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gb5d0dde7"}
+2026-11-05 15:47:18 UTC asked to investigate: {"kind": "competitor", "shop": "Kiro729"}
+2026-11-05 15:47:18 UTC asked to investigate: {"kind": "sku_prices", "sku": "G9f7c7d1b"}
+2026-11-05 15:47:18 UTC watching: our_stock G8adbc159 <= 5 (Once Avenuel is sold down, restore cover toward 1.0 so we don't lose a 231k-margin seller.)
+2026-11-05 15:47:18 UTC watching: surge G00327e80 >= 1.08 (If the Plana cover raise crowds supply, switch to an ask raise per L2.)
+2026-11-05 15:47:18 UTC watching: our_stock Gb5d0dde7 <= 8 (Restore Simmons cover once the pile clears.)
+2026-11-05 15:47:18 UTC watching: class_rank  <= 1 (Wake if we pass inextro, then reassess risk appetite.)
+2026-11-05 15:47:18 UTC [apply] cover G8adbc159 1 -> 0.5 (asked 0.5) | Watch fired at 25 units, oldest 7.4h, with walk-aways above sales. Margin (~12%) is too thin for another ask cut, so cut restock instead and free cash. | predicts sold_next_6h >= 20 | uses ['L4', 'L11', 'L8']
+2026-11-05 15:47:18 UTC [apply] cover Gb5d0dde7 1 -> 0.5 (asked 0.5) | 42 units is ~5.5h of our sales with 68 walk-aways. Trim it to fund higher-margin out-of-stock SKUs while cash is near 29M. | predicts sold_next_6h >= 30 | uses ['L11', 'L8']
+2026-11-05 15:47:18 UTC [apply] ask Gf6b70da8 1 -> 1.03 (asked 1.03) | Big-ticket item clearing in 0.2h at max cover, no surge, 9 shops: take margin per L10. | predicts sold_next_6h >= 12 | uses ['L10', 'L9', 'L6']
+2026-11-05 15:47:18 UTC [apply] cover G00327e80 1.5 -> 2 (asked 2) | 311k margin per unit, 17 sold in 6h, stock 0, no surge; funded by the Avenuel and Simmons trims. | predicts sold_next_6h >= 8 | uses ['L6', 'L9', 'L11']
+2026-11-05 15:47:18 UTC [apply] cover G9f7c7d1b 1.5 -> 2 (asked 2) | Recliner with 220k margin and only 2 shops, sold out; supply is thin, so the prediction is conservative. | predicts sold_next_6h >= 5 | uses ['L3', 'L6', 'L9']
+2026-11-05 15:47:18 UTC [apply] cover G25fe9221 1.5 -> 2 (asked 2) | 3 shops, 75 sold in 6h, 15% margin, stock 0. Units are cheap (~95k), so the raise costs little cash. | predicts sold_next_6h >= 35 | uses ['L3', 'L9']
+2026-11-05 16:45:09 UTC woken early by watch condition: {"metric": "class_rank", "sku": "", "op": "<=", "value": 1, "why": "Wake if we pass inextro, then reassess risk appetite.", "now": 1}
+2026-11-05 16:45:47 UTC probe: sku_prices {"sku": "G8adbc159"} done
+2026-11-05 16:46:08 UTC probe: sku_prices {"sku": "Gf6b70da8"} done
+2026-11-05 16:46:24 UTC probe: sku_prices {"sku": "Gb5d0dde7"} done
+2026-11-05 16:46:26 UTC probe: competitor {"shop": "Kiro729"} done
+2026-11-05 16:46:48 UTC probe: sku_prices {"sku": "G9f7c7d1b"} done
+2026-11-05 16:47:44 UTC strategist: model answered in 56 s (33701 chars in)
+2026-11-05 16:47:44 UTC [apply] market read: We are now 1st in the class (1.644 vs SungJinho 1.554), so the job shifts from catching up to protecting the lead while closing the book gap. Book (rank 6/52, 253M) is our weakest shop axis. Revenue (2/52) is near its ceiling, and stars (20/52) move too slowly to steer. Cash is the binding constraint: 22M cash against 237M of stock, so every cover raise must be funded by trimming a pile. The biggest cash sink is the Simmons Jasmine king bed: 22 units at about 2.6M cost each (~57M), selling 16 per 6 h, which is about 8 h of stock. The Mate 4-seat sofa still clears in 0.1 h, but its ask is pinned at 1.05 and its cost surge has reached 1.164 across 18 shops. Per L13 we leave it alone and watch whether surge erodes its margin. Avenuel's cheapest shops settle at 0.62-0.66 of list, well below our effective ask. We still sell 27 per 6 h, but the oldest unit is 8.4 h old, so a step down toward the band should turn the tail over without giving up the fast sales. Dahas, Lacloud and the Ace SS bed clear in 0.3-0.4 h at 210-256k margin per unit (Ace at 86k), which makes them the cleanest ask-raise candidates for book (L10). Ace also carries a 1.12 surge, so L2 says raise price rather than cove
+2026-11-05 16:47:44 UTC memory: lesson L12 rewritten: Crowded big-ticket SKUs settle at about 0.70-0.76 of list (Avenuel, Lumi, Green Tea on 11-05). When stock ages past 4h on one of them, our effective ask is above that band: cut toward it rather than cutting cover. -> Crowded big-ticket SKUs settle at about 0.62-0.76 of list (Avenuel 0.62-0.66, Dahas 0.70-0.75, Simmons Beautyrest 0.64-0.76 on 11-05). When stock ages past 4h on one of them, our effective ask is above that band: cut tow
+2026-11-05 16:47:44 UTC memory: lesson L14 added: When cash is below ~30M, cap the costliest SKUs (list > 3M) at about 6h of our own sales. They tie up the most cash per unit, and their sales come in fewer, lumpier units.
+2026-11-05 16:47:44 UTC asked to investigate: {"kind": "sku_prices", "sku": "G03d0199f"}
+2026-11-05 16:47:44 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gbec2b68f"}
+2026-11-05 16:47:44 UTC asked to investigate: {"kind": "sku_prices", "sku": "G8095ddd6"}
+2026-11-05 16:47:44 UTC asked to investigate: {"kind": "competitor", "shop": "dae-yangkim"}
+2026-11-05 16:47:44 UTC asked to investigate: {"kind": "sku_prices", "sku": "G1515d951"}
+2026-11-05 16:47:44 UTC watching: our_stock Gbec2b68f <= 6 (Restore Jasmine cover toward 1.5 once the pile clears and cash allows.)
+2026-11-05 16:47:44 UTC watching: surge G8ec51935 >= 1.25 (Mate's ask is capped; if surge keeps rising, margin erodes and cover should be trimmed.)
+2026-11-05 16:47:44 UTC watching: class_rank  >= 2 (Wake if we lose first place, then reassess.)
+2026-11-05 16:47:44 UTC watching: our_stock G8adbc159 <= 5 (Once Avenuel clears after the ask cut, restore cover toward 1.0 and the ask toward 0.92.)
+2026-11-05 16:47:44 UTC [apply] cover Gbec2b68f 1.5 -> 1 (asked 1) | 22 units at ~2.6M cost (~57M) ties up cash at ~8h of our sales while cash is 22M; trim to fund faster turners. | predicts sold_next_6h >= 10 | uses ['L11']
+2026-11-05 16:47:44 UTC [apply] ask G8adbc159 0.92 -> 0.87 (asked 0.87) | Oldest unit is 8.4h; cheapest shops settle at 0.62-0.66 of list, so our ask sits above the band. Margin stays well above 10% after a 5% cut. | predicts sold_next_6h >= 18 | uses ['L4', 'L12']
+2026-11-05 16:47:44 UTC [apply] ask G03d0199f 1 -> 1.03 (asked 1.03) | Clears in 0.4h, 210k margin per unit, no surge, uncapped: a big-ticket ask raise for book. | predicts sold_next_6h >= 22 | uses ['L10', 'L13', 'L8']
+2026-11-05 16:47:44 UTC [apply] ask Gf6b70da8 1.03 -> 1.05 (asked 1.05) | Clears in 0.3h, 256k margin per unit, cover already at max: take the remaining price headroom. | predicts sold_next_6h >= 20 | uses ['L10', 'L13', 'L9']
+2026-11-05 16:47:44 UTC [apply] ask G8095ddd6 1 -> 1.03 (asked 1.03) | Surge 1.122 with 14 shops; clears in 0.3h at ~10% margin. Per L2, raise price rather than volume. | predicts sold_next_6h >= 24 | uses ['L2', 'L8']
+2026-11-05 16:47:44 UTC [apply] ask G010744b7 1 -> 1.05 (asked 1.05) | 11 sold-out asks with cover already at 2.0: demand exceeds what supply delivers, so take price. | predicts sold_next_6h >= 10 | uses ['L7', 'L9']
+2026-11-05 16:47:44 UTC [apply] ask G754bf0ca 1 -> 1.04 (asked 1.04) | 4 shops, sold-out asks, hold 0h, cover at max: a near-monopoly that can carry a higher ask. | predicts sold_next_6h >= 10 | uses ['L9', 'L13']
+2026-11-05 16:47:44 UTC [apply] cover G429bd69e 1 -> 1.5 (asked 1.5) | Sold 17 in 6h with 0.1h hold, 0 stock, few shops; funded by the Jasmine trim. | predicts sold_next_6h >= 7 | uses ['L3', 'L11', 'L9']
+2026-11-05 17:00:09 UTC woken early by watch condition: {"metric": "class_rank", "sku": "", "op": ">=", "value": 2, "why": "Wake if we lose first place, then reassess.", "now": 2}
+2026-11-05 17:00:54 UTC probe: sku_prices {"sku": "G03d0199f"} done
+2026-11-05 17:01:14 UTC probe: sku_prices {"sku": "Gbec2b68f"} done
+2026-11-05 17:01:38 UTC probe: sku_prices {"sku": "G8095ddd6"} done
+2026-11-05 17:01:41 UTC probe: competitor {"shop": "dae-yangkim"} done
+2026-11-05 17:02:03 UTC probe: sku_prices {"sku": "G1515d951"} done
+2026-11-05 17:02:56 UTC strategist: model answered in 53 s (33969 chars in)
+2026-11-05 17:02:56 UTC [apply] market read: We are 2nd in the class (1.634 vs inextro 1.659), and the gap is almost entirely shop book: 262M (rank 7/53) against inextro's 525M. Our revenue (rank 3) and buyer side (surplus 6/51, forum 13/51) are already strong. Cash has recovered to 61M against 206M of stock, so the L11 funding constraint no longer binds and we can open a few new high-margin lines without cutting others. The book engine is the Jacomo Mate sofa: 130 sold in 6h at about 307k margin each, roughly 40M of book per 6h. Its ask is pinned at 1.05 and it clears in 0.1h, so per L13 we leave it alone. Its surge (1.096) is climbing and stays on watch. Dahas is pinned at both caps and clears in 0.3h, so there is nothing to do there. Avenuel (17 units, oldest 8.6h, 23 sold in 6h) is clearing after the ask cut, at about 4.5h of cover. The existing watch will restore it, so no move now. Lacloud settles at 0.62-0.67 of list market-wide, yet ours clears in 0.5h at ask 1.03, so we hold it. Jasmine (21 units, about 7h of sales, about 55M of cash tied up) is acceptable at current cash. Ace BMA has a 1.10 surge and clears in 0.3h, which is the L2 case for raising the ask. The goose duvet clears in 0.2h with no walkaways, which mak
+2026-11-05 17:02:56 UTC memory: lesson L15 added: A SKU pinned at both caps (ask 1.05, cover 2.0) that still clears fast needs no further moves; spend moves on opening high-margin lines (>200k per unit or >20% margin) that sit at 0 stock with no knobs set.
+2026-11-05 17:02:56 UTC memory: lesson L11 rewritten: Check cash against stock before raising cover. When cash is below ~30M (11-05 15:46: 29M cash vs 206M stock), fund each cover raise by cutting cover on a big pile holding more than ~4h of our own sales (e.g. Avenuel 25 u -> Check cash against stock before raising cover. When cash is below ~30M, fund each cover raise by cutting cover on a pile holding more than ~4h of our own sales; above ~50M (11-05 17:02: 61M), cover raises on high-margin 
+2026-11-05 17:02:56 UTC asked to investigate: {"kind": "competitor", "shop": "inextro"}
+2026-11-05 17:02:56 UTC asked to investigate: {"kind": "sku_prices", "sku": "G05277ffe"}
+2026-11-05 17:02:56 UTC asked to investigate: {"kind": "sku_prices", "sku": "G2698c6f8"}
+2026-11-05 17:02:56 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gc1297f36"}
+2026-11-05 17:02:56 UTC asked to investigate: {"kind": "unserved"}
+2026-11-05 17:02:56 UTC watching: class_rank  >= 3 (We are 2nd now; wake if we drop to 3rd (SungJinho at 1.543).)
+2026-11-05 17:02:56 UTC watching: surge G8095ddd6 >= 1.2 (With the ask now capped, cover should be trimmed if surge keeps eroding margin.)
+2026-11-05 17:02:56 UTC watching: our_stock Gc1297f36 >= 70 (Lumi pile is at 47 (about 5h); wake if it grows past about 7h of sales and needs an ask cut.)
+2026-11-05 17:02:56 UTC [apply] ask G8095ddd6 1.03 -> 1.05 (asked 1.05) | Surge 1.102 shows the SKU is crowding; ours clears in 0.3h with 43 sold in 6h, so take margin rather than add cover. | predicts sold_next_6h >= 26 | uses ['L2', 'L10']
+2026-11-05 17:02:56 UTC [apply] ask G05277ffe 1 -> 1.05 (asked 1.05) | Uncapped, clears in 0.2h with 0 walkaways and about 14% margin; a small raise should not stall it. | predicts sold_next_6h >= 9 | uses ['L13', 'L1']
+2026-11-05 17:02:56 UTC [apply] cover G2698c6f8 1 -> 1.5 (asked 1.5) | Big-ticket sofa at 275k margin per unit, 6 sold in 6h, stock 0, 18.9 market sales/h; cash now supports it. | predicts sold_next_6h >= 3 | uses ['L6', 'L9']
+2026-11-05 17:02:56 UTC [apply] cover G3e0d6c67 1.5 -> 2 (asked 2) | Simmons Hub at 268k margin per unit sits at 0 stock with 8 walkaways in 6h; supply is the limit. | predicts sold_next_6h >= 1 | uses ['L6', 'L9']
+2026-11-05 17:02:56 UTC [apply] cover Gea0cca52 1 -> 1.5 (asked 1.5) | Pillow set at about 27% margin (86k per unit), 10 sold in 6h, stock 0, only 6 shops. | predicts sold_next_6h >= 5 | uses ['L1', 'L9']
+2026-11-05 17:02:56 UTC [apply] cover G2560a8c9 1 -> 1.5 (asked 1.5) | Food meeting all L7 conditions: hold 0h, 3 sold-out asks, no surge, about 18% margin. | predicts sold_next_6h >= 22 | uses ['L7', 'L9']
+2026-11-05 18:00:11 UTC woken early by watch condition: {"metric": "class_rank", "sku": "", "op": ">=", "value": 3, "why": "We are 2nd now; wake if we drop to 3rd (SungJinho at 1.543).", "now": 6}
+2026-11-05 18:01:01 UTC probe: competitor {"shop": "inextro"} done
+2026-11-05 18:01:40 UTC probe: sku_prices {"sku": "G05277ffe"} done
+2026-11-05 18:02:23 UTC probe: sku_prices {"sku": "G2698c6f8"} done
+2026-11-05 18:03:16 UTC probe: sku_prices {"sku": "Gc1297f36"} done
+2026-11-05 18:03:16 UTC probe: unserved {} done
+2026-11-05 18:04:21 UTC strategist: model answered in 65 s (33989 chars in)
+2026-11-05 18:04:21 UTC [apply] market read: We fell from 2nd to 6th in class (1.491). inextro leads at 1.638, and skhankim, MJforge, SUNGMYEONGGI and totato2203 sit within 0.04 of us, so small percentile shifts reorder the pack. The shop side is not the problem: shop ALL 0.88 is 3rd of 53, with revenue 3rd and book 6th. Buyer ALL at 0.65 is the drag, mainly forum (0.361, rank 39/51, weight 0.3) and deals (rank 24/51). None of our knobs reach forum, so the operator needs to look at why our posts draw dislikes. The shop engine is still the Mate 4-seat sofa: 184 sold in 6h, cleared in 0.1h, about 296k margin per unit. Its ask is pinned at 1.05 and cost surge has climbed to 1.172, so it gets no move, only a watch before surge eats the margin. Cash is the binding constraint: 12.6M cash against 280M of stock. That stock also pays about 2.8M/day in storage, which comes straight off book. Several mid-margin piles hold more than 5h of our own sales: Lumi frame (52 units, about 7h, 12% margin), Ace BMA (48 units, about 5h, surge 1.118, ask capped) and NAMU couch (19 units, about 6h, 59 walkaways against 19 sales, surge near 1.1). Trimming their cover frees cash for higher-margin lines that sit at 0 stock with no knobs: the modal pad s
+2026-11-05 18:04:21 UTC memory: lesson L11 rewritten: Check cash against stock before raising cover. When cash is below ~30M, fund each cover raise by cutting cover on a pile holding more than ~4h of our own sales; above ~50M (11-05 17:02: 61M), cover raises on high-margin  -> Check cash against stock before raising cover. When cash is below ~30M, fund each cover raise by cutting cover on a pile holding more than ~4h of our own sales (prefer low-margin or surging piles). Above ~50M, cover rais
+2026-11-05 18:04:21 UTC memory: lesson L16 added: When class rank drops while shop ALL holds its rank, the loss is on the buyer side. Forum (0.3 weight) is outside our knobs, so flag it for the operator instead of forcing extra shop moves to compensate.
+2026-11-05 18:04:21 UTC asked to investigate: {"kind": "forum", "term": "yms979"}
+2026-11-05 18:04:21 UTC asked to investigate: {"kind": "competitor", "shop": "skhankim"}
+2026-11-05 18:04:21 UTC asked to investigate: {"kind": "sku_prices", "sku": "G75f11c19"}
+2026-11-05 18:04:21 UTC asked to investigate: {"kind": "sku_prices", "sku": "G10693924"}
+2026-11-05 18:04:21 UTC asked to investigate: {"kind": "sku_prices", "sku": "G9c9f8f94"}
+2026-11-05 18:04:21 UTC watching: class_rank  >= 8 (We are 6th and the pack from 2nd to 6th sits within 0.04. Wake if we slide further.)
+2026-11-05 18:04:21 UTC watching: surge G8ec51935 >= 1.25 (The Mate sofa's ask is capped. At about +25% surge the cost increase approaches its 296k margin, so )
+2026-11-05 18:04:21 UTC watching: surge G8095ddd6 >= 1.2 (The ask is capped and cover was cut to 0.5. Stop it entirely if surge keeps rising.)
+2026-11-05 18:04:21 UTC watching: our_stock Gc1297f36 >= 60 (Cover was cut to 0.5. If the pile still grows, it needs an ask cut toward the 0.65-0.72 market band.)
+2026-11-05 18:04:21 UTC [apply] cover Gc1297f36 1 -> 0.5 (asked 0.5) | 52 units is about 7h of our sales at only 12% margin, and the market settles at 0.65-0.72 of list. Cutting cover frees about 20M+ of cash at near-zero cash. | predicts sold_next_6h >= 30 | uses ['L11', 'L1']
+2026-11-05 18:04:21 UTC [apply] cover G8095ddd6 1 -> 0.5 (asked 0.5) | 48 units (about 5h). Surge is 1.118 and the ask is already capped, so per L2 we stop feeding a crowding SKU and free cash. | predicts sold_next_6h >= 38 | uses ['L2', 'L11']
+2026-11-05 18:04:21 UTC [apply] cover G021aae64 1 -> 0.5 (asked 0.5) | Walkaways are 3x sales, the pile is about 6h, margin is about 10.7% and surge is near 1.1. Trim the pile and avoid an ask cut (L5). | predicts sold_next_6h >= 12 | uses ['L2', 'L5', 'L11']
+2026-11-05 18:04:21 UTC [apply] cover G75f11c19 1 -> 1.5 (asked 1.5) | 51 sold in 6h at 21% margin with 0 stock. Units are cheap, so this costs little cash and is funded by the cuts above. | predicts sold_next_6h >= 22 | uses ['L15', 'L11', 'L9']
+2026-11-05 18:04:21 UTC [apply] cover G10693924 1 -> 1.5 (asked 1.5) | 129k margin per unit (18%), no other shop holds it, 10 sold in 6h and only 3 in stock. | predicts sold_next_6h >= 5 | uses ['L3', 'L15']
+2026-11-05 18:04:21 UTC [apply] cover G9c9f8f94 1 -> 1.5 (asked 1.5) | 190k margin per unit (32%), the market sells about 4.9/h and only one shop holds it. We have 0 stock and no knobs. | predicts sold_next_6h >= 1 | uses ['L15', 'L9']
+2026-11-05 18:04:21 UTC [apply] ask G2698c6f8 1 -> 1.04 (asked 1.04) | Big-ticket sofa that clears in 0.3h with 214k margin and no ask knob yet. A small raise targets book (L10). Market pays 0.71-0.78 of list and the seller still undercuts competitors' first asks. | predicts sold_next_6h >= 7 | uses ['L10', 'L6', 'L8']
+2026-11-05 19:00:39 UTC probe: forum {"term": "yms979"} done
+2026-11-05 19:00:41 UTC probe: competitor {"shop": "skhankim"} done
+2026-11-05 19:01:06 UTC probe: sku_prices {"sku": "G75f11c19"} done
+2026-11-05 19:01:28 UTC probe: sku_prices {"sku": "G10693924"} done
+2026-11-05 19:01:56 UTC probe: sku_prices {"sku": "G9c9f8f94"} done
+2026-11-05 19:02:52 UTC strategist: model answered in 56 s (34456 chars in)
+2026-11-05 19:02:52 UTC [apply] market read: We slid from 2nd to 6th among students (1.501 vs inextro 1.634). Shop ALL held at 0.883 (3rd of 53 shops), so the loss is almost entirely on the buyer side. Buyer ALL is 0.65, dragged by forum at rank 39/51 (0.361), while surplus (6/51) and posts (14/51) are fine. Per L16 that is outside our knobs, and the operator should look at why our 452 posts score so low (dislikes, or votes from ineligible agents). On the shop side, book rank 5/53 is the lever. Our stock_cost (257-266M) is 2.5x inextro's (102M), so 1%/day storage costs about 2.6M/day of book with no score gain from holding. We should trim slow piles rather than grow them. The Mate sofa (201 sold in 6h, 0.1h hold, 294k/unit) and Dahas are pinned at caps and clearing, so we leave them alone (L13/L15). The Mate's surge at 1.118 is already watched. Lacloud is the soft spot among big-ticket lines: stock 28, oldest 5.0h, and sales slowed to 23 in 6h from about 27 per 6h earlier. Its 1.03 ask sits above the 0.72-0.80 settle band, so it gets a cut. Simmons Sweet and Zinus Lumi carry 4h+ stock but are already at reduced cover, and Zinus Greentea is a crowded thin-margin line held at cover 0 (L5). Food (apple and nuts) shows sold-out a
+2026-11-05 19:02:52 UTC memory: lesson L17 added: Our stock_cost (~260M) is about 2.5x the top shops'. Goods pay 1%/day storage (~2.6M/day of book), and stock at cost earns no score until sold. Do not add cover on SKUs whose oldest unit is past 4h; prefer ask cuts towar
+2026-11-05 19:02:52 UTC memory: lesson L18 added: Thin high-ticket lines (2-3 shops, >200k margin/unit, market_sales_h < 2) sell in ones and twos: predict sold_next_6h >= 1 for a cover raise, never scale it from 24h counts.
+2026-11-05 19:02:52 UTC asked to investigate: {"kind": "sku_prices", "sku": "G03d0199f"}
+2026-11-05 19:02:52 UTC asked to investigate: {"kind": "sku_prices", "sku": "G00327e80"}
+2026-11-05 19:02:52 UTC asked to investigate: {"kind": "competitor", "shop": "inextro"}
+2026-11-05 19:02:52 UTC asked to investigate: {"kind": "unserved"}
+2026-11-05 19:02:52 UTC asked to investigate: {"kind": "forum", "term": "yms979-buyer"}
+2026-11-05 19:02:52 UTC watching: our_stock G03d0199f >= 40 (The Lacloud ask was cut to 0.99. If the pile still grows, trim cover to 0.5 instead of cutting furth)
+2026-11-05 19:02:52 UTC watching: our_stock Gb5d0dde7 >= 30 (Simmons Sweet has 4.3h-old stock and walkaways above sales at cover 0.5. If it piles up, the ask nee)
+2026-11-05 19:02:52 UTC watching: class_rank  >= 8 (We are 6th and the 2nd-6th pack sits within 0.06, mostly on the buyer/forum side. Wake if we slide f)
+2026-11-05 19:02:52 UTC [apply] ask G03d0199f 1.03 -> 0.99 (asked 0.99) | Lacloud stock is aging (5.0h) with sales slowing to 23/6h while the ask sits at 1.03, above the crowded big-ticket settle band. A 4% cut keeps about 190k/unit margin and should clear the pile, which a | predicts sold_next_6h >= 17 | uses ['L4', 'L12', 'L8']
+2026-11-05 19:02:52 UTC [apply] ask G00327e80 1 -> 1.05 (asked 1.05) | Plana Basic 4 has cover pinned at 2.0, clears in 0.3h at 311k/unit and has no ask factor set. Raise the ask on a fast-clearing big-ticket line for book (L10). Sales depend on thin supply windows, so p | predicts sold_next_6h >= 4 | uses ['L10', 'L13', 'L9']
+2026-11-05 19:02:52 UTC [apply] cover G0e4deffc 1 -> 1.5 (asked 1.5) | Avenuel Shrunken earns 401k margin/unit, has 3 shops, sits at 0 stock with no knobs, and 3 sold in 24h. Cash 51.6M is above the L11 threshold, so a cover raise is allowed. | predicts sold_next_6h >= 1 | uses ['L15', 'L6', 'L11', 'L9']
+2026-11-05 19:02:52 UTC [apply] cover G19a70f63 1 -> 1.5 (asked 1.5) | Plana Basic 3 earns 243k/unit, has 2 shops, is at 0 stock with no knobs, and 4 sold in 24h. | predicts sold_next_6h >= 1 | uses ['L15', 'L6', 'L9']
+2026-11-05 19:02:52 UTC [apply] cover G1ec9482f 1 -> 1.5 (asked 1.5) | Sealy Mone2 set earns 222k/unit, has 2 shops, sold 10 in 24h and is now at 0 stock with no knobs. Market supply is thin, so the prediction is low. | predicts sold_next_6h >= 1 | uses ['L15', 'L6', 'L9']
+2026-11-05 20:03:40 UTC scored ask G8ec51935 margin_next_6h >= 8000000: got 59987920 -> HIT (lessons [])
+2026-11-05 20:03:40 UTC scored ask Gef4d3036 sold_next_6h >= 70: got 0 -> MISS (lessons [])
+2026-11-05 20:03:40 UTC scored cover G25fe9221 sold_next_6h >= 55: got 3 -> MISS (lessons [])
+2026-11-05 20:03:40 UTC scored cover G2560a8c9 sold_next_6h >= 35: got 12 -> MISS (lessons [])
+2026-11-05 20:03:40 UTC scored cover G010744b7 sold_next_6h >= 14: got 16 -> HIT (lessons [])
+2026-11-05 20:03:40 UTC scored cover G9f7c7d1b sold_next_6h >= 10: got 0 -> MISS (lessons [])
+2026-11-05 20:03:40 UTC scored cover G754bf0ca sold_next_6h >= 12: got 13 -> HIT (lessons [])
+2026-11-05 20:03:40 UTC scored ask G8adbc159 sold_next_6h >= 22: got 28 -> HIT (lessons [])
+2026-11-05 20:03:40 UTC scored ask Gb5d0dde7 sold_next_6h >= 40: got 45 -> HIT (lessons [])
+2026-11-05 20:03:40 UTC scored ask G9357d6c2 sold_next_6h >= 4: got 4 -> HIT (lessons [])
+2026-11-05 20:03:40 UTC scored ask G021aae64 sold_next_6h >= 12: got 12 -> HIT (lessons [])
+2026-11-05 20:03:40 UTC scored ask G8ec51935 sold_next_6h >= 28: got 224 -> HIT (lessons ['L2', 'L6', 'L1'])
+2026-11-05 20:03:40 UTC scored ask G8adbc159 sold_next_6h >= 16: got 28 -> HIT (lessons ['L4', 'L6'])
+2026-11-05 20:03:40 UTC scored ask Gb5d0dde7 sold_next_6h >= 30: got 45 -> HIT (lessons ['L4', 'L6'])
+2026-11-05 20:03:40 UTC scored ask G9357d6c2 sold_next_6h >= 3: got 4 -> HIT (lessons ['L4'])
+2026-11-05 20:03:40 UTC scored ask G8095ddd6 sold_next_6h >= 9: got 45 -> HIT (lessons ['L2', 'L8'])
+2026-11-05 20:03:40 UTC scored ask Gef4d3036 sold_next_6h >= 70: got 0 -> MISS (lessons ['L2', 'L7'])
+2026-11-05 20:03:40 UTC scored cover G9f7c7d1b sold_next_6h >= 6: got 0 -> MISS (lessons ['L3', 'L6'])
+2026-11-05 20:03:40 UTC scored cover G754bf0ca sold_next_6h >= 10: got 13 -> HIT (lessons ['L3'])
+2026-11-05 20:03:40 UTC scored cover G45c54b01 sold_next_6h >= 6: got 0 -> MISS (lessons ['L3'])
+2026-11-05 20:03:40 UTC scored cover G25fe9221 sold_next_6h >= 50: got 3 -> MISS (lessons ['L3', 'L8'])
+2026-11-05 20:03:40 UTC method: cover hit 33% of its last 9; step limit 0.5 -> 0.25
+2026-11-05 20:04:01 UTC critic: model answered in 21 s (6872 chars in)
+2026-11-05 20:04:01 UTC critic: All eight misses share one error: the strategist scaled sold_next_6h from last-6h sales (L8, L9) on SKUs whose stock on hand was far below that rate. Actual sales came in at or below the stock on hand: 3 on the mattress with stock 3-4, 12 on G2560a8c9 with stock 7 (a little restock arrived), and 0 on the two big-ticket lines at stock 0. Sold-out asks with low stock signal a supply bottleneck. A cover raise (L3, L6) did not create supply within 6h, so L3 is applied where it does not fit and L9 is wrong. On apples, L2 led to an ask raise on a surging, nearly sold-out perishable, and 70 sales were predicted against 13 units in stock. The result was 0, so L2 is too broad: it ignores stock and pe
+2026-11-05 20:04:01 UTC memory: lesson L8 rewritten: Predict sold_next_6h at about 70-85% of the last 6h to absorb noise; use margin predictions only for SKUs that sell steadily. -> Predict sold_next_6h at about 70-85% of the last 6h only when stock on hand covers that amount; otherwise predict at most current stock. Use margin predictions only for SKUs that sell steadily.
+2026-11-05 20:04:01 UTC memory: lesson L9 retired (Its 40-60% scaling for 0-stock SKUs produced 6-10 predictions that came in at 0. The stock cap in the rewritten L8 replaces it.): Cover raises on SKUs at 0 stock depend on thin supply windows; predict sold_next_6h at about 40-60% of the last 6h, not 70-85%.
+2026-11-05 20:04:01 UTC memory: lesson L3 rewritten: Sold-out asks on a SKU with no cost surge and few shops (2-3) means raise cover by 0.5. -> Sold-out asks with no cost surge and 2-3 shops: raise cover by 0.5 only if stock > 0 and sold_last_6h exceeds stock; predict sold_next_6h <= current stock, since added cover is not seen arriving within 6h.
+2026-11-05 20:04:01 UTC memory: lesson L2 rewritten: When cost_surge > 1.08, the market is crowding the SKU: raise the ask instead of raising cover. -> When cost_surge > 1.08 on a non-perishable SKU with stock above 6h of sales, raise the ask instead of cover. On perishables or when stock is below 6h of sales, hold (see L7) and predict sold_next_6h <= stock.
+2026-11-05 20:04:01 UTC memory: lesson L18 rewritten: Thin high-ticket lines (2-3 shops, >200k margin/unit, market_sales_h < 2) sell in ones and twos: predict sold_next_6h >= 1 for a cover raise, never scale it from 24h counts. -> Thin high-ticket lines (2-3 shops, >200k margin/unit, market_sales_h < 2) sell in ones and twos. At stock 0, make no sold_next_6h prediction for a cover raise. With stock > 0, predict >= 1 and never scale from 6h or 24h 
+2026-11-05 20:04:01 UTC memory: lesson L6 rewritten: Big-ticket sofas and beds carry the margin; keep them stocked before chasing cheap high-volume items. -> Big-ticket sofas and beds carry the margin. Keep them stocked when stock > 0, but a cover raise at stock 0 is a bet on supply, not a predicted sale.
+2026-11-05 20:04:29 UTC probe: sku_prices {"sku": "G03d0199f"} done
+2026-11-05 20:04:50 UTC probe: sku_prices {"sku": "G00327e80"} done
+2026-11-05 20:04:57 UTC probe: competitor {"shop": "inextro"} done
+2026-11-05 20:04:57 UTC probe: unserved {} done
+2026-11-05 20:04:57 UTC probe: forum {"term": "yms979-buyer"} done
+2026-11-05 20:06:01 UTC strategist: model answered in 64 s (37901 chars in)
+2026-11-05 20:06:01 UTC [apply] market read: We are 5th in class at 1.537, 0.10 behind inextro (1.637). Places 2-6 sit within 0.03, so small gains move rank. On the shop side we are strong (book 4/53, revenue 3/53). Our weak points are stars (21/53, all-time and slow to move) and, mainly, buyer forum (39/51, 0.362). Forum is outside our knobs (L16), so the operator should look at post quality: our buyer posts should earn clean likes rather than mixed votes. Our stock_cost is 300M with only 34M cash. inextro holds 121M and Kiro729 holds 79M, so our cash is tied up in piles while the Mate sofa (224 sold in 6h, 284k per unit, ask already at 1.05) carries most of our margin. Most other sales come from the Dahas, Simmons and Lacloud beds and from the Ace and Zinus Lumi mattresses. Several of those now hold more than 6h of our own sales, with the oldest units past 4h. Lacloud has aged to 6.1h and its sales fell from about 25 to 20 per 6h. The market settles it at 0.71-0.74 of list, with the cheapest shop's median at 0.709, so our ask sits above the clearing band. Every cover raise at stock 0 missed (3 of 9 cover moves hit), because supply, not cover, is the limit on those thin lines. Ask moves hit 10 of 12. This round I spend moves
+2026-11-05 20:06:01 UTC memory: lesson L19 added: Cover cuts on piles holding more than 6h of our own sales are the reliable way to free cash. Predict sold_next_6h at about 65-70% of the last 6h, since stock on hand carries it. Cover raises at stock 0 went 0-for-6 and s
+2026-11-05 20:06:01 UTC memory: lesson L20 added: Forum rank (39/51) is our largest buyer-side gap and sits outside the knobs. Flag it for the operator each round while forum rank is worse than 30, and do not compensate with extra shop moves.
+2026-11-05 20:06:01 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gc1297f36"}
+2026-11-05 20:06:01 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gbec2b68f"}
+2026-11-05 20:06:01 UTC asked to investigate: {"kind": "competitor", "shop": "Kiro729"}
+2026-11-05 20:06:01 UTC asked to investigate: {"kind": "forum", "term": "yms979"}
+2026-11-05 20:06:01 UTC asked to investigate: {"kind": "rules", "term": "storage"}
+2026-11-05 20:06:01 UTC watching: surge G8ec51935 >= 1.25 (Mate sofa carries our margin. A surge past +25% eats about 1/3 of the 284k per-unit margin, and the )
+2026-11-05 20:06:01 UTC watching: our_stock G03d0199f >= 35 (If Lacloud still piles up after the cut to 0.94, trim cover rather than cutting price further.)
+2026-11-05 20:06:01 UTC watching: our_stock Gc1297f36 >= 55 (If Lumi keeps growing at cover 0.25, it needs a small ask cut while margin allows.)
+2026-11-05 20:06:01 UTC watching: class_rank  >= 7 (Places 2-6 are within 0.03, and totato2203 is 0.006 behind us. Wake if we slide.)
+2026-11-05 20:06:01 UTC [apply] ask G03d0199f 0.99 -> 0.94 (asked 0.94) | Lacloud: oldest 6.1h, sales fell to 20 per 6h with 26 in stock. The market settles at 0.71-0.74 of list and the cheapest shop's median is 0.709. Margin is about 13.7%, so a 5% cut keeps it above 10%. | predicts sold_next_6h >= 16 | uses ['L4', 'L12', 'L8']
+2026-11-05 20:06:01 UTC [apply] cover Gc1297f36 0.5 -> 0.25 (asked 0.25) | Zinus Lumi: 44 in stock against 30 sold in 6h, oldest 4.7h, margin only ~11.7%. The pile already covers the next 6h, so cutting cover frees cash at 34M. | predicts sold_next_6h >= 20 | uses ['L11', 'L17', 'L8']
+2026-11-05 20:06:01 UTC [apply] cover Gbec2b68f 1 -> 0.75 (asked 0.75) | Simmons Jasmine (list 4.05M): 21 in stock, more than the 19 sold in 6h, oldest 4.4h. This is the costliest pile per unit, and cash is near 30M. | predicts sold_next_6h >= 12 | uses ['L14', 'L11', 'L8']
+2026-11-05 20:06:01 UTC [apply] cover Gf6b70da8 2 -> 1.75 (asked 1.75) | Dahas: cover is pinned at 2.0 with 37 in stock, about 6h of our sales, and walkaways above sales. Trimming frees cash, and stock on hand covers the next 6h. | predicts sold_next_6h >= 22 | uses ['L11', 'L8']
+2026-11-05 20:06:01 UTC [apply] cover G2698c6f8 1.5 -> 1.25 (asked 1.25) | Downing Plana 3-seat: 15 in stock against 10 sold in 6h (14 in 24h), at cover 1.5. The pile exceeds 6h of sales, so I trim it to fund faster lines. | predicts sold_next_6h >= 6 | uses ['L11', 'L18']
+2026-11-05 20:06:01 UTC [apply] cover Gcc06fe5c 1 -> 1.25 (asked 1.25) | GS loess sofa: 177k margin per unit (37%), 4 shops, stock 1, 2 sold in 6h, low cost per unit. It is a thin line with stock > 0, so I predict only 1 or more. | predicts sold_next_6h >= 1 | uses ['L15', 'L18']
+2026-11-05 20:06:01 UTC [apply] ask G2607d1f6 1 -> 1.04 (asked 1.04) | Bedrium LED bed: 4 shops, average hold 0.2h, 7 sold in 6h with 5 in stock, ask factor not yet set. There is room for margin on a fast-clearing line with no cap reached. | predicts sold_next_6h >= 4 | uses ['L13', 'L10']
+2026-11-05 21:00:23 UTC woken early by watch condition: {"metric": "class_rank", "sku": "", "op": ">=", "value": 7, "why": "Places 2-6 are within 0.03, and totato2203 is 0.006 behind us. Wake if we slide.", "now": 10}
+2026-11-05 21:01:56 UTC scored ask G8ec51935 margin_next_6h >= 8000000: got 77862969 -> HIT (lessons ['L2', 'L10', 'L8'])
+2026-11-05 21:01:56 UTC scored ask G8adbc159 sold_next_6h >= 18: got 37 -> HIT (lessons ['L4', 'L8'])
+2026-11-05 21:01:56 UTC scored ask Gc1297f36 sold_next_6h >= 50: got 32 -> MISS (lessons ['L1', 'L8'])
+2026-11-05 21:01:56 UTC reverted ask on Gc1297f36: its prediction failed
+2026-11-05 21:01:56 UTC scored cover G1515d951 sold_next_6h >= 25: got 55 -> HIT (lessons ['L5', 'L1', 'L6'])
+2026-11-05 21:01:56 UTC scored cover G9f7c7d1b sold_next_6h >= 6: got 0 -> MISS (lessons ['L3', 'L6', 'L9'])
+2026-11-05 21:01:56 UTC reverted cover on G9f7c7d1b: its prediction failed
+2026-11-05 21:01:56 UTC scored cover G25fe9221 sold_next_6h >= 35: got 3 -> MISS (lessons ['L3', 'L9'])
+2026-11-05 21:01:56 UTC reverted cover on G25fe9221: its prediction failed
+2026-11-05 21:01:56 UTC scored cover G754bf0ca sold_next_6h >= 9: got 21 -> HIT (lessons ['L3', 'L9'])
+2026-11-05 21:01:56 UTC scored cover G45c54b01 sold_next_6h >= 5: got 0 -> MISS (lessons ['L3', 'L9'])
+2026-11-05 21:01:56 UTC reverted cover on G45c54b01: its prediction failed
+2026-11-05 21:01:56 UTC scored cover G8c325f68 sold_next_6h >= 6: got 1 -> MISS (lessons ['L3', 'L9'])
+2026-11-05 21:01:56 UTC reverted cover on G8c325f68: its prediction failed
+2026-11-05 21:01:56 UTC scored cover Gf6b70da8 sold_next_6h >= 4: got 38 -> HIT (lessons ['L6', 'L10', 'L9'])
+2026-11-05 21:01:56 UTC scored cover Gbec2b68f sold_next_6h >= 5: got 19 -> HIT (lessons ['L6', 'L10', 'L9'])
+2026-11-05 21:01:56 UTC scored cover G010744b7 sold_next_6h >= 8: got 16 -> HIT (lessons ['L7', 'L9'])
+2026-11-05 21:02:17 UTC critic: model answered in 20 s (7996 chars in)
+2026-11-05 21:02:17 UTC critic: Nine of ten misses are the same error. A cover raise was paired with a sold_next_6h target scaled from past sales, but realized sales landed at or below stock on hand: 0 at stock 0, 3 at stock 3, 1 at stock 1. L3 was cited 9 times and was applied where it does not fit (at stock 0, which its own condition excludes), and its 'predict <= current stock' clause was ignored. L6 and L8 were also cited while their stock caps were violated, and some misses cite L9, which no longer exists. The apple miss (L2/L7) raised the ask on a surging perishable and predicted 70 against what was evidently empty stock; L2 says to hold perishables and cap at stock, so this misapplied a correct lesson. The Gc1297f36
+2026-11-05 21:02:17 UTC memory: lesson L3 rewritten: Sold-out asks with no cost surge and 2-3 shops: raise cover by 0.5 only if stock > 0 and sold_last_6h exceeds stock; predict sold_next_6h <= current stock, since added cover is not seen arriving within 6h. -> Hard cap on any sold_next_6h prediction: at most current stock on hand. Added cover does not arrive within 6h. At stock 0, make no sold_next_6h prediction for that SKU; a cover raise there is a supply bet only.
+2026-11-05 21:02:17 UTC memory: lesson L8 rewritten: Predict sold_next_6h at about 70-85% of the last 6h only when stock on hand covers that amount; otherwise predict at most current stock. Use margin predictions only for SKUs that sell steadily. -> Predict sold_next_6h = min(current stock, 70-85% of last 6h). After an ask raise, use 40-50% of last 6h instead. Make margin predictions only for SKUs with stock > 0 that sell steadily.
+2026-11-05 21:02:17 UTC memory: lesson L2 rewritten: When cost_surge > 1.08 on a non-perishable SKU with stock above 6h of sales, raise the ask instead of cover. On perishables or when stock is below 6h of sales, hold (see L7) and predict sold_next_6h <= stock. -> When cost_surge > 1.08 on a non-perishable SKU with stock above 6h of sales, raise the ask instead of cover. Never raise the ask on perishables or at stock 0: hold, and predict sold_next_6h <= stock (0 at stock 0).
+2026-11-05 21:02:17 UTC memory: lesson L6 rewritten: Big-ticket sofas and beds carry the margin. Keep them stocked when stock > 0, but a cover raise at stock 0 is a bet on supply, not a predicted sale. -> Big-ticket sofas and beds carry the margin. Keep cover on them while stock > 0. At stock 0, a cover raise gets no sales prediction (see L3).
+2026-11-05 21:02:17 UTC memory: lesson L19 rewritten: Cover cuts on piles holding more than 6h of our own sales are the reliable way to free cash. Predict sold_next_6h at about 65-70% of the last 6h, since stock on hand carries it. Cover raises at stock 0 went 0-for-6 and s -> Cover cuts on piles holding more than 6h of our own sales are the reliable way to free cash. Predict sold_next_6h at about 65-70% of the last 6h, since stock on hand carries it.
+2026-11-05 21:02:33 UTC probe: sku_prices {"sku": "Gc1297f36"} done
+2026-11-05 21:02:48 UTC probe: sku_prices {"sku": "Gbec2b68f"} done
+2026-11-05 21:02:50 UTC probe: competitor {"shop": "Kiro729"} done
+2026-11-05 21:02:50 UTC probe: forum {"term": "yms979"} done
+2026-11-05 21:02:50 UTC probe: rules {"term": "storage"} done
+2026-11-05 21:03:33 UTC strategist: model answered in 42 s (41115 chars in)
+2026-11-05 21:03:33 UTC [apply] market read: We fell from 7th to 10th in class even though the shop side holds: shop ALL 0.933 is 3rd among shops, with book 4th, revenue 3rd and stars 22nd. Per L16, the drop is on the buyer side. Buyer ALL is only 0.58: surplus ranks 5/51 and forum has improved to 14/51, but deals sit at 24/51. That deals rank is now our weakest buyer component, and no shop knob reaches it. inextro widened the book gap (542M vs our 352M) while holding 127M of stock against our 316M. dae-yangkim leads shops on book with just 68M of stock. Our stock is 7.8x our 40M cash and pays about 3.2M/day in storage. So the cheapest book gain is to stop overholding slow big-ticket piles and to price aged stock into its clearing band. The Mate sofa is still the engine: 237 sold in 6h, 0.2h hold, ask capped. Its cost surge has reached 1.126, so I'm leaving it alone and watching the surge. The investigations show our asks sit above where the market clears on two aged piles. Lumi frames settle at 0.73 of list, and the cheapest shop's median is 500k; we have 42 units at ask 1.03 and the oldest is 5.7h. Simmons Jasmine settles at 0.76-0.79 of list; we have 21 units at ask 1.03 and the oldest is 5.4h. Lacloud is at 7h oldest with
+2026-11-05 21:03:33 UTC memory: lesson L21 added: Cover raises on SKUs at stock 0 have filled in 0 of 7 tries within 6h (Riposo, Coco LED, Bedrium, Geumgang). Treat them as dead moves: do not spend moves raising cover at stock 0. Instead ask for an `unserved` or `sku_pr
+2026-11-05 21:03:33 UTC memory: lesson L20 rewritten: Forum rank (39/51) is our largest buyer-side gap and sits outside the knobs. Flag it for the operator each round while forum rank is worse than 30, and do not compensate with extra shop moves. -> Buyer-side gaps sit outside the knobs: forum improved to rank 14/51, but deals rank (24/51) is now the weakest buyer component. Flag both for the operator each round. Do not raise quick_accept to chase deals, since surpl
+2026-11-05 21:03:33 UTC memory: lesson L17 rewritten: Our stock_cost (~260M) is about 2.5x the top shops'. Goods pay 1%/day storage (~2.6M/day of book), and stock at cost earns no score until sold. Do not add cover on SKUs whose oldest unit is past 4h; prefer ask cuts towar -> Our stock_cost (~316M on 11-05 21:00) is 2.5-4.6x the top shops' (inextro 127M, dae-yangkim 68M). Storage costs ~3.2M/day of book. Do not add cover on SKUs whose oldest unit is past 4h; prefer ask cuts toward the market'
+2026-11-05 21:03:33 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gf6b70da8"}
+2026-11-05 21:03:33 UTC asked to investigate: {"kind": "sku_prices", "sku": "G03d0199f"}
+2026-11-05 21:03:33 UTC asked to investigate: {"kind": "competitor", "shop": "dae-yangkim"}
+2026-11-05 21:03:33 UTC asked to investigate: {"kind": "unserved"}
+2026-11-05 21:03:33 UTC asked to investigate: {"kind": "rules", "term": "deals"}
+2026-11-05 21:03:33 UTC watching: surge G8ec51935 >= 1.25 (Mate sofa carries our margin. A surge past +25% eats about 1/3 of the ~285k margin per unit, and the)
+2026-11-05 21:03:33 UTC watching: our_stock G03d0199f >= 35 (If Lacloud still piles up at 0.90, cut cover instead of cutting price further.)
+2026-11-05 21:03:33 UTC watching: our_stock Gf6b70da8 >= 65 (If Dahas keeps growing after the cover cut, it needs an ask cut toward the 0.70-0.75 band.)
+2026-11-05 21:03:33 UTC watching: class_rank  >= 12 (We are now 10th. Wake if the buyer-side slide continues.)
+2026-11-05 21:03:33 UTC [apply] cover Gf6b70da8 1.75 -> 1.5 (asked 1.5) | Dahas: 56 in stock vs 30 sold/6h (~11h of our own sales), cash 40M vs stock 316M; free cash from the biggest overheld pile. Stock on hand carries sales. | predicts sold_next_6h >= 20 | uses ['L11', 'L19', 'L17']
+2026-11-05 21:03:33 UTC [apply] ask Gc1297f36 1 -> 0.98 (asked 0.98) | Lumi frame: market settles at 0.73 of list (cheapest shop median 500k); our ask factor of 1.03 leaves 42 units aging (oldest 5.7h). 81k margin/unit stays well above 10% after a 5% cut. | predicts sold_next_6h >= 15 | uses ['L4', 'L12', 'L8']
+2026-11-05 21:03:33 UTC [apply] ask Gbec2b68f 1.03 -> 0.98 (asked 0.98) | Simmons Jasmine: settles 0.76-0.79 of list, oldest unit 5.4h, 21 in stock; 453k margin/unit absorbs a 5% ask cut. | predicts sold_next_6h >= 10 | uses ['L4', 'L12', 'L8']
+2026-11-05 21:03:33 UTC [apply] ask G03d0199f 0.94 -> 0.9 (asked 0.9) | Lacloud: oldest unit 7h, sold_6h fell to 16 from a ~26/6h pace after the move to 0.94; 218k margin/unit stays above 10% after a further 4%. | predicts sold_next_6h >= 12 | uses ['L4', 'L12', 'L8']
+2026-11-05 22:01:15 UTC scored ask G8ec51935 sold_next_6h >= 30: got 277 -> HIT (lessons ['L2', 'L10', 'L8'])
+2026-11-05 22:01:15 UTC scored ask G8adbc159 sold_next_6h >= 20: got 43 -> HIT (lessons ['L4'])
+2026-11-05 22:01:15 UTC scored cover G1515d951 sold_next_6h >= 20: got 46 -> HIT (lessons ['L5', 'L11', 'L1'])
+2026-11-05 22:01:15 UTC scored ask Gbec2b68f sold_next_6h >= 7: got 15 -> HIT (lessons ['L10', 'L8'])
+2026-11-05 22:01:15 UTC scored cover Gf6b70da8 sold_next_6h >= 14: got 34 -> HIT (lessons ['L6', 'L8'])
+2026-11-05 22:01:15 UTC scored cover G00327e80 sold_next_6h >= 7: got 1 -> MISS (lessons ['L6', 'L9'])
+2026-11-05 22:01:15 UTC reverted cover on G00327e80: its prediction failed
+2026-11-05 22:01:15 UTC scored cover G754bf0ca sold_next_6h >= 9: got 30 -> HIT (lessons ['L3', 'L9'])
+2026-11-05 22:01:15 UTC scored cover G010744b7 sold_next_6h >= 10: got 19 -> HIT (lessons ['L7', 'L9'])
+2026-11-05 22:01:15 UTC scored cover G3e0d6c67 sold_next_6h >= 2: got 4 -> HIT (lessons ['L6', 'L9'])
+2026-11-05 22:01:15 UTC scored ask G021aae64 sold_next_6h >= 16: got 11 -> MISS (lessons ['L4'])
+2026-11-05 22:01:15 UTC reverted ask on G021aae64: its prediction failed
+2026-11-05 22:01:15 UTC scored cover G8adbc159 sold_next_6h >= 20: got 35 -> HIT (lessons ['L4', 'L11', 'L8'])
+2026-11-05 22:01:15 UTC scored cover Gb5d0dde7 sold_next_6h >= 30: got 38 -> HIT (lessons ['L11', 'L8'])
+2026-11-05 22:01:15 UTC scored ask Gf6b70da8 sold_next_6h >= 12: got 24 -> HIT (lessons ['L10', 'L9', 'L6'])
+2026-11-05 22:01:15 UTC scored cover G00327e80 sold_next_6h >= 8: got 1 -> MISS (lessons ['L6', 'L9', 'L11'])
+2026-11-05 22:01:15 UTC reverted cover on G00327e80: its prediction failed
+2026-11-05 22:01:15 UTC scored cover G9f7c7d1b sold_next_6h >= 5: got 0 -> MISS (lessons ['L3', 'L6', 'L9'])
+2026-11-05 22:01:15 UTC reverted cover on G9f7c7d1b: its prediction failed
+2026-11-05 22:01:15 UTC scored cover G25fe9221 sold_next_6h >= 35: got 3 -> MISS (lessons ['L3', 'L9'])
+2026-11-05 22:01:15 UTC reverted cover on G25fe9221: its prediction failed
+2026-11-05 22:01:39 UTC critic: model answered in 24 s (8352 chars in)
+2026-11-05 22:01:39 UTC critic: Eight of ten misses are cover raises on SKUs at stock 0–1 that predicted 5–35 sales in 6h and got 0–3. They cite L3, L6 and L9, but L3 already forbids any sales prediction at stock 0, so the strategist cited the rule and broke it. L9 does not exist in the playbook, and L6 and L15 actively push cover raises on big-ticket and high-margin lines sitting at 0 stock. The problem is overlapping, weakly worded rules (L3, L18 and L21 all say the same thing), plus L15 steering moves toward stock-0 lines. Those few fills (1–3 units, about 4% of the prior 6h at most) show supply does not arrive within 6h. The Gc1297f36 ask-raise miss came from applying L8's no-raise rate (68%) instead of its after-raise
+2026-11-05 22:01:39 UTC memory: lesson L3 rewritten: Hard cap on any sold_next_6h prediction: at most current stock on hand. Added cover does not arrive within 6h. At stock 0, make no sold_next_6h prediction for that SKU; a cover raise there is a supply bet only. -> Cover never arrives within 6h. Cap sold_next_6h at current stock. At stock 0, make no sold_next_6h prediction. If one is required, predict <= 1. Do not spend moves raising cover at stock 0; ask for unserved/sku_profile d
+2026-11-05 22:01:39 UTC memory: lesson L21 retired (Merged into L3.): Cover raises on SKUs at stock 0 have filled in 0 of 7 tries within 6h (Riposo, Coco LED, Bedrium, Geumgang). Treat them as dead moves: do not spend moves raising cover at stock 0. Instead ask for an `unserved` or `sku_pr
+2026-11-05 22:01:39 UTC memory: lesson L18 retired (Its stock-0 rule is in L3. Its stock>0 rule ('predict >= 1') adds little.): Thin high-ticket lines (2-3 shops, >200k margin/unit, market_sales_h < 2) sell in ones and twos. At stock 0, make no sold_next_6h prediction for a cover raise. With stock > 0, predict >= 1 and never scale from 6h or 24h 
+2026-11-05 22:01:39 UTC memory: lesson L6 rewritten: Big-ticket sofas and beds carry the margin. Keep cover on them while stock > 0. At stock 0, a cover raise gets no sales prediction (see L3). -> Big-ticket sofas and beds carry the margin: keep existing cover on them while stock > 0. Do not raise their cover at stock 0 (see L3).
+2026-11-05 22:01:39 UTC memory: lesson L15 rewritten: A SKU pinned at both caps (ask 1.05, cover 2.0) that still clears fast needs no further moves; spend moves on opening high-margin lines (>200k per unit or >20% margin) that sit at 0 stock with no knobs set. -> A SKU pinned at both caps (ask 1.05, cover 2.0) that still clears fast needs no further moves. Spend moves on high-margin lines (>200k/unit or >20%) that have stock > 0 and no knobs set.
+2026-11-05 22:01:39 UTC memory: lesson L8 rewritten: Predict sold_next_6h = min(current stock, 70-85% of last 6h). After an ask raise, use 40-50% of last 6h instead. Make margin predictions only for SKUs with stock > 0 that sell steadily. -> Predict sold_next_6h = min(stock, 70-85% of last 6h) only when the ask is unchanged. In any round with an ask raise, use 40-50% of last 6h, even if the SKU cleared instantly. Make margin predictions only for SKUs with st
+2026-11-05 22:01:39 UTC memory: lesson L4 rewritten: Old stock (oldest_h > 4) plus walkaways much higher than sold means cut the ask 3-5%, but only where margin per unit stays above about 10%. -> Old stock (oldest_h > 4) with walk-aways far above sold: cut the ask 3-5% only where margin per unit stays above ~10%. Predict sold_next_6h at about 50% of last 6h; the cut slows aging but does not restore volume.
+2026-11-05 22:01:51 UTC probe: sku_prices {"sku": "Gf6b70da8"} done
+2026-11-05 22:02:03 UTC probe: sku_prices {"sku": "G03d0199f"} done
+2026-11-05 22:02:06 UTC probe: competitor {"shop": "dae-yangkim"} done
+2026-11-05 22:02:06 UTC probe: unserved {} done
+2026-11-05 22:02:06 UTC probe: rules {"term": "deals"} done
+2026-11-05 22:03:00 UTC strategist: model answered in 54 s (40521 chars in)
+2026-11-05 22:03:00 UTC [apply] market read: We are 7th in class (inextro 1.723 leads). The shop side is strong: book 4/53, revenue 3/53, stars 21/53, shop ALL 0.933 against dae-yangkim's 0.961 and inextro's 0.937. The buyer side drags: ALL 0.577, with deals at 24/51 as the weakest component, then forum and posts at 14/51. The biggest structural problem is stock. We hold 316M at cost against 73M for dae-yangkim and 110M for inextro, with only 68M cash. That costs about 3.2M of book per day in storage and keeps us from converting stock into book. The Mate sofa is the engine (236 sold in 6h, 24 in stock, 0.3h hold). Its ask is pinned at 1.05, so it needs nothing beyond the surge watch now at 1.172. The aging piles are where book is leaking. Dahas has 51 units, oldest 4.7h, and sells about 4/h while the cheapest shop clears at 0.67-0.76 of list. Lacloud has its oldest unit at 8.0h, and sales fell from 104/24h to 11/6h while others settle at 0.74. Simmons Jasmine sits at 6.4h and Zinus Lumi at 6.7h with 41 units. Plana 3 sits at 4.7h with cover still above 1. These piles need ask cuts toward the settled band and cover cuts, not more stock. Fast clearers with real margin and no ask knob are the small book gains: Lilo recliner at 0
+2026-11-05 22:03:00 UTC memory: lesson L3 rewritten: Cover never arrives within 6h. Cap sold_next_6h at current stock. At stock 0, make no sold_next_6h prediction. If one is required, predict <= 1. Do not spend moves raising cover at stock 0; ask for unserved/sku_profile d -> Cover raises fail when the market itself has little stock (≤3 shops or market_units < ~10): at stock 0 there, make no cover move and no sold prediction above 1. Where the market holds plenty of units (Mate: 107 units, 16
+2026-11-05 22:03:00 UTC memory: lesson L21 added: Each round, list every big-ticket SKU with oldest_h > 4 and compare our ask factor with the cheapest-shop median from sku_prices. Where we sit above the market band, cut both ask and cover in the same round rather than w
+2026-11-05 22:03:00 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gbec2b68f"}
+2026-11-05 22:03:00 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gc1297f36"}
+2026-11-05 22:03:00 UTC asked to investigate: {"kind": "competitor", "shop": "inextro"}
+2026-11-05 22:03:00 UTC asked to investigate: {"kind": "rules", "term": "storage"}
+2026-11-05 22:03:00 UTC watching: surge G8ec51935 >= 1.25 (The Mate sofa carries our margin and its ask is capped. A surge past +25% eats about a third of the )
+2026-11-05 22:03:00 UTC watching: our_stock Gf6b70da8 >= 60 (If Dahas still grows after the ask and cover cuts, cut deeper toward 0.70 of list.)
+2026-11-05 22:03:00 UTC watching: our_stock Gc1297f36 >= 45 (Cover is now 0. Growth here would mean restock ignores the knob.)
+2026-11-05 22:03:00 UTC watching: class_rank  >= 10 (We are 7th. Wake if the buyer side (deals rank 24) pulls us down further.)
+2026-11-05 22:03:00 UTC [apply] ask Gf6b70da8 1.05 -> 1 (asked 1) | 51 units, oldest 4.7h, 51 walk-aways against 24 sold. The cheapest shop's median is 0.67 of list and settles run 0.67-0.76; our 1.05 is above the band. Margin is 284k/unit, so there is room. | predicts sold_next_6h >= 16 | uses ['L12', 'L4', 'L17']
+2026-11-05 22:03:00 UTC [apply] cover Gf6b70da8 1.5 -> 1.25 (asked 1.25) | The pile holds about 12h of our own sales, which frees cash; stock on hand carries the sales. | predicts sold_next_6h >= 15 | uses ['L19', 'L17', 'L11']
+2026-11-05 22:03:00 UTC [apply] ask G03d0199f 0.9 -> 0.85 (asked 0.85) | Oldest unit is 8.0h and 6h sales collapsed to 11, while market settles sit at 0.74 of list. Margin is 217k/unit. | predicts sold_next_6h >= 7 | uses ['L12', 'L4']
+2026-11-05 22:03:00 UTC [apply] cover G03d0199f 1 -> 0.75 (asked 0.75) | Stop refilling an aging pile (20 units, about 11h of current sales). | predicts sold_next_6h >= 6 | uses ['L19', 'L17']
+2026-11-05 22:03:00 UTC [apply] ask Gbec2b68f 0.98 -> 0.93 (asked 0.93) | Oldest unit 6.4h with 17 walk-aways against 11 sold. Margin of 455k/unit easily absorbs a 5% cut. | predicts sold_next_6h >= 7 | uses ['L12', 'L4']
+2026-11-05 22:03:00 UTC [apply] ask Gc1297f36 0.98 -> 0.93 (asked 0.93) | 41 units, oldest 6.7h, sales down to 14/6h. Margin stays about 50k/unit (~8%) after the cut, and aging storage is the bigger loss. | predicts sold_next_6h >= 9 | uses ['L4', 'L17']
+2026-11-05 22:03:00 UTC [apply] cover Gc1297f36 0.25 -> 0 (asked 0) | 41 units is about 17h of our current sales. Stop buying until the pile clears. | predicts sold_next_6h >= 8 | uses ['L19', 'L17']
+2026-11-05 22:03:00 UTC [apply] cover G2698c6f8 1.25 -> 1 (asked 1) | Oldest unit 4.7h with 17 units for 12 sold in 6h. Do not hold extra cover on an aging pile. | predicts sold_next_6h >= 8 | uses ['L17', 'L19']
+2026-11-05 22:03:00 UTC [apply] cover Gb5d0dde7 0.5 -> 0.75 (asked 0.75) | Oldest unit 2.3h, 38 sold, 57 walk-aways, 146k margin, surge 1.004. Cash of 68M is above 50M and the 16-shop market has units, so restock can arrive. | predicts sold_next_6h >= 22 | uses ['L11', 'L6']
+2026-11-05 22:03:00 UTC [apply] ask G429bd69e 1 -> 1.04 (asked 1.04) | Clears in 0.1h with 0 walk-aways, 7 shops, and no ask knob yet. | predicts sold_next_6h >= 4 | uses ['L10', 'L8', 'L15']
+2026-11-05 22:03:00 UTC [apply] ask G3e0d6c67 1 -> 1.04 (asked 1.04) | 341k/unit margin, 0.4h hold, 2 walk-aways, no ask knob, cover already at 2. | predicts sold_next_6h >= 2 | uses ['L10', 'L8', 'L15']
+2026-11-05 23:00:45 UTC scored cover Gbec2b68f sold_next_6h >= 10: got 9 -> MISS (lessons ['L11'])
+2026-11-05 23:00:45 UTC reverted cover on Gbec2b68f: its prediction failed
+2026-11-05 23:00:45 UTC scored ask G8adbc159 sold_next_6h >= 18: got 32 -> HIT (lessons ['L4', 'L12'])
+2026-11-05 23:00:45 UTC scored ask G03d0199f sold_next_6h >= 22: got 12 -> MISS (lessons ['L10', 'L13', 'L8'])
+2026-11-05 23:00:45 UTC reverted ask on G03d0199f: its prediction failed
+2026-11-05 23:00:45 UTC scored ask Gf6b70da8 sold_next_6h >= 20: got 27 -> HIT (lessons ['L10', 'L13', 'L9'])
+2026-11-05 23:00:45 UTC scored ask G8095ddd6 sold_next_6h >= 24: got 60 -> HIT (lessons ['L2', 'L8'])
+2026-11-05 23:00:45 UTC scored ask G010744b7 sold_next_6h >= 10: got 21 -> HIT (lessons ['L7', 'L9'])
+2026-11-05 23:00:45 UTC scored ask G754bf0ca sold_next_6h >= 10: got 29 -> HIT (lessons ['L9', 'L13'])
+2026-11-05 23:00:45 UTC scored cover G429bd69e sold_next_6h >= 7: got 14 -> HIT (lessons ['L3', 'L11', 'L9'])
+2026-11-05 23:00:45 UTC scored ask G8095ddd6 sold_next_6h >= 26: got 60 -> HIT (lessons ['L2', 'L10'])
+2026-11-05 23:00:45 UTC scored ask G05277ffe sold_next_6h >= 9: got 18 -> HIT (lessons ['L13', 'L1'])
+2026-11-05 23:00:45 UTC scored cover G2698c6f8 sold_next_6h >= 3: got 19 -> HIT (lessons ['L6', 'L9'])
+2026-11-05 23:00:45 UTC scored cover G3e0d6c67 sold_next_6h >= 1: got 4 -> HIT (lessons ['L6', 'L9'])
+2026-11-05 23:00:45 UTC scored cover Gea0cca52 sold_next_6h >= 5: got 0 -> MISS (lessons ['L1', 'L9'])
+2026-11-05 23:00:45 UTC reverted cover on Gea0cca52: its prediction failed
+2026-11-05 23:00:45 UTC scored cover G2560a8c9 sold_next_6h >= 22: got 38 -> HIT (lessons ['L7', 'L9'])
+2026-11-05 23:01:06 UTC critic: model answered in 21 s (8274 chars in)
+2026-11-05 23:01:06 UTC critic: Eight of ten misses are cover raises on SKUs at stock 0, predicted at 5-35 units and resolving to 0-3. Every one cited L9, which is not in the playbook, so a phantom 'raise cover on sold-out high-margin SKUs' rule is still driving moves. L3 and L6 already forbid cover raises at stock 0 on thin markets and big-ticket lines, but they were cited to justify exactly those moves, so they were misapplied. The misses also show L3 is too narrow: G25fe9221 (75 sold) and Gea0cca52 (6 shops) also got almost nothing, so at stock 0 a cover raise does not produce sales within 6h whatever the shop count, margin or walk-aways. The two ask misses (G021aae64, G03d0199f) were not caused by wrong lessons. L4 say
+2026-11-05 23:01:06 UTC memory: lesson L3 rewritten: Cover raises fail when the market itself has little stock (≤3 shops or market_units < ~10): at stock 0 there, make no cover move and no sold prediction above 1. Where the market holds plenty of units (Mate: 107 units, 16 -> At stock 0, a cover raise brings no meaningful sales within 6h, whatever the shops, margin, walk-aways or sold-out asks. Predict sold_next_6h <= 1, or <= 3 if last 6h > 50. Where the SKU has ≤3 shops or market_units < ~1
+2026-11-05 23:01:06 UTC memory: lesson L6 rewritten: Big-ticket sofas and beds carry the margin: keep existing cover on them while stock > 0. Do not raise their cover at stock 0 (see L3). -> Big-ticket sofas, beds and recliners carry the margin: keep existing cover while stock > 0. At stock 0, never cite this lesson for a cover raise; L3 governs the prediction.
+2026-11-05 23:01:06 UTC memory: lesson L4 rewritten: Old stock (oldest_h > 4) with walk-aways far above sold: cut the ask 3-5% only where margin per unit stays above ~10%. Predict sold_next_6h at about 50% of last 6h; the cut slows aging but does not restore volume. -> Old stock (oldest_h > 4) with walk-aways far above sold: cut the ask 3-5% only where margin per unit stays above ~10%. Predict sold_next_6h at no more than 50% of last 6h; the cut slows aging but does not restore volume.
+2026-11-05 23:01:06 UTC memory: lesson L8 rewritten: Predict sold_next_6h = min(stock, 70-85% of last 6h) only when the ask is unchanged. In any round with an ask raise, use 40-50% of last 6h, even if the SKU cleared instantly. Make margin predictions only for SKUs with st -> Predict sold_next_6h = min(stock, 70-85% of last 6h) only when the ask is unchanged. In any round with an ask raise, predict no more than 50% of last 6h, even if the SKU cleared instantly. Make margin predictions only wh
+2026-11-05 23:01:17 UTC probe: sku_prices {"sku": "Gbec2b68f"} done
+2026-11-05 23:01:32 UTC probe: sku_prices {"sku": "Gc1297f36"} done
+2026-11-05 23:01:34 UTC probe: competitor {"shop": "inextro"} done
+2026-11-05 23:01:34 UTC probe: rules {"term": "storage"} done
+2026-11-05 23:02:21 UTC strategist: model answered in 47 s (40087 chars in)
+2026-11-05 23:02:21 UTC [apply] market read: Our shop side is strong: shop ALL 0.935 ranks 3rd of 53 shops (book 4th, revenue 3rd, stars 17th), within 0.02 of dae-yangkim and inextro. Even so, class rank has slipped to 7. Our buyer ALL of 0.574 is far below the leaders, so per L16 the loss is on the buyer side: deals rank 24/51, forum 15/51 and posts 14/51 are outside the knobs and need the operator. On the shop side the gap to inextro is book (403M vs 552M). Our stock_cost is 2x theirs (327M vs 155M), so storage and aged piles are the drag, not the shortage of goods. Cash has recovered to 81.5M, so L11's funding constraint no longer binds. The cash should not go into more piles, though; book improves most by turning the aged big-ticket stock at market prices. Four big-ticket lines are aged past 5h: Dahas (47 units, 5.7h, 53 walk-aways against 27 sold), Simmons Jasmine (18 units, 6.6h), Lacloud (17 units, 8h, ask already at the 0.85 knob floor) and Zinus Lumi (36 units, 7.6h, cover already 0). The sku_prices results show Simmons Jasmine settling at 0.70-0.75 of list (cheapest-shop median 2.82M) and Lumi at 0.70-0.82, so our effective asks still sit above the band. The Mate sofa remains the engine: 216 sold in 6h, 0.3h hold, 1
+2026-11-05 23:02:21 UTC memory: lesson L22 added: When an aged big-ticket SKU already sits at the 0.85 ask floor, the only lever left is cover: cut it to 0.5 and predict sold_next_6h at about 60% of last 6h. Do not wait for the ask to work.
+2026-11-05 23:02:21 UTC memory: lesson L16 rewritten: When class rank drops while shop ALL holds its rank, the loss is on the buyer side. Forum (0.3 weight) is outside our knobs, so flag it for the operator instead of forcing extra shop moves to compensate. -> When class rank drops while shop ALL holds its rank (11-05 23:00: shop 3rd of 53, class 7th, buyer ALL 0.574), the loss is on the buyer side. Forum, deals and posts are outside our knobs: flag them for the operator each 
+2026-11-05 23:02:21 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gf6b70da8"}
+2026-11-05 23:02:21 UTC asked to investigate: {"kind": "sku_prices", "sku": "G03d0199f"}
+2026-11-05 23:02:21 UTC asked to investigate: {"kind": "sku_prices", "sku": "G8ec51935"}
+2026-11-05 23:02:21 UTC asked to investigate: {"kind": "unserved"}
+2026-11-05 23:02:21 UTC asked to investigate: {"kind": "competitor", "shop": "dae-yangkim"}
+2026-11-05 23:02:21 UTC watching: our_stock G754bf0ca >= 55 (If Zinus Cloud keeps growing after the cover trim, cut cover again.)
+2026-11-05 23:02:21 UTC watching: our_stock G03d0199f >= 22 (Lacloud is aged at the ask floor; growth would mean cover 0.5 is still too high.)
+2026-11-05 23:02:21 UTC watching: surge G8ec51935 >= 1.2 (The Mate cover was raised; reverse it if our buying pushes surge toward +20%.)
+2026-11-05 23:02:21 UTC [apply] ask Gf6b70da8 1 -> 0.95 (asked 0.95) | 47 units, oldest 5.7h, 53 walk-aways vs 27 sold; Dahas settles at 0.70-0.75 of list, and margin 293k/unit leaves room. | predicts sold_next_6h >= 12 | uses ['L12', 'L21', 'L4']
+2026-11-05 23:02:21 UTC [apply] cover Gf6b70da8 1.25 -> 1 (asked 1) | Pair the ask cut with a cover cut so the aged pile shrinks rather than refills (L21). | predicts no_stock_next_6h <= 0.5 | uses ['L21', 'L19', 'L17']
+2026-11-05 23:02:21 UTC [apply] ask Gbec2b68f 0.93 -> 0.88 (asked 0.88) | Oldest unit 6.6h; the market pays 0.70-0.75 of list (median 2.82M); margin 438k/unit absorbs a 5% cut. | predicts sold_next_6h >= 5 | uses ['L12', 'L21', 'L4']
+2026-11-05 23:02:21 UTC [apply] cover Gbec2b68f 1 -> 0.75 (asked 0.5) | 18 units = 12h of our sales at 4M list; L14 cap on the costliest SKU; stock carries the sales. | predicts sold_next_6h >= 5 | uses ['L14', 'L19', 'L21']
+2026-11-05 23:02:21 UTC [apply] cover G03d0199f 0.75 -> 0.5 (asked 0.5) | Oldest unit 8h, only 12 sold in 6h, and the ask is already at the 0.85 floor, so a cover cut is the only lever. | predicts sold_next_6h >= 7 | uses ['L19', 'L17', 'L21']
+2026-11-05 23:02:21 UTC [apply] ask Gc1297f36 0.93 -> 0.88 (asked 0.88) | 36 units, oldest 7.6h, cover already 0; the market pays 0.70-0.82 of list; margin 80k (~12%) stays above 10%. | predicts sold_next_6h >= 8 | uses ['L4', 'L21']
+2026-11-05 23:02:21 UTC [apply] cover G754bf0ca 2 -> 1.75 (asked 1.75) | 46 units against 29 sold in 6h, about 9.5h of our sales at cover 2.0; trim to cut storage on a 12% margin line. | predicts sold_next_6h >= 18 | uses ['L19', 'L17']
+2026-11-05 23:02:21 UTC [apply] cover G8ec51935 1 -> 1.25 (asked 1.25) | Our margin engine: stock 19, 216 sold in 6h, 0.3h hold, 115 walk-aways, ask capped; cash 81M allows it. Surge 1.134 is on watch. | predicts sold_next_6h >= 150 | uses ['L6', 'L11', 'L13']
+2026-11-05 23:02:21 UTC [apply] cover G8095ddd6 0.5 -> 0.75 (asked 0.75) | 60 sold in 6h, 85 walk-aways, 1.5h hold, ask pinned at 1.05; cash above 50M lifts the earlier 0.5 trim. | predicts sold_next_6h >= 40 | uses ['L11', 'L8']
+2026-11-05 23:02:21 UTC [apply] cover G2607d1f6 1 -> 1.25 (asked 1.25) | 5 shops, 0.4h hold, 29 walk-aways vs 15 sold, 87k margin (14%), stock 13 > 0. | predicts sold_next_6h >= 10 | uses ['L1', 'L11', 'L15']
+2026-11-06 00:00:48 UTC scored cover Gc1297f36 sold_next_6h >= 30: got 12 -> MISS (lessons ['L11', 'L1'])
+2026-11-06 00:00:48 UTC reverted cover on Gc1297f36: its prediction failed
+2026-11-06 00:00:48 UTC scored cover G8095ddd6 sold_next_6h >= 38: got 87 -> HIT (lessons ['L2', 'L11'])
+2026-11-06 00:00:48 UTC scored cover G021aae64 sold_next_6h >= 12: got 15 -> HIT (lessons ['L2', 'L5', 'L11'])
+2026-11-06 00:00:48 UTC scored cover G75f11c19 sold_next_6h >= 22: got 79 -> HIT (lessons ['L15', 'L11', 'L9'])
+2026-11-06 00:00:48 UTC scored cover G10693924 sold_next_6h >= 5: got 8 -> HIT (lessons ['L3', 'L15'])
+2026-11-06 00:00:48 UTC scored cover G9c9f8f94 sold_next_6h >= 1: got 2 -> HIT (lessons ['L15', 'L9'])
+2026-11-06 00:00:48 UTC scored ask G2698c6f8 sold_next_6h >= 7: got 19 -> HIT (lessons ['L10', 'L6', 'L8'])
+2026-11-06 00:01:02 UTC probe: sku_prices {"sku": "Gf6b70da8"} done
+2026-11-06 00:01:12 UTC probe: sku_prices {"sku": "G03d0199f"} done
+2026-11-06 00:01:28 UTC probe: sku_prices {"sku": "G8ec51935"} done
+2026-11-06 00:01:28 UTC probe: unserved {} done
+2026-11-06 00:01:30 UTC probe: competitor {"shop": "dae-yangkim"} done
+2026-11-06 00:02:25 UTC strategist: model answered in 56 s (39466 chars in)
+2026-11-06 00:02:25 UTC [apply] market read: Cash has climbed to 154M and stock_cost has fallen to 285M, from 316M. Cash no longer limits us. Aging stock and storage cost are now the binding constraints on book. On the shop side we sit 2nd (0.941). Revenue is 2nd of 53 and book is 4th: 434M against inextro's 564M and dae-yangkim's 463M. dae-yangkim beats us on book with a quarter of our stock (71M), so carrying aged inventory hurts us. The sku_prices checks confirm we price above the band on aged big-ticket beds. Dahas settles at 0.65-0.72 of list with a cheapest-shop median of 0.65, and Lacloud at 0.69-0.74 with a median of 0.67. Our Lacloud ask sits near 0.9 of list with no ask knob, so its 9h-old units are not clearing. The Mate sofa is our engine: 226 sold in 6h, a 0.3h hold, 283k margin per unit, and surge only 1.056. With cash free, it deserves a bit more cover; the existing surge watch at 1.2 guards the raise. Zinus Cloud (51 units, ~9h of sales) and the pad set (79 units, surge 1.076) are oversized piles to trim. The out-of-stock lines (Plana 4-seat swing, Wad, Riposo, Pillow) are left alone per L3. Class rank 7 against shop rank 2 means the gap is on the buyer side (0.573). Forum ranks 15/51 at weight 0.3 and deals r
+2026-11-06 00:02:25 UTC memory: lesson L23 added: When cash is above ~100M (11-06 00:00: 154M), the constraint is aging and storage, not cash. Cover raises go only to SKUs with stock > 0, hold < 0.5h and margin > 200k/unit. Every pile older than 4h gets an ask cut towar
+2026-11-06 00:02:25 UTC memory: lesson L24 added: A SKU with no ask knob sells at about 0.9 of list (grade A), well above the 0.65-0.75 band of crowded big-ticket beds. When such a SKU ages past 4h, set an explicit ask below 1.0 rather than only cutting cover.
+2026-11-06 00:02:25 UTC memory: lesson L16 evicted (capacity 20): When class rank drops while shop ALL holds its rank (11-05 23:00: shop 3rd of 53, class 7th, buyer ALL 0.574), the loss is on the buyer side. Forum, deals and posts are outside our knobs: flag them for the operator each 
+2026-11-06 00:02:25 UTC memory: lesson L20 evicted (capacity 20): Buyer-side gaps sit outside the knobs: forum improved to rank 14/51, but deals rank (24/51) is now the weakest buyer component. Flag both for the operator each round. Do not raise quick_accept to chase deals, since surpl
+2026-11-06 00:02:25 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gbec2b68f"}
+2026-11-06 00:02:25 UTC asked to investigate: {"kind": "sku_prices", "sku": "G3e0d6c67"}
+2026-11-06 00:02:25 UTC asked to investigate: {"kind": "sku_prices", "sku": "G05277ffe"}
+2026-11-06 00:02:25 UTC asked to investigate: {"kind": "competitor", "shop": "inextro"}
+2026-11-06 00:02:25 UTC asked to investigate: {"kind": "sku_prices", "sku": "G754bf0ca"}
+2026-11-06 00:02:25 UTC watching: our_stock Gf6b70da8 >= 45 (The Dahas pile growing despite the ask and cover cuts would mean the cuts are too small.)
+2026-11-06 00:02:25 UTC watching: our_stock G75f11c19 >= 95 (The pad set still growing after the cover trim would call for another cut.)
+2026-11-06 00:02:25 UTC watching: our_stock G8ec51935 >= 30 (Mate stock building after the cover raise would mean demand is saturated; revert the raise.)
+2026-11-06 00:02:25 UTC watching: class_rank  >= 9 (A further drop in class rank needs a fresh look at the buyer-side components.)
+2026-11-06 00:02:25 UTC [apply] cover G8ec51935 1.25 -> 1.5 (asked 1.5) | Stock 8, 0.3h hold, 226 sold in 6h, 283k margin per unit, surge 1.056, cash 154M. Ask is capped, so cover is the lever. The surge watch at 1.2 guards it. | predicts sold_next_6h >= 130 | uses ['L6', 'L11', 'L13']
+2026-11-06 00:02:25 UTC [apply] ask Gf6b70da8 0.95 -> 0.9 (asked 0.9) | 41 units, oldest 4.4h, 52 walk-aways against 27 sold. The market settles at 0.65-0.72 of list and our ask sits above that band. Margin of 287k per unit absorbs the cut. | predicts sold_next_6h >= 14 | uses ['L12', 'L21', 'L4']
+2026-11-06 00:02:25 UTC [apply] cover Gf6b70da8 1 -> 0.75 (asked 0.75) | 41 units is about 9h of our sales on an aged pile. Cut cover alongside the ask, per L21. | predicts sold_next_6h >= 14 | uses ['L21', 'L17', 'L19']
+2026-11-06 00:02:25 UTC [apply] ask G03d0199f 1 -> 0.95 (asked 0.95) | Oldest unit 9.0h, and the ask knob is unset, so we sit near 0.9 of list. The market pays 0.69-0.74 (cheapest median 0.67). The earlier raise to 1.03 underdelivered. | predicts sold_next_6h >= 7 | uses ['L12', 'L21', 'L4']
+2026-11-06 00:02:25 UTC [apply] ask Gbec2b68f 0.88 -> 0.85 (asked 0.85) | Oldest unit 6.3h with 468k margin per unit. The crowded Simmons band is 0.64-0.76, so we move the ask to the floor of the knob range. | predicts sold_next_6h >= 8 | uses ['L12', 'L21']
+2026-11-06 00:02:25 UTC [apply] ask Gc1297f36 0.88 -> 0.85 (asked 0.85) | 36 units, oldest 8.6h, cover already 0. A 3% cut keeps margin near 10% of price and helps clear the aged stock. | predicts sold_next_6h >= 6 | uses ['L4', 'L22']
+2026-11-06 00:02:25 UTC [apply] cover G754bf0ca 1.75 -> 1.5 (asked 1.5) | 51 units is about 9h of our sales and the pile keeps growing toward the watch line. Trim it to free cash and reduce aging. | predicts sold_next_6h >= 22 | uses ['L19', 'L17']
+2026-11-06 00:02:25 UTC [apply] ask G3e0d6c67 1.04 -> 0.99 (asked 0.99) | Oldest unit 5.0h, 6 sold in 6h at ask 1.04 with cover pinned at 2.0. Pull the ask back while 368k margin per unit remains. | predicts sold_next_6h >= 3 | uses ['L21', 'L4']
+2026-11-06 00:02:25 UTC [apply] cover G3e0d6c67 2 -> 1.75 (asked 1.75) | Do not hold max cover on a pile older than 4h. | predicts sold_next_6h >= 3 | uses ['L17', 'L21']
+2026-11-06 00:02:25 UTC [apply] ask G05277ffe 1.05 -> 1 (asked 1) | Oldest unit 5.0h on a capped ask, 16 walk-aways, 14 shops. 111k margin per unit leaves room for the cut. | predicts sold_next_6h >= 11 | uses ['L4', 'L21']
+2026-11-06 00:02:25 UTC [apply] cover G75f11c19 1.5 -> 1.25 (asked 1.25) | 79 units is about 6h of sales, surge is 1.076 and margin is only 21k per unit. Trim the pile. | predicts sold_next_6h >= 45 | uses ['L19', 'L2']
+2026-11-06 00:30:03 UTC woken early by watch condition: {"metric": "our_stock", "sku": "G8ec51935", "op": ">=", "value": 30, "why": "Mate stock building after the cover raise would mean demand is saturated; revert the raise.", "now": 31}
+2026-11-06 00:30:41 UTC probe: sku_prices {"sku": "Gbec2b68f"} done
+2026-11-06 00:31:00 UTC probe: sku_prices {"sku": "G3e0d6c67"} done
+2026-11-06 00:31:12 UTC probe: sku_prices {"sku": "G05277ffe"} done
+2026-11-06 00:31:14 UTC probe: competitor {"shop": "inextro"} done
+2026-11-06 00:31:34 UTC probe: sku_prices {"sku": "G754bf0ca"} done
+2026-11-06 00:32:27 UTC strategist: model answered in 52 s (39437 chars in)
+2026-11-06 00:32:27 UTC [apply] market read: The Mate wake-up is a false alarm. 31 units against 240 sold in 6h (40/h, avg hold 0.3h, oldest unit 0.5h) is about 45 minutes of demand, not saturation, so the cover raise stays. Our class rank fell to 7. This is a buyer-side problem, not a shop one: shop ALL 0.941 is 2nd among shops (book rank 4, revenue rank 2), but buyer ALL is only 0.572 (deals 24/51, forum 15/51), while Lee-sungsoo and gom31 passed us on weaker shops. Our knobs barely reach the buyer side; quick_accept is the only lever, and it would trade surplus (rank 5, weight 0.5) for deals (weight 0.1), so I leave it. On the shop side the gap to inextro is book: 574M vs 449M. inextro carries 137M of stock against our 348M and still out-earns us. That means our capital is sitting in aging piles: Lumi 9.1h, Lacloud 8.8h, Jasmine 5.5h, Hub 5.5h, duvet 5.2h, Dahas 4.9h. Market evidence says our asks sit above the clearing band on these. Jasmine settles at 0.68-0.73 of list, Hub at 0.79-0.82 (cheapest 0.79), the duvet at 0.72-0.75, Zinus Cloud at 0.65-0.71. Cash is 107M, so per L23 the constraint is aging and storage, not funding. This round therefore trims ask and cover on aged piles and on over-covered fast movers (Lilo, Zi
+2026-11-06 00:32:27 UTC memory: lesson L25 added: Set our_stock watches in hours of our own sales, not raw units. On a SKU selling 40/h, 30 units is under 1h. Wake only past ~3h of sales or when oldest_h > 2.
+2026-11-06 00:32:27 UTC memory: lesson L26 added: Class rank can fall while shop ALL holds: check buyer ALL (deals and forum percentiles) before blaming the shop. Shop knobs cannot fix a buyer-side drop.
+2026-11-06 00:32:27 UTC memory: lesson L23 evicted (capacity 20): When cash is above ~100M (11-06 00:00: 154M), the constraint is aging and storage, not cash. Cover raises go only to SKUs with stock > 0, hold < 0.5h and margin > 200k/unit. Every pile older than 4h gets an ask cut towar
+2026-11-06 00:32:27 UTC memory: lesson L24 evicted (capacity 20): A SKU with no ask knob sells at about 0.9 of list (grade A), well above the 0.65-0.75 band of crowded big-ticket beds. When such a SKU ages past 4h, set an explicit ask below 1.0 rather than only cutting cover.
+2026-11-06 00:32:27 UTC asked to investigate: {"kind": "competitor", "shop": "lee-sungsoo"}
+2026-11-06 00:32:27 UTC asked to investigate: {"kind": "sku_prices", "sku": "G8ec51935"}
+2026-11-06 00:32:27 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gf6b70da8"}
+2026-11-06 00:32:27 UTC asked to investigate: {"kind": "sku_prices", "sku": "G24f5f979"}
+2026-11-06 00:32:27 UTC asked to investigate: {"kind": "sku_prices", "sku": "G429bd69e"}
+2026-11-06 00:32:27 UTC watching: our_stock G8ec51935 >= 90 (About 2.5h of Mate sales; only then is demand truly saturating against the 1.5 cover.)
+2026-11-06 00:32:27 UTC watching: our_stock Gf6b70da8 >= 40 (The Dahas pile still growing after the 0.85 ask and 0.5 cover means the market band is lower still.)
+2026-11-06 00:32:27 UTC watching: our_stock Gc1297f36 >= 40 (Lumi already sits at the ask floor; growth would call for cover 0.5.)
+2026-11-06 00:32:27 UTC watching: surge G24f5f979 >= 1.15 (Rising cost on the Plana 4-seat would eat the margin the ask raise targets.)
+2026-11-06 00:32:27 UTC watching: class_rank  >= 9 (A further drop needs a buyer-side review (quick_accept versus surplus).)
+2026-11-06 00:32:27 UTC [apply] ask Gf6b70da8 0.9 -> 0.85 (asked 0.85) | Dahas: oldest 4.9h, 57 walk-aways against 34 sold, market band 0.70-0.75 of list; 285k margin per unit leaves room. | predicts sold_next_6h >= 18 | uses ['L12', 'L21', 'L4']
+2026-11-06 00:32:27 UTC [apply] cover Gf6b70da8 0.75 -> 0.5 (asked 0.5) | Stock 34 is about 6h of our sales on an aged pile; cut both ask and cover in the same round per L21. | predicts sold_next_6h >= 18 | uses ['L21', 'L19', 'L17']
+2026-11-06 00:32:27 UTC [apply] cover Gbec2b68f 0.75 -> 0.5 (asked 0.5) | Jasmine: already at the 0.85 ask floor, oldest 5.5h, market pays 0.68-0.73 of list; cover is the only lever left. | predicts sold_next_6h >= 12 | uses ['L22', 'L14']
+2026-11-06 00:32:27 UTC [apply] ask G03d0199f 0.95 -> 0.9 (asked 0.9) | Lacloud: oldest 8.8h, sales fell from about 110/24h to 18/6h; 215k margin per unit absorbs a 5% cut. | predicts sold_next_6h >= 8 | uses ['L21', 'L4', 'L12']
+2026-11-06 00:32:27 UTC [apply] cover Gc1297f36 1 -> 0.75 (asked 0.75) | Lumi: oldest 9.1h, ask already at the 0.85 floor, 34 units against 14 sold in 6h. | predicts sold_next_6h >= 9 | uses ['L22', 'L19', 'L17']
+2026-11-06 00:32:27 UTC [apply] ask G3e0d6c67 0.99 -> 0.94 (asked 0.94) | Hub: oldest 5.5h; the market settles at 0.79-0.82 of list and our ask is near 0.89; 368k margin per unit. | predicts sold_next_6h >= 4 | uses ['L21', 'L24']
+2026-11-06 00:32:27 UTC [apply] cover G3e0d6c67 1.75 -> 1.5 (asked 1.5) | Cover at 1.75 on a pile aged past 4h; trim alongside the ask cut. | predicts sold_next_6h >= 4 | uses ['L21', 'L17']
+2026-11-06 00:32:27 UTC [apply] ask G05277ffe 1 -> 0.95 (asked 0.95) | Goose duvet: oldest 5.2h, market pays 0.72-0.75 of list while our factor sits at 1.0; 118k margin per unit (~20%). | predicts sold_next_6h >= 12 | uses ['L4', 'L24']
+2026-11-06 00:32:27 UTC [apply] ask G24f5f979 1 -> 1.05 (asked 1.05) | Plana 4-seat swing: 0.0h hold, 438k margin per unit, only 4 shops, no knobs set, surge 1.08; an uncapped fast clearer. | predicts sold_next_6h >= 5 | uses ['L10', 'L13', 'L15', 'L8']
+2026-11-06 00:32:27 UTC [apply] cover G429bd69e 1.5 -> 1.25 (asked 1.25) | Lilo: 36 units is about 7.7h of our sales (28 per 6h) at 100k margin per unit; trim stock_cost. | predicts sold_next_6h >= 18 | uses ['L19', 'L17']
+2026-11-06 00:32:27 UTC [apply] cover G754bf0ca 1.5 -> 1.25 (asked 1.25) | Zinus Cloud: 48 units is about 7.4h of our sales, and the market band of 0.65-0.71 sits well under our 1.04 ask factor; trim cover rather than chase price. | predicts sold_next_6h >= 25 | uses ['L19', 'L17']
+2026-11-06 01:00:09 UTC buyer strategist: model answered in 39 s (13946 chars in)
+2026-11-06 01:08:41 UTC buyer strategist: model answered in 42 s (23836 chars in)
+2026-11-06 01:15:47 UTC scored ask G03d0199f sold_next_6h >= 17: got 21 -> HIT (lessons ['L4', 'L12', 'L8'])
+2026-11-06 01:15:47 UTC scored ask G00327e80 sold_next_6h >= 4: got 3 -> MISS (lessons ['L10', 'L13', 'L9'])
+2026-11-06 01:15:47 UTC reverted ask on G00327e80: its prediction failed
+2026-11-06 01:15:47 UTC scored cover G0e4deffc sold_next_6h >= 1: got 0 -> MISS (lessons ['L15', 'L6', 'L11', 'L9'])
+2026-11-06 01:15:47 UTC reverted cover on G0e4deffc: its prediction failed
+2026-11-06 01:15:47 UTC scored cover G19a70f63 sold_next_6h >= 1: got 0 -> MISS (lessons ['L15', 'L6', 'L9'])
+2026-11-06 01:15:47 UTC reverted cover on G19a70f63: its prediction failed
+2026-11-06 01:15:47 UTC scored cover G1ec9482f sold_next_6h >= 1: got 0 -> MISS (lessons ['L15', 'L6', 'L9'])
+2026-11-06 01:15:47 UTC reverted cover on G1ec9482f: its prediction failed
+2026-11-06 01:16:17 UTC critic: model answered in 30 s (8790 chars in)
+2026-11-06 01:16:17 UTC critic: Six of ten misses were cover raises on SKUs at stock 0 (G9f7c7d1b, G25fe9221, Gea0cca52, G0e4deffc, G19a70f63, G1ec9482f). Five of these sold 0 in the next 6h. The sixth, G25fe9221, sold 3, which is exactly L3's cap for last 6h > 50. So L3's core rule was right, but its truncated thin-supply clause (≤3 shops / low market_units) was read as license to predict ≥1 to ≥35. L15 and L6 were applied where they do not fit: L15 picks high-margin 'no knobs' lines, and the strategist picked them at stock 0. L6's stock-0 sentence invited citation instead of preventing it. L9, a lesson no longer in the playbook, was still cited in eight misses. The two cover cuts (Gbec2b68f got 9 of 10; Gc1297f36 got 12 
+2026-11-06 01:16:17 UTC memory: lesson L3 rewritten: At stock 0, a cover raise brings no meaningful sales within 6h, whatever the shops, margin, walk-aways or sold-out asks. Predict sold_next_6h <= 1, or <= 3 if last 6h > 50. Where the SKU has ≤3 shops or market_units < ~1 -> At stock 0, a cover raise brings no sales within 6h, whatever the shops, margin, market supply, walk-aways or sold-out asks. Predict sold_next_6h = 0, or <= 3 only if last 6h > 50. Thin supply (<=3 shops, low market_unit
+2026-11-06 01:16:17 UTC memory: lesson L6 rewritten: Big-ticket sofas, beds and recliners carry the margin: keep existing cover while stock > 0. At stock 0, never cite this lesson for a cover raise; L3 governs the prediction. -> Big-ticket sofas, beds and recliners with stock > 0: keep existing cover; do not cut it to free cash. This lesson does not apply at stock 0.
+2026-11-06 01:16:17 UTC memory: lesson L15 rewritten: A SKU pinned at both caps (ask 1.05, cover 2.0) that still clears fast needs no further moves. Spend moves on high-margin lines (>200k/unit or >20%) that have stock > 0 and no knobs set. -> A SKU pinned at both caps (ask 1.05, cover 2.0) that still clears fast needs no further moves. Spend moves on high-margin lines (>200k/unit or >20%) only where stock > 0. A stock-0 SKU with no knobs is not a candidate; s
+2026-11-06 01:16:17 UTC memory: lesson L19 rewritten: Cover cuts on piles holding more than 6h of our own sales are the reliable way to free cash. Predict sold_next_6h at about 65-70% of the last 6h, since stock on hand carries it. -> Cover cuts on piles holding more than 6h of our own sales free cash reliably. Predict sold_next_6h at about 50% of last 6h, or about 25% if our ask sits above the market's settle band (sku_prices).
+2026-11-06 01:16:17 UTC memory: lesson L22 rewritten: When an aged big-ticket SKU already sits at the 0.85 ask floor, the only lever left is cover: cut it to 0.5 and predict sold_next_6h at about 60% of last 6h. Do not wait for the ask to work. -> When an aged big-ticket SKU already sits at the 0.85 ask floor, the only lever left is cover: cut it to 0.5 and predict sold_next_6h at about 25-35% of last 6h. Do not wait for the ask to work.
+2026-11-06 01:16:17 UTC memory: lesson L8 rewritten: Predict sold_next_6h = min(stock, 70-85% of last 6h) only when the ask is unchanged. In any round with an ask raise, predict no more than 50% of last 6h, even if the SKU cleared instantly. Make margin predictions only wh -> Predict sold_next_6h = min(stock, 70-85% of last 6h) only when the ask is unchanged. In any round with an ask raise, predict no more than 35% of last 6h and no more than stock, even if the SKU cleared instantly.
+2026-11-06 01:16:19 UTC probe: competitor {"shop": "lee-sungsoo"} done
+2026-11-06 01:16:41 UTC probe: sku_prices {"sku": "G8ec51935"} done
+2026-11-06 01:16:55 UTC probe: sku_prices {"sku": "Gf6b70da8"} done
+2026-11-06 01:17:09 UTC probe: sku_prices {"sku": "G24f5f979"} done
+2026-11-06 01:17:26 UTC probe: sku_prices {"sku": "G429bd69e"} done
+2026-11-06 01:18:25 UTC strategist: model answered in 59 s (47532 chars in)
+2026-11-06 01:18:25 UTC [apply] market read: Class rank is 7. Our shop ALL is 0.941 (2nd shop: book rank 4, revenue rank 2), so the gap to inextro (1.712) and Lee-sungsoo (1.689) sits mostly on the buyer side: buyer ALL is 0.574, with saved percentile 0.46 and deals rank 24. Shop knobs cannot fix that (L26). The buyer strategist's push on saved is the right lever. On the shop side, book is where rank can still move cheaply. Dae-yangkim is only ~2.9M of book ahead of us (466.9M vs 464.0M), while inextro (586M) is out of reach this cycle. So margin per unit on big-ticket lines matters more than volume. Our stock_cost (409M against 62M cash) is still 3-5x the top shops'. That costs about 4M/day of storage and breakage, so aged piles should shrink rather than grow. The Mate 4-seat is our engine (206 sold in 6h, 281k/unit, ask pinned at 1.05) and has surge at 1.104. It needs no move (L13/L15/L2). Three big-ticket lines are aging above the market band and already at or near the ask floor: Dahas (oldest 5.6h, cheapest shop median ~0.53 of list), Lumi (9.9h) and Lacloud (8.9h). These get the remaining cuts. Two new instant-clearing lines carry 300-400k/unit and have room: Jacomo Ward 4-seat (19 sold, 0.0h hold, no knobs) and Plana 4-
+2026-11-06 01:18:25 UTC memory: lesson L27 added: Newly listed big-ticket lines that clear in about 0.0-0.1h with no knobs set (e.g. Jacomo Ward 11-06) are the best ask-raise targets. Check each round for lines with knobs_now null, stock > 0, avg_hold_h <= 0.2 and margi
+2026-11-06 01:18:25 UTC memory: lesson L28 added: When shop ALL is ~0.94 and class rank lags, compare book with the shop directly above us. A gap of a few M (dae-yangkim 2.9M on 11-06) is closable by margin on big-ticket lines within hours; a gap of 100M+ is not.
+2026-11-06 01:18:25 UTC memory: lesson L25 evicted (capacity 20): Set our_stock watches in hours of our own sales, not raw units. On a SKU selling 40/h, 30 units is under 1h. Wake only past ~3h of sales or when oldest_h > 2.
+2026-11-06 01:18:25 UTC memory: lesson L26 evicted (capacity 20): Class rank can fall while shop ALL holds: check buyer ALL (deals and forum percentiles) before blaming the shop. Shop knobs cannot fix a buyer-side drop.
+2026-11-06 01:18:25 UTC asked to investigate: {"kind": "sku_prices", "sku": "G47788edd"}
+2026-11-06 01:18:25 UTC asked to investigate: {"kind": "sku_prices", "sku": "G03d0199f"}
+2026-11-06 01:18:25 UTC asked to investigate: {"kind": "sku_prices", "sku": "G3e0d6c67"}
+2026-11-06 01:18:25 UTC asked to investigate: {"kind": "competitor", "shop": "dae-yangkim"}
+2026-11-06 01:18:25 UTC watching: surge G24f5f979 >= 1.15 (Rising cost on the Plana 4-seat would eat the margin the new cover raise targets.)
+2026-11-06 01:18:25 UTC watching: our_stock G47788edd >= 15 (About 5h of Ward sales; a pile would mean the 1.05 ask raise stopped it clearing.)
+2026-11-06 01:18:25 UTC watching: our_stock Gf6b70da8 >= 40 (Dahas growing after cover 0.25 would mean restock or the floor is still off.)
+2026-11-06 01:18:25 UTC watching: our_stock G8ec51935 >= 90 (About 2.5h of Mate sales; only then is demand saturating against cover 1.5.)
+2026-11-06 01:18:25 UTC watching: class_rank  >= 9 (A further drop needs a buyer-side review; shop ALL is already near the top.)
+2026-11-06 01:18:25 UTC [apply] ask G47788edd 1 -> 1.05 (asked 1.05) | Jacomo Ward 4-seat clears in 0.0h at 310k/unit, only 4 shops, no ask factor set. This is an uncapped fast-clearing big-ticket line, which is where book can be gained. | predicts sold_next_6h >= 6 | uses ['L10', 'L13', 'L8']
+2026-11-06 01:18:25 UTC [apply] cover G24f5f979 1 -> 1.25 (asked 1.25) | Plana 4-seat clears in 0.1h at 402k/unit, ask already pinned at 1.05, 5 shops, stock 11 > 0. Cash 62M is above the L11 threshold, so a cover raise is funded. | predicts sold_next_6h >= 10 | uses ['L15', 'L11', 'L8']
+2026-11-06 01:18:25 UTC [apply] cover Gf6b70da8 0.5 -> 0.25 (asked 0.25) | Dahas is aged 5.6h, ask already at the 0.85 floor, and the cheapest shop median is ~0.53 of list. Cover is the only lever left; shrink the pile. | predicts sold_next_6h >= 8 | uses ['L22', 'L17', 'L19']
+2026-11-06 01:18:25 UTC [apply] cover Gc1297f36 0.75 -> 0.5 (asked 0.5) | Lumi frame is aged 9.9h with ask at the 0.85 floor, 33 units against 11 sold in 6h. Cut cover per L22 and stop adding to an aging pile. | predicts sold_next_6h >= 3 | uses ['L22', 'L17', 'L19']
+2026-11-06 01:18:25 UTC [apply] ask G03d0199f 0.9 -> 0.85 (asked 0.85) | Lacloud set is aged 8.9h at ask 0.9 with competitors' first asks at ~0.79 of list. Step the ask down to clear the old units; margin of 222k/unit stays well above 10%. | predicts sold_next_6h >= 5 | uses ['L21', 'L12', 'L4']
+2026-11-06 01:18:25 UTC [apply] ask G3e0d6c67 0.94 -> 0.89 (asked 0.89) | Simmons Hub is aged 6.2h with only 4 sold in 6h at ask 0.94. The market's first-ask median is 0.74. Cut toward the band; margin of 368k/unit leaves room. | predicts sold_next_6h >= 1 | uses ['L21', 'L4', 'L12']
+2026-11-06 01:18:25 UTC [apply] cover G3e0d6c67 1.5 -> 1.25 (asked 1.25) | Cover 1.5 on a slow, aged line holds cash idle. Cut both knobs in the same round per L21; no-add rule for oldest > 4h (L17). | predicts sold_next_6h <= 10 | uses ['L21', 'L17']
+2026-11-06 01:31:25 UTC buyer strategist: model answered in 37 s (23405 chars in)
+2026-11-06 01:45:37 UTC probe: sku_prices {"sku": "G47788edd"} done
+2026-11-06 01:45:54 UTC probe: sku_prices {"sku": "G03d0199f"} done
+2026-11-06 01:46:06 UTC probe: sku_prices {"sku": "G3e0d6c67"} done
+2026-11-06 01:46:10 UTC probe: competitor {"shop": "dae-yangkim"} done
+2026-11-06 01:47:17 UTC strategist: model answered in 67 s (50331 chars in)
+2026-11-06 01:47:17 UTC [apply] market read: Shop ALL is 0.959 and ranks first among shops; book and revenue are both 2nd of 53. We are 5th in class (1.498) because buyer ALL is only 0.571, so the 0.21 gap to inextro is almost all on the buyer side, and shop knobs can add only a few hundredths at most. Inextro's book lead (589M vs 477M) is 112M, and L28 says that cannot be closed in hours. The shop's job now is to protect book and keep cash moving, not to chase volume. Cash is 31.5M against 451M of stock (inextro holds 142M), so storage drains about 4.5M of book per day and cash limits restocking of our fast clearers. The Mate 4-seat (211 sold in 6h, 0.3h hold, ask and cover pinned) and the Plana 4 swing (0.2h hold, 417k margin per unit, 5 shops) are where our margin comes from. Slower piles hold cash we could use there. Simmons Hub sits 6.7h old with 5 sold in 6h; our effective ask is about 0.80 of list, while the market paid 0.72-0.77 and competitors open at 0.74, so we are above the band (L21). Zinus Lumi has stalled at the 0.85 ask floor, 10.4h old with 33 units and 11 sold in 6h, and its lowest competitor asks are 0.55. Zinus Cloud 30cm holds about 6h of our own sales (60 units) while cash is tight. Dahas, Lacloud and Si
+2026-11-06 01:47:17 UTC memory: lesson L29 added: When shop ALL is already first among shops (~0.96) and class rank lags by 0.1+ on buyer ALL, shop moves should protect book: trim aged or 6h+ piles, fund only pinned fast clearers, and avoid speculative raises at stock 0
+2026-11-06 01:47:17 UTC memory: lesson L17 rewritten: Our stock_cost (~316M on 11-05 21:00) is 2.5-4.6x the top shops' (inextro 127M, dae-yangkim 68M). Storage costs ~3.2M/day of book. Do not add cover on SKUs whose oldest unit is past 4h; prefer ask cuts toward the market' -> Our stock_cost (316M on 11-05, 451M on 11-06 with cash 31M) is 3x+ inextro's (142M). Storage costs ~4.5M/day of book. Do not add cover on SKUs whose oldest unit is past 4h; prefer ask cuts toward the market's settle band
+2026-11-06 01:47:17 UTC memory: lesson L27 evicted (capacity 20): Newly listed big-ticket lines that clear in about 0.0-0.1h with no knobs set (e.g. Jacomo Ward 11-06) are the best ask-raise targets. Check each round for lines with knobs_now null, stock > 0, avg_hold_h <= 0.2 and margi
+2026-11-06 01:47:17 UTC asked to investigate: {"kind": "sku_prices", "sku": "G24f5f979"}
+2026-11-06 01:47:17 UTC asked to investigate: {"kind": "sku_prices", "sku": "G2607d1f6"}
+2026-11-06 01:47:17 UTC asked to investigate: {"kind": "sku_prices", "sku": "Gc1297f36"}
+2026-11-06 01:47:17 UTC asked to investigate: {"kind": "sku_prices", "sku": "G754bf0ca"}
+2026-11-06 01:47:17 UTC asked to investigate: {"kind": "competitor", "shop": "inextro"}
+2026-11-06 01:47:17 UTC watching: our_stock G3e0d6c67 >= 14 (Simmons Hub still piling up after the ask cut would mean the market band is lower than 0.77.)
+2026-11-06 01:47:17 UTC watching: our_stock G754bf0ca >= 70 (Zinus Cloud growing after the cover cut would mean restock is not honouring the factor.)
+2026-11-06 01:47:17 UTC watching: our_stock G24f5f979 >= 25 (About 8h of Plana 4 sales; a pile would mean the raise outran demand at ask 1.05.)
+2026-11-06 01:47:17 UTC [apply] ask G3e0d6c67 0.89 -> 0.85 (asked 0.85) | Simmons Hub: oldest unit 6.7h, 5 sold in 6h. Our ask is about 0.80 of list, against paid 0.72-0.77 and a competitor first-ask median of 0.74. Moving toward the band still leaves well over 300k margin  | predicts sold_next_6h >= 3 | uses ['L21', 'L12', 'L4']
+2026-11-06 01:47:17 UTC [apply] cover G3e0d6c67 1.25 -> 1 (asked 1) | L21: cut the ask and cover together on an aged big-ticket pile, so restock does not refill 2M-list units while cash is 31M. | predicts sold_next_6h >= 2 | uses ['L21', 'L11', 'L14']
+2026-11-06 01:47:17 UTC [apply] cover Gc1297f36 0.5 -> 0.25 (asked 0.25) | Lumi frame is at the 0.85 ask floor, 10.4h old, 33 units with 11 sold in 6h. Cover is the only lever left, and the cut frees about 14M of cash tied up here. | predicts sold_next_6h >= 3 | uses ['L22', 'L19', 'L17']
+2026-11-06 01:47:17 UTC [apply] cover G754bf0ca 1.25 -> 1 (asked 1) | Zinus Cloud 30cm: 60 units is about 6h of our own sales, with an 81k margin. Trimming it funds the Plana 4 raise while cash is near 30M. The ask is unchanged. | predicts sold_next_6h >= 30 | uses ['L19', 'L11']
+2026-11-06 01:47:17 UTC [apply] cover G24f5f979 1.25 -> 1.5 (asked 1.5) | Plana 4 swing is pinned at ask 1.05, clears in 0.2h, has 5 shops and earns 417k per unit. Stock is 13 > 0 and the ask is unchanged. The raise is funded by the Lumi and Cloud cover cuts. | predicts sold_next_6h >= 10 | uses ['L6', 'L11', 'L15', 'L8']
+2026-11-06 02:01:13 UTC buyer strategist: model answered in 54 s (31227 chars in)
+2026-11-06 02:15:22 UTC scored ask G03d0199f sold_next_6h >= 16: got 26 -> HIT (lessons ['L4', 'L12', 'L8'])
+2026-11-06 02:15:22 UTC scored cover Gc1297f36 sold_next_6h >= 20: got 9 -> MISS (lessons ['L11', 'L17', 'L8'])
+2026-11-06 02:15:22 UTC reverted cover on Gc1297f36: its prediction failed
+2026-11-06 02:15:22 UTC scored cover Gbec2b68f sold_next_6h >= 12: got 23 -> HIT (lessons ['L14', 'L11', 'L8'])
+2026-11-06 02:15:22 UTC scored cover Gf6b70da8 sold_next_6h >= 22: got 38 -> HIT (lessons ['L11', 'L8'])
+2026-11-06 02:15:22 UTC scored cover G2698c6f8 sold_next_6h >= 6: got 20 -> HIT (lessons ['L11', 'L18'])
+2026-11-06 02:15:22 UTC scored cover Gcc06fe5c sold_next_6h >= 1: got 0 -> MISS (lessons ['L15', 'L18'])
+2026-11-06 02:15:22 UTC reverted cover on Gcc06fe5c: its prediction failed
+2026-11-06 02:15:22 UTC scored ask G2607d1f6 sold_next_6h >= 4: got 16 -> HIT (lessons ['L13', 'L10'])
+2026-11-06 02:15:40 UTC probe: sku_prices {"sku": "G24f5f979"} done
+2026-11-06 02:15:53 UTC probe: sku_prices {"sku": "G2607d1f6"} done
+2026-11-06 02:16:06 UTC probe: sku_prices {"sku": "Gc1297f36"} done
+2026-11-06 02:16:20 UTC probe: sku_prices {"sku": "G754bf0ca"} done
+2026-11-06 02:16:24 UTC probe: competitor {"shop": "inextro"} done
+2026-11-06 02:17:28 UTC strategist: model answered in 64 s (54699 chars in)
+2026-11-06 02:17:28 UTC [apply] market read: Our shop is 1st among shops (ALL 0.951, revenue 2nd, book 3rd). Class rank is 6 at 1.487 against inextro 1.719, and the gap is almost all buyer ALL (0.565). Following the user's priority, shop moves this round protect book and free cash; they do not chase revenue rank. Cash is 44.6M against 442M of stock (inextro 135M), so storage at ~1%/day costs us about 4.4M of book a day, and the cheapest book gain is shrinking piles that turn slowly or earn thin margin. Three engines need no moves: Mate 4-seat (150 sold/6h, 0.3h hold), Plana 4 swing (24/6h, 434k/unit, 3 shops) and Ace BMA, all pinned or clearing fast. The aged piles are Zinus Lumi (33 units, 10.9h old, 9 sold/6h, already at the 0.85 ask floor and cover 0.25), Simmons Hub (10 units, 7.2h, 5/6h) and the GS loess sofa (8.9h). The low-margin crowded piles are Zinus Ultima SS (55 units, 11% margin, 17 shops, ~6h of our sales), Zinus Cloud (60 units, walk-aways 77 vs sold 53, market paid 0.61-0.73) and the mattress pad (113 units, surge 1.104). Recent cover-cut predictions overshot by about 2x (Lumi predicted 30 and got 12, then 20 and got 9), so I predict cuts at ~35% of last-6h sales. Stock-0 raises missed again (Avenuel Shrunken,

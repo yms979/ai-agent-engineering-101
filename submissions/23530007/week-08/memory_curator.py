@@ -96,7 +96,9 @@ Write (one JSON object, keys exactly as in the template at the end):
    Buyer: item 1 the best setting by the formula (WATCH.buyer_formula: buyer ALL per step of each component and the
    scenarios to 24 h / 72 h / round end; name the scenario, the expected buyer ALL change and the knobs that get
    there: value_share, category caps, skip_below_food / skip_below_goods, quick_accept, open_offset, max_shops,
-   shop_bias / shop_cap); item 2 where saved is lost (WATCH.where_saved_goes_24h: kind, category, shop, outcome;
+   shop_bias / shop_cap); state the break-even saved per deal (user 11-06: a deal pays off when its saved is above
+   the projected round-end saved minus the small deals bonus, ~0.235 at saved 0.228; it rises with our saved) and
+   whether skip_below_goods / skip_below_food sit at it, and say to raise them when our saved has risen; item 2 where saved is lost (WATCH.where_saved_goes_24h: kind, category, shop, outcome;
    minus_one deals cost most; name the knob); then what saved_speed says about the last move (WATCH.saved_speed,
    higher is better: since_last_move vs before_6h), what the ranking buyers do that ours does not, and what the shop
    strategist found that concerns it. Shop: cover of its top sellers, its prices vs the market's p50_x in those

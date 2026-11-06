@@ -22,7 +22,9 @@ itself, and old findings sit beside the ones that replaced them. The curator is 
               checks, in code: the market's rule pages (hash; a change gives the changed lines and wakes both
               strategists out of turn), the student board against its last run (who moved, shop or buyer part),
               our buyer's components and the peers above, and saved_speed = deals/h x (saved per deal - our
-              saved) by hour and before/after the buyer strategist's last move. The model reads that with the new
+              saved) by hour and before/after the buyer strategist's last move, the buyer formula (buyer ALL per
+              step of each component; scenarios to round end) and our last 24 h by kind, category, shop and
+              outcome. The model reads that with the new
               entries and writes a briefing per strategist into the digest (briefing_buyer, briefing_shop,
               rules_change, rank_change); read_digest hands each its own.
 Log: logs/memory_curator.log. One curator at a time (lock); a failed model call leaves entries uncurated for
@@ -91,7 +93,10 @@ buyer ALL gained per step of each component and buyer ALL after 24 h / 72 h / un
 settings. In "briefing_buyer", item 1 must name the best setting from that arithmetic (which scenario, why, the
 expected buyer ALL change, and the knobs that get there: value_share, category caps, skip_below, quick_accept,
 open_offset, max_shops, shop_bias/shop_cap), and item 2 where saved is being lost now (shops, categories,
-outcomes) with numbers.
+outcomes) with numbers, from WATCH.where_saved_goes_24h (by kind, category, shop, outcome; saved_per_deal under
+our saved lowers it, minus_one deals cost most). Look for splits like food vs goods, a category or shop far under
+our saved, or an outcome that wastes orders, and name the knob that acts on it (skip_below_food,
+skip_below_goods, category caps, shop_bias, ...). Finding these is your job, not the operator's.
 Scoring as of the WATCH: Buyer ALL = 0.5 saved + 0.3 forum + 0.1 deals + 0.1 posts, forum as the rating itself
 (patch 3.5), the rest percentiles; Shop ALL = 0.5 book + 0.3 revenue + 0.2 stars; rank = shop ALL + buyer ALL among
 students. Trust WATCH.rules_changed over this paragraph when they differ.
@@ -230,9 +235,39 @@ def watch(rules_changed):
                "before_6h": bs.saved_speed(bs.trades(last - 6 * 3600, last), 6, base),
                "moves": [(e.get("knob"), e.get("sku"), e.get("value")) for e in eps if e["t"] == last]}}}
     out["buyer_formula"] = formula(b, hourly)
+    out["where_saved_goes_24h"] = breakdown(bs, now)
     WATCH_STATE.write_text(json.dumps({"t": now, "class_top": top, "class_rank": b.get("class_rank")},
                                       ensure_ascii=False), encoding="utf-8")
     return out
+
+
+def breakdown(bs, now):
+    """Our buyer's last 24 h cut every way the score can be won or lost (user 11-06: finding e.g. that food ran
+    0.279 per deal and goods 0.194 is the curator's job): by kind, category, shop and outcome, each with orders,
+    deals, saved per deal and the deals that counted -1."""
+    rows = bs.trades(now - 24 * 3600)
+
+    def cut(key, top=None):
+        g = {}
+        for r in rows:
+            g.setdefault(key(r) or "?", []).append(r)
+        res = []
+        for k, v in g.items():
+            sm = bs.summary(v)
+            dl = [x for x in v if x.get("outcome") == "deal" and x.get("saved") is not None]
+            res.append({"key": k, "orders": len({x.get("order") for x in v}), "deals": sm["deals"],
+                        "saved_per_deal": sm["mean_saved"], "minus_one": sum(1 for x in dl if x["saved"] < 0),
+                        "saved_sum": round(sum(x["saved"] for x in dl), 2)})
+        res.sort(key=lambda x: -x["deals"])
+        return res[:top] if top else res
+    outcomes = {}
+    for r in rows:
+        o = str(r.get("outcome") or "")[:24]
+        outcomes[o] = outcomes.get(o, 0) + 1
+    return {"by_kind": cut(lambda r: r.get("kind")), "by_category": cut(lambda r: r.get("category"), 15),
+            "by_shop": cut(lambda r: r.get("shop"), 15),
+            "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
+            "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}
 
 
 def formula(b, hourly):

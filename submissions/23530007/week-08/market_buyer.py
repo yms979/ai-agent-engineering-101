@@ -89,6 +89,7 @@ INTEL = Path(os.environ.get("MARKET_INTEL", HERE / "market_intel.jsonl"))   # re
 MAX_ROUNDS = 8
 DEADLINE = 240          # the kit and the test stop the buyer at 300 s
 SEEN_TASKS = 1000      # task ids of receipts I received, to catch a replayed receipt
+GRADE_C_MEMORY = 6 * 3600   # a shop that offered a grade-C unit of a SKU is not asked for that SKU again for this long
 FAIL_MEMORY = 6 * 3600  # a failed visit keeps a shop out for this long; shops restart and get fixed
 TOOLS_SHARE = 0.25         # deals paid through the shop's ACP tools (the model drives ~12 s of checkout);
                            # the kit pays the rest by code, so orders keep flowing
@@ -363,13 +364,24 @@ def note_payments(mem, md):
                 t = next((t for t in reversed(mem["trades"]) if t.get("order") == pay.get("order")), None)
                 if t:
                     t["outcome"] = f"unpaid: {pay.get('reason', '')}"[:200]
+                    if "grade C" in str(pay.get("reason")):
+                        mem.setdefault("grade_c", {})[f"{t['shop']}|{t['item']}"] = time.time()
                     log("buyer", f"the kit did not pay {t['shop']} for {t['item']}: {pay.get('reason')}")
         mem["pay_pos"] = f.tell()
 
 
-def pick_sku(shop, acceptable, catalog, budget, share=0.97):
-    """The acceptable SKU in stock at `shop` with the highest list price I can pay for, else the cheapest one."""
-    offers = [o for o in shop.get("offers") or [] if o.get("sku") in acceptable and (o.get("qty") or 0) > 0]
+def grade_c_skip(mem):
+    """'shop|sku' pairs that gave me a grade-C unit (claimed on the receipt or shipped) in the last GRADE_C_MEMORY."""
+    now = time.time()
+    mem["grade_c"] = {k: t for k, t in (mem.get("grade_c") or {}).items() if now - t < GRADE_C_MEMORY}
+    return set(mem["grade_c"])
+
+
+def pick_sku(shop, acceptable, catalog, budget, share=0.97, skip=()):
+    """The acceptable SKU in stock at `shop` with the highest list price I can pay for, else the cheapest one.
+    `skip`: 'shop|sku' pairs that came in grade C lately (the kit would not pay for them)."""
+    offers = [o for o in shop.get("offers") or [] if o.get("sku") in acceptable and (o.get("qty") or 0) > 0
+              and f"{shop.get('name')}|{o.get('sku')}" not in skip]
     price = lambda o: (catalog.get(o["sku"]) or {}).get("list_price") or 0
     fits = [o for o in offers if 0 < price(o) * share <= budget]
     o = max(fits, key=price) if fits else min(offers, key=price, default=None)
@@ -415,7 +427,8 @@ def main():
         note_broken(mem, md)
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
         share = (bp.get("cat_auto", {}).get(a.item) or {}).get("cap", bp["value_share"])   # buyer_strategist.py
-        shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, share)]
+        cskip = grade_c_skip(mem)
+        shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, share, cskip)]
         prices = [(catalog.get(k) or {}).get("list_price") or 0 for k in acceptable]
         try:                                       # for our shop's restock: which prices this order accepts,
             with open(INTEL, "a", encoding="utf-8") as f:   # and whether any shop could serve it
@@ -439,11 +452,12 @@ def main():
         item, label, cap, accept = a.item, f"a {a.item}", a.budget, None
         first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
         if acceptable:
-            want = pick_sku(pick, acceptable, catalog, a.budget, share)
+            want = pick_sku(pick, acceptable, catalog, a.budget, share, cskip)
             item, label = want["sku"], f"{want['name']} ({want['sku']})"
             cap = min(a.budget, int(want["list_price"] * share))
             hours = order.get("use_within_hours")
-            first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else "")
+            first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else
+                                                 " Grade A or B only, please." if order.get("kind") == "goods" else "")
             accept = {"cert": True}
             if order.get("kind") == "food" and hours:
                 accept["min_hours_left"] = hours + bp["food_extra_hours"]
@@ -518,6 +532,14 @@ def main():
                 rec = receipt(t)
                 price = as_int(rec.get("price"))
                 outcome = "deal"
+                claim = rec.get("claim")
+                if acceptable and order.get("kind") == "goods" and claim in ("A", "B", "C") \
+                        and claim not in bp["goods_grades"]:
+                    # the kit refuses to pay for it at checkout anyway (40 orders lost this way on 11-06):
+                    # leave the receipt unpaid and try the next shop while there is time
+                    mem.setdefault("grade_c", {})[f"{pick['name']}|{item}"] = time.time()
+                    log("buyer", f"{pick['name']} signed {item} as grade {claim}; not paying, trying elsewhere")
+                    outcome, rec, price = f"grade {claim} claimed", None, None
             elif state(t) == "TASK_STATE_REJECTED":
                 outcome = "rejected"
             else:
@@ -528,7 +550,7 @@ def main():
         except (RpcError, Exception) as e:
             log("buyer", f"trade failed: {e!r}")
             outcome = f"error ({type(e).__name__})"
-        turned_away = (outcome == "rejected" and not asks) or outcome.startswith("error")
+        turned_away = (outcome == "rejected" and not asks) or outcome.startswith(("error", "grade "))
         others = [s for s in shops if s["name"] != pick["name"]]
         if turned_away and others and attempt < MAX_SHOPS - 1 and time.time() - start < DEADLINE - 60:
             mem["trades"].append({"t": int(time.time()), "secs": int(time.time() - t_shop), "shop": pick["name"],

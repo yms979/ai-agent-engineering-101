@@ -90,7 +90,8 @@ def refresh(st):
                 rows.append({"ts": e["ts"], "shop": st["names"].get(url) or url, "buyer": d.get("buyer"),
                              "goods": d.get("expires_at") is None, "cat": item.get("category", ""),
                              "x": round(d["amount"] / lp, 4), "w": (d.get("warranty_hours") or 0) > 0,
-                             "unit": d.get("unit"), "grade": d.get("grade")})
+                             "unit": d.get("unit"), "grade": d.get("grade"),
+                             "sku": d.get("sku"), "amt": d.get("amount")})      # 11-06: market_picture.py reads these
             elif e.get("kind") == "broken":
                 broken[d.get("unit")] = (d.get("refunded") or 0) > 0
         after = page[-1]["seq"]

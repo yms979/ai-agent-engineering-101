@@ -38,10 +38,12 @@
 7. Round 3 (--order with "acceptable" SKUs). The order names a category; a deal is worth the SKU's list
    price to me (0 if food does not last use_within_hours, minus the price if goods break without warranty).
      - only shops whose offers hold an acceptable SKU in stock are considered
-     - at the chosen shop I ask for the acceptable SKU with the highest list price within my budget
-       ("I want to buy <name> (<sku>)", and for food how many hours it must last)
-     - I never pay more than value_share of the list price, so every deal leaves a surplus; policy.py sets it
-       by situation: 0.97 normally, 0.85 in the last 12 hours (shops clear stock), 0.99 when few orders close
+     - at the chosen shop I ask for the acceptable SKU whose market deals there gave the best saved per deal
+       ("skubest", 11-08; before: the highest list price within my budget, a rule from when the score was the
+       amount saved), with how many hours food must last and, for goods, which grades with a warranty I prefer
+     - I never pay more than value_share of the list price (0.75 now, buyer_strategist.py moves it; per
+       category caps too) and the shop's usual price + cap_margin; saved is a share of list, so a cheap item at
+       40% off counts more than a dear one at 30% off
      - the result line carries "accept": the market's certificate always; food must last
        use_within_hours + 1 h; goods must be grade A or B. The kit pays nothing if the checkout fails it
      - payments.jsonl tells me afterwards when the kit did not pay; that visit counts as failed

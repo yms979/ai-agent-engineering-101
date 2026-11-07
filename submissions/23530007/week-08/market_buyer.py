@@ -485,7 +485,7 @@ def main():
             order = {}
     acceptable = order.get("acceptable") or []
     vctx = None
-    pricefirst = wpen = cheapfood = False
+    pricefirst = wpen = cheapfood = cheapgoods = False
     md = Path(a.order).parent if a.order else HERE / ".market"
     regime, bp = "STEADY", {}
     if acceptable:
@@ -493,6 +493,7 @@ def main():
         pricefirst = random.random() < bp.get("pricefirst_share", 0)
         wpen = random.random() < bp.get("wpen_share", 0)
         cheapfood = order.get("kind") == "food" and random.random() < bp.get("cheapfood_share", 0)
+        cheapgoods = order.get("kind") == "goods" and random.random() < bp.get("cheapgoods_share", 0)
         if order.get("kind") == "food" and order.get("use_within_hours"):
             try:                                   # for our shop's restock: how long buyers need food to last
                 with open(INTEL, "a", encoding="utf-8") as f:
@@ -537,7 +538,7 @@ def main():
                                   "order": order.get("order"), "category": a.item, "kind": order.get("kind"),
                                   "outcome": "skipped (low value)", "price": None, "asks": [], "agreed": None,
                                   "honest": True, "signed": True, "void": "", "expected": expected_in(why),
-                                  "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood})
+                                  "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood, "cheapgoods": cheapgoods})
             save_memory(mem)
             no_deal(f"Skipped: no shop sells {a.item} cheaply enough for me now.")
             return
@@ -562,6 +563,13 @@ def main():
             hours = order.get("use_within_hours")
             first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else
                                                  " Grade A or B only, please." if order.get("kind") == "goods" else "")
+            if cheapgoods and order.get("kind") == "goods":
+                # 11-07 A/B "cheapgoods": market 6 h, goods with a warranty: A 0.261 saved per deal, B 0.362, C 0.460
+                # (a break under warranty is refunded and counts +1); 81% of our goods were grade A. Ask for B or C
+                # with a warranty first; without one only A or B is paid (the accept check below)
+                first = (f"I want to buy {label}. I prefer grade C (refurbished) or B (damaged box) with a warranty of"
+                         f" at least {WARRANTY_MIN} hours on the receipt, priced for its grade; grade A only if you have"
+                         " nothing else. Please quote your cheapest unit that way.")
             if cheapfood and hours:
                 # 11-07 A/B "cheapfood": food grade is only shelf life left, so any unit that lasts serves the order;
                 # Kiro729 buys 43% grade C / 1% A at 0.577 of list against our 21% A at 0.662 (market A 0.746,
@@ -740,7 +748,7 @@ def main():
                                   "order": order.get("order"), "category": a.item if acceptable else None,
                                   "kind": order.get("kind"), "outcome": outcome, "price": None, "asks": asks,
                                   "agreed": agreed, "honest": True, "signed": True, "void": "",
-                                  "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood})
+                                  "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood, "cheapgoods": cheapgoods})
             log("buyer", f"{pick['name']} {'turned me away' if turned_away else 'did not meet my price'} ({outcome}); "
                          f"trying another shop ({attempt + 2}/{max_shops})")
             shops = others
@@ -778,7 +786,7 @@ def main():
                           "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
                           "cap": cap, "list": want["list_price"] if acceptable else None,
                           "expected": expected_in(why),      # the shop's expected saved per deal when chosen
-                          "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood,
+                          "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood, "cheapgoods": cheapgoods,
                           "push": (f"{arm}-pushed" if pushed else f"{arm}-arm") if push else "control2"})   # 11-07 A/B
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")

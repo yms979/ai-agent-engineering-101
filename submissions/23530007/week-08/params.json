@@ -127,6 +127,7 @@
       "wpen_cost": 0.06,
       "cheapfood_share": 0.5,
       "cheapfood_open": 0.3,
+      "cheapgoods_share": 0.5,
       "max_shops": 4
     },
     "END_SALE": {},

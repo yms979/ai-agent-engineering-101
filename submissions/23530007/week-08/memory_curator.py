@@ -292,7 +292,13 @@ def breakdown(bs, now):
             # cap; the push arm counters once more when the ask is above the shop's p25 + band ("pushed" = it
             # did, "arm" = the ask was already low). Compare saved_per_deal AND deals per order of control vs
             # arm+pushed: pushing wins only if it raises saved without losing many deals
-            "push_ab": cut(lambda r: r.get("push") if "push" in r else "before_ab"),
+            # judged over ALL shops and kinds together (user 11-07: not tuned to one shop): the number that
+            # decides is score_gain_per_order = deals/order x (saved per deal - our running saved ~0.245)
+            "push_ab": [dict(x, deals_per_order=round(x["deals"] / max(x["orders"], 1), 3),
+                             score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
+                                                        * ((x["saved_per_deal"] or 0) - 0.245), 4))
+                        for x in cut(lambda r: ("control" if r["push"] == "control" else "push")
+                                     if "push" in r else "before_ab")],
             "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
             "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}
 

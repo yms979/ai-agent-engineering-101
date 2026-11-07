@@ -330,6 +330,11 @@ def breakdown(bs, now):
                                                                     * ((x["saved_per_deal"] or 0) - 0.255), 4))
                                     for x in cut(lambda r: ("cheapgoods" if r["cheapgoods"] else "base")
                                                  if "cheapgoods" in r and r.get("kind") == "goods" else "other")],
+            # 11-08 A/B "skubest": the SKU with the best market saved at the chosen shop instead of the dearest one
+            "skubest_ab": [dict(x, deals_per_order=round(x["deals"] / max(x["orders"], 1), 3),
+                                score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
+                                                           * ((x["saved_per_deal"] or 0) - 0.256), 4))
+                           for x in cut(lambda r: ("skubest" if r["skubest"] else "base") if "skubest" in r else "other")],
             "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
             "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}
 

@@ -121,6 +121,8 @@ def summarize(st):
         groups[f"{r['shop']}|{kind}"].append(r)
         groups[f"{r['shop']}|{kind}|{r['cat']}"].append(r)
         groups[f"*|{kind}"].append(r)
+        if r.get("sku"):                                   # 11-08: per shop and SKU, for pick_sku's saved choice
+            groups[f"{r['shop']}|sku|{r['sku']}"].append(r)
     out = {}
     for k, rs in groups.items():
         xs = sorted(r["x"] for r in rs)

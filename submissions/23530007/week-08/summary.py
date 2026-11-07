@@ -145,6 +145,9 @@ def main():
         ca = {x["key"]: x for x in mc.breakdown(bs, now)["cheapfood_ab_food"]}
         if "cheapfood" in ca and "base" in ca:
             lines.append(f"구매 A/B 식품 싼 등급+낮게 시작: {f(ca['cheapfood'])} | 기존: {f(ca['base'])}")
+        ka = {x["key"]: x for x in mc.breakdown(bs, now)["skubest_ab"]}
+        if "skubest" in ka and "base" in ka:
+            lines.append(f"구매 A/B 상품 선택(saved 기준): {f(ka['skubest'])} | 기존(최고가): {f(ka['base'])}")
         ga = {x["key"]: x for x in mc.breakdown(bs, now)["cheapgoods_ab_goods"]}
         if "cheapgoods" in ga and "base" in ga:
             lines.append(f"구매 A/B 가구 보증 C·B 우선: {f(ga['cheapgoods'])} | 기존: {f(ga['base'])}")

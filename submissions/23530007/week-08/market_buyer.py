@@ -449,13 +449,24 @@ def grade_c_skip(mem):
     return set(mem["grade_c"])
 
 
-def pick_sku(shop, acceptable, catalog, budget, share=0.97, skip=()):
+def pick_sku(shop, acceptable, catalog, budget, share=0.97, skip=(), stats=None):
     """The acceptable SKU in stock at `shop` with the highest list price I can pay for, else the cheapest one.
-    `skip`: 'shop|sku' pairs that came in grade C lately (the kit would not pay for them)."""
+    `skip`: 'shop|sku' pairs that came in grade C lately (the kit would not pay for them).
+    With `stats` (11-08 A/B "skubest"): among those I can pay for, the SKU whose market deals at this shop gave the
+    best saved per deal (3+ deals; others count at the shop's level minus 0.01). The highest list price was the
+    rule when the score was the amount saved; saved is a share now, and the dearest SKUs came mostly as new
+    grade A stock, while the same shops sold B/C with a warranty to other buyers."""
     offers = [o for o in shop.get("offers") or [] if o.get("sku") in acceptable and (o.get("qty") or 0) > 0
               and f"{shop.get('name')}|{o.get('sku')}" not in skip]
     price = lambda o: (catalog.get(o["sku"]) or {}).get("list_price") or 0
     fits = [o for o in offers if 0 < price(o) * share <= budget]
+    if stats is not None and len(fits) > 1:
+        def sku_saved(o):
+            g = stats.get(f"{shop.get('name')}|sku|{o['sku']}") or {}
+            return g["saved"] if g.get("n", 0) >= 3 else -1.0
+        best = max(fits, key=lambda o: (sku_saved(o), price(o)))
+        if sku_saved(best) > -1.0:
+            fits = [best]
     o = max(fits, key=price) if fits else min(offers, key=price, default=None)
     return o and {"sku": o["sku"], "name": o.get("name") or o["sku"], "list_price": price(o)}
 
@@ -485,7 +496,7 @@ def main():
             order = {}
     acceptable = order.get("acceptable") or []
     vctx = None
-    pricefirst = wpen = cheapfood = cheapgoods = False
+    pricefirst = wpen = cheapfood = cheapgoods = skubest = False
     md = Path(a.order).parent if a.order else HERE / ".market"
     regime, bp = "STEADY", {}
     if acceptable:
@@ -494,6 +505,7 @@ def main():
         wpen = random.random() < bp.get("wpen_share", 0)
         cheapfood = order.get("kind") == "food" and random.random() < bp.get("cheapfood_share", 0)
         cheapgoods = order.get("kind") == "goods" and random.random() < bp.get("cheapgoods_share", 0)
+        skubest = random.random() < bp.get("skubest_share", 0)
         if order.get("kind") == "food" and order.get("use_within_hours"):
             try:                                   # for our shop's restock: how long buyers need food to last
                 with open(INTEL, "a", encoding="utf-8") as f:
@@ -548,7 +560,7 @@ def main():
         item, label, cap, accept, aim, p25 = a.item, f"a {a.item}", a.budget, None, "", None
         first = f"Hi! I'd like to buy a {a.item}. What's your best price?"
         if acceptable:
-            want = pick_sku(pick, acceptable, catalog, a.budget, share, cskip)
+            want = pick_sku(pick, acceptable, catalog, a.budget, share, cskip, stats=vctx["stats"] if skubest else None)
             item, label = want["sku"], f"{want['name']} ({want['sku']})"
             cap = min(a.budget, int(want["list_price"] * share))
             ev = expected(vctx["stats"], pick["name"], vctx["kind"], vctx["cat"])
@@ -798,7 +810,7 @@ def main():
                           "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
                           "cap": cap, "list": want["list_price"] if acceptable else None,
                           "expected": expected_in(why),      # the shop's expected saved per deal when chosen
-                          "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood, "cheapgoods": cheapgoods, "regraded": regraded,
+                          "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood, "cheapgoods": cheapgoods, "regraded": regraded, "skubest": skubest,
                           "push": (f"{arm}-pushed" if pushed else f"{arm}-arm") if push else "control2"})   # 11-07 A/B
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")

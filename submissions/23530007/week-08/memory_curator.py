@@ -304,6 +304,12 @@ def breakdown(bs, now):
                         for x in cut(lambda r: {"control": "control", "control2": "control2"}.get(
                                          r["push"], "push3" if r["push"].startswith("push3") else "push2" if r["push"].startswith("push2") else "push")
                                      if "push" in r else "before_ab")],
+            # 11-07 A/B "pricefirst" (independent of push): shops ranked by price alone (conv_weight 0.02, no rival
+            # penalty) vs base; same score-per-order test, over all shops and kinds
+            "shopsel_ab": [dict(x, deals_per_order=round(x["deals"] / max(x["orders"], 1), 3),
+                                score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
+                                                           * ((x["saved_per_deal"] or 0) - 0.25), 4))
+                           for x in cut(lambda r: r.get("shopsel") or "before_ab")],
             "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
             "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}
 

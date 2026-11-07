@@ -481,10 +481,12 @@ def main():
             order = {}
     acceptable = order.get("acceptable") or []
     vctx = None
+    pricefirst = False
     md = Path(a.order).parent if a.order else HERE / ".market"
     regime, bp = "STEADY", {}
     if acceptable:
         regime, bp, _ = buyer_params()
+        pricefirst = random.random() < bp.get("pricefirst_share", 0)
         if order.get("kind") == "food" and order.get("use_within_hours"):
             try:                                   # for our shop's restock: how long buyers need food to last
                 with open(INTEL, "a", encoding="utf-8") as f:
@@ -497,7 +499,12 @@ def main():
         catalog = json.load(open(md / "catalog.json", encoding="utf-8"))
         share = (bp.get("cat_auto", {}).get(a.item) or {}).get("cap", bp["value_share"])   # buyer_strategist.py
         cskip = grade_c_skip(mem)
-        vctx = {"stats": value_table(), "kind": order.get("kind") or "goods", "cat": order.get("category"), "bp": bp}
+        # 11-07 A/B "pricefirst" (independent of the push arms): rank shops by price alone. conv_weight 0.1 gave a
+        # shop that often agrees +0.06 over one that rarely does (psyoung82 over olstjr, whose buyers pay 0.59
+        # against psyoung82's 0.71), though a failed try costs seconds and the next shop is tried; rival_penalty
+        # 0.04 pushed down the cheap food at Kiro729 for a revenue effect on them our ~70 deals/day barely move
+        sbp = dict(bp, conv_weight=bp.get("pricefirst_conv_weight", 0.02), rival_penalty=0) if pricefirst else bp
+        vctx = {"stats": value_table(), "kind": order.get("kind") or "goods", "cat": order.get("category"), "bp": sbp}
         shops = [s for s in shops if pick_sku(s, acceptable, catalog, a.budget, share, cskip)]
         prices = [(catalog.get(k) or {}).get("list_price") or 0 for k in acceptable]
         try:                                       # for our shop's restock: which prices this order accepts,
@@ -522,7 +529,8 @@ def main():
             mem["trades"].append({"t": int(time.time()), "secs": 0, "shop": "", "item": "", "budget": a.budget,
                                   "order": order.get("order"), "category": a.item, "kind": order.get("kind"),
                                   "outcome": "skipped (low value)", "price": None, "asks": [], "agreed": None,
-                                  "honest": True, "signed": True, "void": "", "expected": expected_in(why)})
+                                  "honest": True, "signed": True, "void": "", "expected": expected_in(why),
+                                  "shopsel": "pricefirst" if pricefirst else "base"})
             save_memory(mem)
             no_deal(f"Skipped: no shop sells {a.item} cheaply enough for me now.")
             return
@@ -717,7 +725,8 @@ def main():
                                   "item": item, "budget": a.budget,
                                   "order": order.get("order"), "category": a.item if acceptable else None,
                                   "kind": order.get("kind"), "outcome": outcome, "price": None, "asks": asks,
-                                  "agreed": agreed, "honest": True, "signed": True, "void": ""})
+                                  "agreed": agreed, "honest": True, "signed": True, "void": "",
+                                  "shopsel": "pricefirst" if pricefirst else "base"})
             log("buyer", f"{pick['name']} {'turned me away' if turned_away else 'did not meet my price'} ({outcome}); "
                          f"trying another shop ({attempt + 2}/{max_shops})")
             shops = others
@@ -755,6 +764,7 @@ def main():
                           "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
                           "cap": cap, "list": want["list_price"] if acceptable else None,
                           "expected": expected_in(why),      # the shop's expected saved per deal when chosen
+                          "shopsel": "pricefirst" if pricefirst else "base",
                           "push": (f"{arm}-pushed" if pushed else f"{arm}-arm") if push else "control2"})   # 11-07 A/B
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")

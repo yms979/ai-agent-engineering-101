@@ -142,6 +142,9 @@ def main():
                             ("push", "control", "A/B1 한번 더 깎기")):
             if p in ab and c in ab:
                 lines.append(f"구매 {label}: {f(ab[p])} | 그대로: {f(ab[c])}")
+        sa = {x["key"]: x for x in mc.breakdown(bs, now)["shopsel_ab"]}
+        if "pricefirst" in sa and "base" in sa:
+            lines.append(f"구매 A/B 싼 가게 우선: {f(sa['pricefirst'])} | 기존: {f(sa['base'])}")
     except Exception:
         pass
     msg = "\n".join(lines)

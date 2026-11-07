@@ -310,6 +310,13 @@ def breakdown(bs, now):
                                 score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
                                                            * ((x["saved_per_deal"] or 0) - 0.25), 4))
                            for x in cut(lambda r: r.get("shopsel") or "before_ab")],
+            # 11-07 A/B "wpen": goods orders only; shops charged 0.06 x the share of their goods sold without a
+            # warranty (our no-warranty goods ran 0.244 per deal with 16 breaks in 439, warranted 0.324)
+            "wpen_ab_goods": [dict(x, deals_per_order=round(x["deals"] / max(x["orders"], 1), 3),
+                                   score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
+                                                              * ((x["saved_per_deal"] or 0) - 0.255), 4))
+                              for x in cut(lambda r: ("wpen" if r["wpen"] else "base") if "wpen" in r and r.get("kind") == "goods"
+                                           else "other")],
             "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
             "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}
 

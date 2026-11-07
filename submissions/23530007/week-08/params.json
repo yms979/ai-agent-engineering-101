@@ -123,7 +123,7 @@
       "push3_below": 0.1,
       "pricefirst_share": 0.0,
       "pricefirst_conv_weight": 0.02,
-      "wpen_share": 0.5,
+      "wpen_share": 0.8,
       "wpen_cost": 0.06,
       "max_shops": 4
     },

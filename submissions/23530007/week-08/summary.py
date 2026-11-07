@@ -138,7 +138,8 @@ def main():
         import memory_curator as mc
         ab = {x["key"]: x for x in mc.breakdown(bs, now)["push_ab"]}
         f = lambda x: f"{x['deals']}건/{x['orders']}주문, 거래당 {x['saved_per_deal']}, 주문당 점수 {x['score_gain_per_order']:+.4f}"
-        for p, c, label in (("push2", "control2", "A/B2 첫 제시가도 깎기"), ("push", "control", "A/B1 한번 더 깎기")):
+        for p, c, label in (("push3", "control2", "A/B3 더 깊게(p25-0.10, 2번)"), ("push2", "control2", "A/B2 첫 제시가도 깎기"),
+                            ("push", "control", "A/B1 한번 더 깎기")):
             if p in ab and c in ab:
                 lines.append(f"구매 {label}: {f(ab[p])} | 그대로: {f(ab[c])}")
     except Exception:

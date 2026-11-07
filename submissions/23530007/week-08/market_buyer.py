@@ -542,6 +542,11 @@ def main():
         # (halfway down to that quartile) before we take it; a rejection that names a floor reopens at it below.
         push = random.random() < bp.get("push_share", 0)
         pushed = False
+        # 11-07 push3: 39 of 89 push2 counters were taken at exactly our number, so the shops had room below it;
+        # push3 aims at the shop's p25 - push3_below (0.10) and may counter twice. Split of the push arm.
+        arm = "push3" if push and random.random() < bp.get("push3_share", 0) else "push2"
+        below = bp.get("push3_below", 0.10) if arm == "push3" else bp.get("push_below", 0.05)
+        npush, max_push = 0, 2 if arm == "push3" else 1
         try:
             seller = Seller(pick["url"])
             t = seller.send(first)
@@ -555,8 +560,8 @@ def main():
                 near = acceptable and ask is not None and cap < ask <= min(a.budget, cap + want["list_price"] * bp["near_cap"])
                 # 11-07 push2: the quick accept took first asks up to 0.70 of list without a counter (Pringles at
                 # 0.59 while Kiro729 sold it at 0.41); in the push arm a low first ask still gets one counter
-                low_first = (push and not pushed and not near and ask is not None and p25 and vctx is not None
-                             and bp.get("code_haggle") and ask > want["list_price"] * max(0.4, p25 - bp.get("push_below", 0.05)))
+                low_first = (push and npush < max_push and not near and ask is not None and p25 and vctx is not None
+                             and bp.get("code_haggle") and ask > want["list_price"] * max(0.4, p25 - below))
                 if not low_first and (near or (acceptable and ask is not None and ask <= cap
                                                and ask <= want["list_price"] * bp["quick_accept"])):
                     # near: 11-06, 43 of 54 rejections in an hour came after asks within ~1-2 % of list of our cap
@@ -577,12 +582,12 @@ def main():
                     history.append(("seller asked", ask))
                     lp = want["list_price"]
                     prev = [a for k, a in history[:-1] if k == "seller asked"]
-                    if (push and not pushed and ask <= cap and p25 and len(mine) < 2
-                            and ask > lp * max(0.4, p25 - bp.get("push_below", 0.05))):
+                    if (push and npush < max_push and ask <= cap and p25 and len(mine) < 1 + max_push
+                            and ask > lp * max(0.4, p25 - below)):
                         # counter halfway down to (shop p25 - push_below); push2 (11-07 07:00) also reaches here
                         # for low first asks the quick accept used to take, and aims below p25, not at it
-                        pushed = True
-                        aim_p = int(lp * max(0.4, p25 - bp.get("push_below", 0.05)))
+                        pushed, npush = True, npush + 1
+                        aim_p = int(lp * max(0.4, p25 - below))
                         action, offer = "offer", max(mine[-1] if mine else 0, (ask + aim_p) // 2)
                     elif ask <= cap:
                         action, offer = "offer", ask
@@ -711,7 +716,7 @@ def main():
                           "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
                           "cap": cap, "list": want["list_price"] if acceptable else None,
                           "expected": expected_in(why),      # the shop's expected saved per deal when chosen
-                          "push": ("push2-pushed" if pushed else "push2-arm") if push else "control2"})   # 11-07 A/B
+                          "push": (f"{arm}-pushed" if pushed else f"{arm}-arm") if push else "control2"})   # 11-07 A/B
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")
                  + f", {time.time() - start:.0f} s, harness calls {harness.CALLS['n']}")

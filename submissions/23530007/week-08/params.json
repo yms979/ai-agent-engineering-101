@@ -9,7 +9,7 @@
       },
       "meet_frac": 0.5,
       "floor_mult": 1.05,
-      "warranty_hours": 72,
+      "warranty_hours": 8760,
       "warranty_grades": ["A", "B"],
       "buy": true,
       "keep_cash": 1500000,

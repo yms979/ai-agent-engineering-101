@@ -222,6 +222,13 @@ def blocked(text):
     return next((k for k, pats in _blocked[1].items() if any(r.search(text) for r in pats)), None)
 
 
+def wtext(hours):
+    """How a warranty is said: from a year up it is a lifetime warranty (user 11-08: goods only break within 6 h
+    of the sale, so any length past that costs the same and a lifetime one reads better)."""
+    return (f"lifetime warranty ({hours:g} h on the receipt; every break is refunded in full)" if hours >= 8760
+            else f"{hours:g} h warranty")
+
+
 RIVALS = HERE / "rival_buyers.json"
 _rivals = [0.0, {}]
 
@@ -351,7 +358,7 @@ class Shop(AgentExecutor):
             facts = (f"{u['name']} ({u['sku']}), grade {grade}"
                      + (f", NOTE: only {hl:.0f} hours left before its date, so it is priced down" if doomed else
                         f", lasts {hl:.0f} more hours" if hl is not None else "")
-                     + (f", {d['warranty']:g} h warranty" if u.get("kind") == "goods" and u["unit"] and d["warranty"] else "")
+                     + (f", {wtext(d['warranty'])}" if u.get("kind") == "goods" and u["unit"] and d["warranty"] else "")
                      + ", market certificate included")
             line = await self.words("open with an asking price", d, text, "Thanks for asking!")
             log("seller", f"task {task.id[:8]} {u['sku']} unit {u['unit']} grade {grade} cost {u['cost']} "
@@ -415,7 +422,7 @@ def build(port):
     base = read_params(PARAMS, {}).get("shop", {}).get("base", {})
     from shop_guard import grades_now           # the card states what the deals carry (book-lead guard, 11-07)
     warranty, grades = base.get("warranty_hours", 0), grades_now(base.get("warranty_grades", []))
-    cover = (f"grade {' and '.join(grades)} goods carry a {warranty:g} h warranty (other grades: none)"
+    cover = (f"grade {' and '.join(grades)} goods carry a {wtext(warranty)} (other grades: none)"
              if warranty and grades else "goods are sold as graded, without a warranty (no refund if one breaks)")
     card = AgentCard(
         name=NAME,

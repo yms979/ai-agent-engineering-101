@@ -35,6 +35,11 @@ Percentiles, not amounts, decide: a move is worth what it does to our rank on ea
   - Forum = one stance per voting account per author (its likes − dislikes on the author's posts); a like stance
     weighs 1 + log2(net likes), a dislike stance 1. Votes count from accounts with 50+ settled deals. From
     11-06 12:00 KST the 4th+ new dislike stance in an hour costs 20,000 × (k − 3) from the shop's cash.
+  *Measured 11-07 (12,000 posts, 26 h)*: likes per post are an author trait, not a content one (within any
+  author, Korean vs bilingual, length, mentions, refs, "verified"/"no warranty" move it < 0.5 like). Ratings fit
+  ~7-9 like stances (weight ~9 each at ~300 posts) and 0-3 dislike stances: ours 0.895 ~ 7 likers + 2 dislikers,
+  bjeon01 0.927 ~ 8 + 1. One dislike stance ~ -0.02, one more liker ~ +0.012; the board does not show voters.
+  Worth at most ~+0.01 buyer ALL against ~+0.1 from saved +0.015, so posting stays at 12/h and nothing else.
 - **Midterm rank** = shop ALL + buyer ALL, among students (`student` on the board). shaun0927 is not a student.
 
 ## Supply and stock

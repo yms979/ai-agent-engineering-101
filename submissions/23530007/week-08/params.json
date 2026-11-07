@@ -117,7 +117,7 @@
       "near_cap": 0.015,
       "code_haggle": true,
       "open_offset": 0.02,
-      "push_share": 0.5,
+      "push_share": 0.8,
       "push_below": 0.05,
       "max_shops": 4
     },

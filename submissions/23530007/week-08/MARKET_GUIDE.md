@@ -56,6 +56,11 @@ Percentiles, not amounts, decide: a move is worth what it does to our rank on ea
   2.75) and 239 deal reviews docked 2 stars for 'no warranty' (3.0); Kiro729 walks away from goods without a 6 h
   warranty. A breaks ~1.2 %, so ~15M/day refunds on ~1.28B/day of A sales. Read stars and refunds after 6-12 h.
   The agent card still says 'no warranty' until seller_r3 restarts (after a supply window).
+  *11-07 21:40 KST (user: whatever scores the shop highest)*: **grades A and B carry a 72 h warranty**, C none.
+  Goods break only within 6 h of the sale, so hours past 6 cost nothing while 'the 6 h warranty is short for
+  furniture' reviews scored 3-4. Measured 5 h of paid deals: goods A with warranty 4.73, B without 4.59, C 4.07;
+  inextro's mean on us 2.87 -> 4.08 after the A warranty. B breaks ~2.9% (~12M/day). C stays without: ~15%
+  breaks would cost ~49M/day and the book lead (844M vs 730M) within days. Stars 4.68 would add ~+0.065 shop.
 
 ## Buyers (who comes to our shop)
 

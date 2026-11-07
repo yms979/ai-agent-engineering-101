@@ -119,9 +119,9 @@
       "open_offset": 0.02,
       "push_share": 0.8,
       "push_below": 0.05,
-      "push3_share": 0.75,
+      "push3_share": 1.0,
       "push3_below": 0.1,
-      "pricefirst_share": 0.5,
+      "pricefirst_share": 0.0,
       "pricefirst_conv_weight": 0.02,
       "max_shops": 4
     },

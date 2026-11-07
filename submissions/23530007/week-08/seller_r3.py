@@ -394,7 +394,8 @@ class Shop(AgentExecutor):
 def build(port):
     url = f"http://127.0.0.1:{port}/"
     base = read_params(PARAMS, {}).get("shop", {}).get("base", {})
-    warranty, grades = base.get("warranty_hours", 0), base.get("warranty_grades", [])
+    from shop_guard import grades_now           # the card states what the deals carry (book-lead guard, 11-07)
+    warranty, grades = base.get("warranty_hours", 0), grades_now(base.get("warranty_grades", []))
     cover = (f"grade {' and '.join(grades)} goods carry a {warranty:g} h warranty (other grades: none)"
              if warranty and grades else "goods are sold as graded, without a warranty (no refund if one breaks)")
     card = AgentCard(

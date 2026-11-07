@@ -186,6 +186,8 @@ def shop_params():
     else:
         regime = "STEADY"
     p = merged(cfg, "shop", regime)
+    from shop_guard import grades_now           # 11-07: the book-lead guard can cut the warranty grades
+    p["warranty_grades"] = grades_now(p.get("warranty_grades", []))
     rep = read_json(RESTOCK_STATE, {}).get("rep") or {}
     sig["stars"] = rep.get("avg")
     if rep.get("avg") is not None and rep.get("n", 0) >= p.get("rep_min", 5) and now() - rep.get("t", 0) < 3600:

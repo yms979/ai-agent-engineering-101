@@ -1,0 +1,140 @@
+"""Book-lead guard for the shop's warranty (user 11-07: a lead that gets caught is worth nothing).
+
+    python shop_guard.py          one check (watch_round.sh runs it every 15 min)
+    python shop_guard.py --dry    print what it would decide, change nothing
+
+The warranty on goods (params.json shop.base: grades A and B, 72 h) costs refunds out of the book, the 0.5 part
+of shop ALL, where we lead. Each check reads the board, keeps the lead over the next shop's book (24 h history in
+.market/warranty_guard.json) and its slope over the last 4 h, and sets a level:
+
+    2  A and B carry the warranty (params as they are)
+    1  A only                                          when the lead < LEAD_B or it shrinks (slope < 0)
+    0  no warranty                                     when the lead < LEAD_ALL or it would be gone in 24 h
+
+Going back up is one step at a time and needs a growing lead above a higher bar (hysteresis), so the level does
+not flap. policy.shop_params() and seller_r3's card apply the level's grades (a stale guard, > 2 h, is ignored).
+A level change is logged to logs/shop_guard.log, sent to the user through notify.py, and the kit is restarted
+right after the next supply window closes so the agent card states the warranty the deals carry.
+"""
+import json
+import os
+import signal
+import subprocess
+import sys
+import time
+import urllib.request
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+GUARD = HERE / ".market" / "warranty_guard.json"
+LOG = HERE / "logs" / "shop_guard.log"
+NAME = "yms979"
+LEAD_ALL, LEAD_B = 30e6, 60e6          # lowering bars
+UP_TO_A, UP_TO_B = 60e6, 90e6          # raising bars (with a growing lead)
+SLOPE_HOURS, KEEP = 4, 24 * 3600
+GRADES = {2: ["A", "B"], 1: ["A"], 0: []}
+
+
+def log(msg):
+    LOG.parent.mkdir(exist_ok=True)
+    with open(LOG, "a", encoding="utf-8") as f:
+        f.write(time.strftime("%Y-%m-%d %H:%M:%S UTC ", time.gmtime()) + msg + "\n")
+
+
+def read():
+    try:
+        return json.loads(GUARD.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def grades_now(base_grades):
+    """The warranty grades to use: base_grades cut to the guard's level (a stale or missing guard cuts nothing)."""
+    g = read()
+    if not g or time.time() - g.get("t", 0) > 2 * 3600:
+        return list(base_grades)
+    return [x for x in base_grades if x in GRADES.get(g.get("level", 2), [])]
+
+
+def slope(hist, now):
+    pts = [(t, v) for t, v in hist if now - t <= SLOPE_HOURS * 3600]
+    if len(pts) < 2 or pts[-1][0] - pts[0][0] < 3600:
+        return None
+    return (pts[-1][1] - pts[0][1]) / ((pts[-1][0] - pts[0][0]) / 3600)     # credits per hour
+
+
+def decide(level, lead, s):
+    gone_in_24h = s is not None and s < 0 and lead + 24 * s < 0
+    if lead < LEAD_ALL or gone_in_24h:
+        return 0, f"lead {lead / 1e6:.0f}M" + (", gone within 24 h at this slope" if gone_in_24h else f" < {LEAD_ALL / 1e6:.0f}M")
+    if level >= 1 and (lead < LEAD_B or (s is not None and s < 0)):
+        if level == 2:
+            return 1, f"lead {lead / 1e6:.0f}M" + (f" < {LEAD_B / 1e6:.0f}M" if lead < LEAD_B else f" shrinking {s / 1e6:+.1f}M/h")
+        return 1, "holding A only"
+    if level == 0:
+        if lead >= UP_TO_A and s is not None and s >= 0:
+            return 1, f"lead {lead / 1e6:.0f}M and not shrinking: back to A"
+        return 0, "holding no warranty"
+    if level == 1:
+        if lead >= UP_TO_B and s is not None and s > 0:
+            return 2, f"lead {lead / 1e6:.0f}M and growing {s / 1e6:+.1f}M/h: back to A and B"
+        return 1, "holding A only"
+    return 2, "lead safe"
+
+
+def after_supply_window():
+    """True right after a supply window closed (the next one is > 8 min away): the only time we restart the kit."""
+    try:
+        r = json.loads((HERE / ".market" / "inventory.json").read_text()).get("restock") or {}
+    except (OSError, ValueError):
+        return False
+    return not r.get("open") and (r.get("opens_at") or 0) - time.time() > 8 * 60
+
+
+def restart_kit():
+    out = subprocess.run(["ps", "-eo", "pid,args"], capture_output=True, text=True).stdout.splitlines()
+    for line in out:
+        pid, _, args = line.strip().partition(" ")
+        if args.split(" ")[0].endswith("/python") and f"market_kit.py join --dir {HERE}" in args:
+            os.kill(int(pid), signal.SIGTERM)          # run_market.sh starts it again
+            return pid
+    return None
+
+
+def main(dry=False):
+    now = time.time()
+    g = read()
+    with urllib.request.urlopen("https://market.ourolabs.ai/api/board?round=3", timeout=30) as r:
+        shops = [s for s in json.load(r)["shops"] if s.get("deals")]
+    me = next(s for s in shops if s["name"] == NAME)
+    rival = max((s for s in shops if s["name"] != NAME), key=lambda s: s.get("book") or 0)
+    lead = (me.get("book") or 0) - (rival.get("book") or 0)
+    hist = [h for h in g.get("hist", []) if now - h[0] <= KEEP] + [[now, lead]]
+    s = slope(hist, now)
+    level = g.get("level", 2)
+    new, why = decide(level, lead, s)
+    line = (f"book {me['book'] / 1e6:.0f}M vs {rival['name']} {rival['book'] / 1e6:.0f}M, lead {lead / 1e6:.0f}M, "
+            f"slope {'n/a' if s is None else f'{s / 1e6:+.1f}M/h'} -> level {new} {GRADES[new]} ({why})")
+    if dry:
+        print(line)
+        return
+    pending = g.get("restart_pending", False) or new != level
+    if new != level:
+        log("CHANGE " + line)
+        msg = (f"상점 보증 {GRADES[level] or '없음'} → {GRADES[new] or '없음'}\n장부 {me['book'] / 1e6:.0f}M vs "
+               f"{rival['name']} {rival['book'] / 1e6:.0f}M, 격차 {lead / 1e6:.0f}M"
+               + ("" if s is None else f", 시간당 {s / 1e6:+.1f}M") + f"\n이유: {why}")
+        subprocess.run([sys.executable, str(HERE / "notify.py"), f"[yms979] 보증 단계 {level}→{new}", msg],
+                       capture_output=True, text=True)
+    else:
+        log(line)
+    if pending and after_supply_window():
+        pid = restart_kit()
+        log(f"restarted the kit (pid {pid}) after the supply window so the card states {GRADES[new] or 'no warranty'}")
+        pending = False
+    GUARD.write_text(json.dumps({"t": now, "level": new, "grades": GRADES[new], "lead": lead, "slope": s,
+                                 "rival": rival["name"], "why": why, "hist": hist, "restart_pending": pending}))
+
+
+if __name__ == "__main__":
+    main("--dry" in sys.argv)

@@ -222,6 +222,21 @@ def blocked(text):
     return next((k for k, pats in _blocked[1].items() if any(r.search(text) for r in pats)), None)
 
 
+RIVALS = HERE / "rival_buyers.json"
+_rivals = [0.0, {}]
+
+
+def rival(text):
+    """(name, min_share) of the rival buyer in rival_buyers.json whose pattern matches this first message, else
+    (None, 0). User 11-07: a classmate ranked above us bought our goods at our cost floor (0.525 of list) and
+    turned each into ~0.51 saved; to such buyers we sell at no less than min_share of list. Re-read once a minute."""
+    if time.time() - _rivals[0] > 60:
+        _rivals[0] = time.time()
+        _rivals[1] = {k: (float(v.get("min_share", 0)), [re.compile(x, re.I) for x in v.get("patterns", [])])
+                      for k, v in read_json(RIVALS, {}).items() if isinstance(v, dict)}
+    return next(((k, ms) for k, (ms, pats) in _rivals[1].items() if any(r.search(text) for r in pats)), (None, 0))
+
+
 class Shop(AgentExecutor):
     def __init__(self):
         self.open = {}      # task id -> deal
@@ -321,6 +336,10 @@ class Shop(AgentExecutor):
             if doomed:
                 share = min(share, DOOM_ASK)
             floor = floor_of(u, now, mult)
+            who, min_share = rival(text)
+            if who:                                     # a rival above us in class: no deep discount (user 11-07)
+                floor = max(floor, round(u["list_price"] * min_share))
+                record(event="rival", task=task.id, who=who, sku=u["sku"], floor=floor)
             ask = round100(min(u["list_price"], max(floor, u["list_price"] * share)))
             d = self.open[task.id] = {"unit": u, "grade": grade, "floor": floor, "ask": max(ask, floor),
                                       "offers": [], "seen": now, "regime": regime, "meet": p["meet_frac"],

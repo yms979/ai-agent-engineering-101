@@ -103,6 +103,32 @@ LOW_VISITS, LOW_RATE = 30, 0.25   # skip a shop that closed under 25 % of 30+ vi
 MAX_SHOPS = 4            # shops tried per order: after a turn-away, and (Round 3) after a haggle that failed on
                          # price while time is left (11-06: an order has ~10 min, a failed haggle takes 6-21 s)
 RETRY_ON_PRICE = ("rejected", "too dear", "over budget", "walked away")
+
+
+class ShortShelf(Exception):
+    """The shop's unit will not last as long as the order needs: walk before agreeing, try the next shop."""
+
+
+def shelf_hours(t):
+    """Hours of shelf life left on the unit a shop offers: the market certificate's expires_at in the reply
+    (any data part), else the shop's own words ("265 h shelf life left"). None when neither is there."""
+    found = []
+
+    def walk(x):
+        if isinstance(x, dict):
+            e = x.get("expires_at")
+            if isinstance(e, (int, float)) and e > 1e9:
+                found.append((e - time.time()) / 3600)
+            for v in x.values():
+                walk(v)
+        elif isinstance(x, list):
+            for v in x:
+                walk(v)
+    walk(t)
+    if found:
+        return min(found)
+    m = re.search(r"(\d+(?:\.\d+)?)\s*h(?:ours)?\s+(?:of\s+)?shelf life left", said(t))
+    return float(m.group(1)) if m else None
 BREAK_WINDOW = 7 * 3600  # goods break up to 6 h after the sale; an hour of slack for the sale's settle time
 RED_FLAGS = re.compile(r"overcharg|higher than (the price )?(we |i )?agreed|receipt (said|was|price)|scam|fake|"
                        r"cheat|dishonest|did not match|didn't match|mismatch|avoid|rip.?off|bait", re.I)
@@ -540,6 +566,7 @@ def main():
         # list and dragonash 0.65; we take the shop's second ask (~0.65-0.73) as soon as it is under our cap.
         # In the "push" arm, an ask still above the shop's lower quartile + push_band gets one more counter
         # (halfway down to that quartile) before we take it; a rejection that names a floor reopens at it below.
+        short = None    # 11-07: 43 of 69 lost food orders in 6 h agreed a price, then the kit refused to pay (shelf life)
         push = random.random() < bp.get("push_share", 0)
         pushed = False
         # 11-07 push3: 39 of 89 push2 counters were taken at exactly our number, so the shops had room below it;
@@ -554,6 +581,13 @@ def main():
             for _ in range(MAX_ROUNDS):
                 if state(t) not in ("TASK_STATE_INPUT_REQUIRED", "TASK_STATE_UNKNOWN") or time.time() - start > DEADLINE:
                     break
+                if short is None and acceptable and order.get("kind") == "food" and accept.get("min_hours_left"):
+                    hl = shelf_hours(t)
+                    short = hl is not None and hl < accept["min_hours_left"]
+                    if short:
+                        log("buyer", f"{pick['name']}'s unit has {hl:.1f} h of shelf life, the order needs "
+                                     f"{accept['min_hours_left']}: not haggling, trying another shop")
+                        break
                 ask = read_ask(t)[0]
                 if ask is not None:
                     asks.append(ask)
@@ -622,6 +656,9 @@ def main():
                 agreed = offer
                 t = seller.send(text, tid, ctx)
                 tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
+            if short:
+                seller.cancel(tid)
+                raise ShortShelf()
             named = re.search(r"(?:below|final price (?:is|was)|last ask was|Lowest for this unit:|our lowest is|"
                               r"cost floor \()\s*(\d[\d,]*)|(\d[\d,]*) is as low as we go", said(t))
             floor = as_int((named.group(1) or named.group(2)).replace(",", "")) if named else None
@@ -667,10 +704,12 @@ def main():
                 outcome = "too dear" if ceiling_note and low is not None and low > cap and low <= a.budget else (
                     "over budget" if low is not None and low > cap else "walked away")
                 seller.cancel(tid)
+        except ShortShelf:
+            outcome = "too short (shelf life)"
         except (RpcError, Exception) as e:
             log("buyer", f"trade failed: {e!r}")
             outcome = f"error ({type(e).__name__})"
-        turned_away = (outcome == "rejected" and not asks) or outcome.startswith(("error", "grade "))
+        turned_away = (outcome == "rejected" and not asks) or outcome.startswith(("error", "grade ", "too short"))
         on_price = vctx is not None and outcome in RETRY_ON_PRICE   # Round 3: the next-best shop may take our price
         others = [s for s in shops if s["name"] != pick["name"]]
         if (turned_away or on_price) and others and attempt < max_shops - 1 and time.time() - start < DEADLINE - 60:

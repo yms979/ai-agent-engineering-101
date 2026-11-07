@@ -99,9 +99,10 @@ def main():
         import buyer_strategist as bs
         import memory_curator as mc
         ab = {x["key"]: x for x in mc.breakdown(bs, now)["push_ab"]}
-        if "push" in ab and "control" in ab:
-            f = lambda x: f"{x['deals']}건/{x['orders']}주문, 거래당 {x['saved_per_deal']}, 주문당 점수 {x['score_gain_per_order']:+.4f}"
-            lines.append(f"구매 A/B 한번 더 깎기: {f(ab['push'])} | 그대로: {f(ab['control'])}")
+        f = lambda x: f"{x['deals']}건/{x['orders']}주문, 거래당 {x['saved_per_deal']}, 주문당 점수 {x['score_gain_per_order']:+.4f}"
+        for p, c, label in (("push2", "control2", "A/B2 첫 제시가도 깎기"), ("push", "control", "A/B1 한번 더 깎기")):
+            if p in ab and c in ab:
+                lines.append(f"구매 {label}: {f(ab[p])} | 그대로: {f(ab[c])}")
     except Exception:
         pass
     msg = "\n".join(lines)

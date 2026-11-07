@@ -290,14 +290,16 @@ def breakdown(bs, now):
             "by_shop": cut(lambda r: r.get("shop"), 15),
             # 11-07 A/B (params buyer.base push_share/push_band): "control" takes an ask once it is under our
             # cap; the push arm counters once more when the ask is above the shop's p25 + band ("pushed" = it
-            # did, "arm" = the ask was already low). Compare saved_per_deal AND deals per order of control vs
+            # did, "arm" = the ask was already low); from 11-07 07:00 push2/control2: push2 also counters low first
+            # asks the quick accept used to take, aiming at the shop's p25 - 0.05. Compare saved_per_deal AND deals per order of control vs
             # arm+pushed: pushing wins only if it raises saved without losing many deals
             # judged over ALL shops and kinds together (user 11-07: not tuned to one shop): the number that
             # decides is score_gain_per_order = deals/order x (saved per deal - our running saved ~0.245)
             "push_ab": [dict(x, deals_per_order=round(x["deals"] / max(x["orders"], 1), 3),
                              score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
                                                         * ((x["saved_per_deal"] or 0) - 0.245), 4))
-                        for x in cut(lambda r: ("control" if r["push"] == "control" else "push")
+                        for x in cut(lambda r: {"control": "control", "control2": "control2"}.get(
+                                         r["push"], "push2" if r["push"].startswith("push2") else "push")
                                      if "push" in r else "before_ab")],
             "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
             "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}

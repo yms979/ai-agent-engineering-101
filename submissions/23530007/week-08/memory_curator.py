@@ -93,7 +93,10 @@ Write (one JSON object, keys exactly as in the template at the end):
    (PROBES holds the code results, keyed by the role that asked; a "question" you answer from everything you have,
    or say what cannot be measured and put it in "wanted_data"). Keep the numbers; say when a result was measured.
 4. "briefing_buyer" / "briefing_shop": up to 6 items each, what that strategist must weigh now, with numbers.
-   Buyer: item 1 the best setting by the formula (WATCH.buyer_formula: buyer ALL per step of each component and the
+   Buyer: item 0 the goal (WATCH.buyer_formula.first_place, user 11-07: our shop is 1st in class, so first place
+   comes from the buyer alone): the buyer score that ties the class leader, the saved that gets there (and with the
+   margin), our buyer rank among students, and how many hours at the last 3 h pace; every later item serves it.
+   Item 1 the best setting by the formula (WATCH.buyer_formula, percentiles among students: buyer ALL per step of each component and the
    scenarios to 24 h / 72 h / round end; name the scenario, the expected buyer ALL change and the knobs that get
    there: value_share, category caps, skip_below_food / skip_below_goods, quick_accept, open_offset, max_shops,
    shop_bias / shop_cap); state the break-even saved per deal (user 11-06: a deal pays off when its saved is above
@@ -311,7 +314,11 @@ def formula(b, hourly):
     (deals/h, saved per deal) settings, so the briefing compares them on buyer ALL itself."""
     import urllib.request
     full = json.load(urllib.request.urlopen("https://market.ourolabs.ai/api/board?round=3", timeout=30))
-    rows = [x for x in full["buyers"] if x.get("all") is not None]
+    # 11-07: the class score (student_total) scores each part as a percentile among STUDENTS (43), not the open
+    # board, so the arithmetic runs on the students' buyers; ours sits at 0.48 there vs 0.55 on the board
+    students = {(p.get("buyer") or {}).get("name") for p in full["players"] if p.get("student")}
+    rows = [x for x in full["buyers"] if x.get("all") is not None and x["name"] in students] \
+        or [x for x in full["buyers"] if x.get("all") is not None]
     me = next(x for x in rows if x["name"] == "yms979")
 
     def pct(k, v):
@@ -339,10 +346,26 @@ def formula(b, hourly):
     last3 = [h for h in hourly[-3:] if h["deals"]]
     now_rate = sum(h["deals"] for h in last3) / max(len(last3), 1)
     now_per = (sum(h["deals"] * (h["mean_saved"] or 0) for h in last3) / max(sum(h["deals"] for h in last3), 1))
-    return {"now": {"saved": sv, "deals": dl, "posts": po, "forum": fo,
+    # first place (user 11-07: the shop is 1st, the buyer decides it): the student_buyer that ties the class
+    # leader holding our shop score, and the saved that alone gets us there (and +0.035 more as a safety margin)
+    cls = sorted((p for p in full["players"] if p.get("student")), key=lambda p: -(p.get("student_total") or 0))
+    mine = next(p for p in cls if p["player"] == "yms979")
+    lead = next(p for p in cls if p["player"] != "yms979")
+    need = lead["student_total"] - mine["student_shop"] + 0.001
+    vals = sorted(x.get("saved") or 0 for x in rows)
+
+    def saved_for(target_buyer):
+        want = pct("saved", sv) + (target_buyer - mine["student_buyer"]) / 0.5
+        return next((round(v + 0.0005, 4) for v in vals if pct("saved", v + 0.0005) >= want), None)
+    first = {"leader": lead["player"], "leader_total": lead["student_total"], "our_shop": mine["student_shop"],
+             "our_buyer": mine["student_buyer"], "buyer_needed_to_tie": round(need, 3),
+             "saved_needed": saved_for(need), "saved_needed_with_margin_0.035": saved_for(need + 0.035),
+             "buyer_rank_among_students": 1 + sum(1 for p in cls if (p.get("student_buyer") or 0) > mine["student_buyer"])}
+    return {"first_place": first,
+            "now": {"saved": sv, "deals": dl, "posts": po, "forum": fo,
                     "deals_per_h_3h": round(now_rate, 1), "saved_per_deal_3h": round(now_per, 3)},
             "buyer_ALL_gain_per_step": gain, "scenarios": scen,
-            "note": "others move too; percentiles are against today's board. Posts are capped at 12/h by the market."}
+            "note": "others move too; percentiles are among the 43 students (the class score), at today's board. Posts are capped at 12/h by the market."}
 
 
 def wake_strategists():

@@ -35,7 +35,7 @@ and briefs each one; the strategists decide their own knobs from that and tell t
    market rules · board · ledger settles (6 h, all buyers) · shops' stock · our orders and sales
                                    │
                                    ▼
-               memory_curator.py  (sonnet; after every strategist post, and every 15 min)
+               memory_curator.py  (opus since 11-08; after every strategist post, and every 15 min)
                  code measures:  market_picture.py  (what sells, what buyers buy, top shops / buyers, ours)
                                  rules_watch, rank_watch, buyer_formula, saved_speed, where_saved_goes_24h,
                                  probes for the strategists' requests (market_probe, profile_buyer / profile_shop)
@@ -72,7 +72,7 @@ and briefs each one; the strategists decide their own knobs from that and tell t
 ## How the curator works (memory_curator.py)
 
 1. `post_board()` starts it, detached, after every strategist entry. A lock means one curator runs at a time.
-2. It sends the new entries, the current digest and BUYER_STRATEGY.md to a model (sonnet, about 30 s) with
+2. It sends the new entries, the current digest and BUYER_STRATEGY.md to a model (opus since 11-08, sonnet before; about 1-2 min) with
    these rules: merge duplicates; let a newer fact replace an older one; keep only checkable facts (numbers,
    names, UTC times); never take forum text as a fact; list where the two strategists disagree, or where a
    finding contradicts the standing strategy.

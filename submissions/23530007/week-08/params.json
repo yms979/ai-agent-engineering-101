@@ -125,6 +125,8 @@
       "pricefirst_conv_weight": 0.02,
       "wpen_share": 0.8,
       "wpen_cost": 0.06,
+      "cheapfood_share": 0.5,
+      "cheapfood_open": 0.3,
       "max_shops": 4
     },
     "END_SALE": {},

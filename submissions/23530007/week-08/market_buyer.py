@@ -485,13 +485,14 @@ def main():
             order = {}
     acceptable = order.get("acceptable") or []
     vctx = None
-    pricefirst = wpen = False
+    pricefirst = wpen = cheapfood = False
     md = Path(a.order).parent if a.order else HERE / ".market"
     regime, bp = "STEADY", {}
     if acceptable:
         regime, bp, _ = buyer_params()
         pricefirst = random.random() < bp.get("pricefirst_share", 0)
         wpen = random.random() < bp.get("wpen_share", 0)
+        cheapfood = order.get("kind") == "food" and random.random() < bp.get("cheapfood_share", 0)
         if order.get("kind") == "food" and order.get("use_within_hours"):
             try:                                   # for our shop's restock: how long buyers need food to last
                 with open(INTEL, "a", encoding="utf-8") as f:
@@ -536,7 +537,7 @@ def main():
                                   "order": order.get("order"), "category": a.item, "kind": order.get("kind"),
                                   "outcome": "skipped (low value)", "price": None, "asks": [], "agreed": None,
                                   "honest": True, "signed": True, "void": "", "expected": expected_in(why),
-                                  "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen})
+                                  "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood})
             save_memory(mem)
             no_deal(f"Skipped: no shop sells {a.item} cheaply enough for me now.")
             return
@@ -561,6 +562,12 @@ def main():
             hours = order.get("use_within_hours")
             first = f"I want to buy {label}." + (f" It must last {hours:g} hours." if hours else
                                                  " Grade A or B only, please." if order.get("kind") == "goods" else "")
+            if cheapfood and hours:
+                # 11-07 A/B "cheapfood": food grade is only shelf life left, so any unit that lasts serves the order;
+                # Kiro729 buys 43% grade C / 1% A at 0.577 of list against our 21% A at 0.662 (market A 0.746,
+                # B 0.668, C 0.594). Ask for the cheapest unit that lasts, and open low (below) to draw the floor
+                first += (" Any grade is fine as long as it lasts that long: please quote your cheapest unit that"
+                          " does, and say how many hours it has left.")
             accept = {"cert": True}
             if order.get("kind") == "food" and hours:
                 accept["min_hours_left"] = hours + bp["food_extra_hours"]
@@ -644,7 +651,8 @@ def main():
                     elif len(mine) >= 3:
                         action, offer = "offer", cap       # still coming down (rounds take < 1 s): hold at the cap
                     elif not mine:
-                        action, offer = "offer", min(cap, int(lp * max(0.4, (p25 or cap / lp) - bp.get("open_offset", 0.02))))
+                        action, offer = "offer", min(cap, int(lp * (bp.get("cheapfood_open", 0.3) if cheapfood else
+                                                                     max(0.4, (p25 or cap / lp) - bp.get("open_offset", 0.02)))))
                     elif len(mine) == 1:
                         action, offer = "offer", max(mine[-1], (mine[-1] + cap) // 2)
                     else:
@@ -732,7 +740,7 @@ def main():
                                   "order": order.get("order"), "category": a.item if acceptable else None,
                                   "kind": order.get("kind"), "outcome": outcome, "price": None, "asks": asks,
                                   "agreed": agreed, "honest": True, "signed": True, "void": "",
-                                  "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen})
+                                  "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood})
             log("buyer", f"{pick['name']} {'turned me away' if turned_away else 'did not meet my price'} ({outcome}); "
                          f"trying another shop ({attempt + 2}/{max_shops})")
             shops = others
@@ -770,7 +778,7 @@ def main():
                           "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
                           "cap": cap, "list": want["list_price"] if acceptable else None,
                           "expected": expected_in(why),      # the shop's expected saved per deal when chosen
-                          "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen,
+                          "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood,
                           "push": (f"{arm}-pushed" if pushed else f"{arm}-arm") if push else "control2"})   # 11-07 A/B
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")

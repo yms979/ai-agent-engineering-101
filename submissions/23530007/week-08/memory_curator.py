@@ -317,6 +317,12 @@ def breakdown(bs, now):
                                                               * ((x["saved_per_deal"] or 0) - 0.255), 4))
                               for x in cut(lambda r: ("wpen" if r["wpen"] else "base") if "wpen" in r and r.get("kind") == "goods"
                                            else "other")],
+            # 11-07 A/B "cheapfood": food orders only; ask for the cheapest unit that lasts and open at 0.3 of list
+            "cheapfood_ab_food": [dict(x, deals_per_order=round(x["deals"] / max(x["orders"], 1), 3),
+                                       score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
+                                                                  * ((x["saved_per_deal"] or 0) - 0.255), 4))
+                                  for x in cut(lambda r: ("cheapfood" if r["cheapfood"] else "base")
+                                               if "cheapfood" in r and r.get("kind") == "food" else "other")],
             "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
             "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}
 

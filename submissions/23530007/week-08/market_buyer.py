@@ -595,6 +595,7 @@ def main():
         # list and dragonash 0.65; we take the shop's second ask (~0.65-0.73) as soon as it is under our cap.
         # In the "push" arm, an ask still above the shop's lower quartile + push_band gets one more counter
         # (halfway down to that quartile) before we take it; a rejection that names a floor reopens at it below.
+        regraded = False
         short = None    # 11-07: 43 of 69 lost food orders in 6 h agreed a price, then the kit refused to pay (shelf life)
         push = random.random() < bp.get("push_share", 0)
         pushed = False
@@ -610,6 +611,17 @@ def main():
             for _ in range(MAX_ROUNDS):
                 if state(t) not in ("TASK_STATE_INPUT_REQUIRED", "TASK_STATE_UNKNOWN") or time.time() - start > DEADLINE:
                     break
+                if (cheapgoods and not regraded and acceptable and order.get("kind") == "goods"
+                        and re.search(r"grade\s*A\b|A\s*grade|등급\s*A|A\s*등급", said(t), re.I)):
+                    # 11-08: in the cheapgoods arm 71 of 94 goods still came as grade A (shops pick the unit; 14 C
+                    # with a warranty did come): ask once for a C or B unit with a warranty before haggling
+                    regraded = True
+                    log("buyer", f"{pick['name']} offered grade A: asking once for a C or B unit with a warranty")
+                    t = seller.send(f"Do you have a grade C or B unit of {label} with a warranty of at least "
+                                    f"{WARRANTY_MIN} hours on the receipt? I would rather take that one, priced for "
+                                    "its grade. If not, tell me and we go on with this unit.", tid, ctx)
+                    tid, ctx = t.get("id") or tid, t.get("contextId") or ctx
+                    continue
                 if short is None and acceptable and order.get("kind") == "food" and accept.get("min_hours_left"):
                     hl = shelf_hours(t)
                     short = hl is not None and hl < accept["min_hours_left"]
@@ -786,7 +798,7 @@ def main():
                           "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
                           "cap": cap, "list": want["list_price"] if acceptable else None,
                           "expected": expected_in(why),      # the shop's expected saved per deal when chosen
-                          "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood, "cheapgoods": cheapgoods,
+                          "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood, "cheapgoods": cheapgoods, "regraded": regraded,
                           "push": (f"{arm}-pushed" if pushed else f"{arm}-arm") if push else "control2"})   # 11-07 A/B
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")

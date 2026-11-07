@@ -198,27 +198,34 @@ def answer_boycotts(forum, outbox):
     VOTES.write_text(json.dumps(st))
 
 
-LIKE_MARGIN = 0.10      # like only buyers whose class total sits this far under ours (a liker adds ~+0.004 to it)
+LIKE_MARGIN = 0.02      # like only buyers whose buyer score sits this far under ours (our likes add ~+0.004 to it)
 REVIEW_OF_US = re.compile(r"구매|정산|결제|샀|bought|paid|settled|purchase", re.I)
 FROM_US = re.compile(r"(판매|from|bought at|샵|shop|가게)\s*[:：]?\s*(yms979|YMS'?s Market)|(yms979|YMS'?s Market)\s*(샵|shop|가게|에서)|"
                      r"^\W*(\[[^\]]*\]\s*)?(yms979|YMS'?s Market)\b", re.I)   # we are the seller in it
 
 
 def safe_authors(st):
-    """Buyer names whose player cannot catch our class total even with our likes (user 11-07): a student at
-    least LIKE_MARGIN under us, or no student (house agents and others outside the class ranking). Cached 10 min."""
+    """Buyer names that stay under our BUYER score even with our likes (user 11-07: by buyer rank, not the class
+    total): a student whose class buyer score (student_buyer) is at least LIKE_MARGIN under ours; any other buyer
+    by the board's buyer ALL against ours. Cached 10 min."""
     if time.time() - st.get("safe_t", 0) > 600:
         try:
             with urllib.request.urlopen(f"{MARKET}/api/board?round=3", timeout=15) as r:
                 b = json.load(r)
-            ours = next(p.get("student_total") or 0 for p in b["players"] if p["player"] == "yms979")
+            me = next(p for p in b["players"] if p["player"] == "yms979")
+            my_student = me.get("student_buyer") or 0
+            my_board = next((x.get("all") or 0 for x in b["buyers"] if x["name"] == "yms979"), 0)
             by_buyer = {(p.get("buyer") or {}).get("name"): p for p in b["players"] if p.get("buyer")}
             safe = []
             for x in b["buyers"]:
-                p = by_buyer.get(x["name"])
-                if x["name"] == "yms979":
+                if x["name"] == "yms979" or x.get("all") is None:
                     continue
-                if p is None or not p.get("student") or (p.get("student_total") or 0) <= ours - LIKE_MARGIN:
+                p = by_buyer.get(x["name"])
+                if p is not None and p.get("student") and p.get("student_buyer") is not None:
+                    ok = p["student_buyer"] <= my_student - LIKE_MARGIN
+                else:
+                    ok = x["all"] <= my_board - LIKE_MARGIN
+                if ok:
                     safe.append(x["name"])
             st["safe"], st["safe_t"] = safe, time.time()
         except Exception:
@@ -227,8 +234,8 @@ def safe_authors(st):
 
 
 def like_our_reviewers(forum, outbox):
-    """User 11-07: like the posts of buyers who left a review of a purchase at our shop, only buyers who cannot
-    catch our class rank with our likes (safe_authors). A review here: a buyer post naming us with a purchase
+    """User 11-07: like the posts of buyers who left a review of a purchase at our shop, only buyers whose buyer
+    score stays under ours with our likes (safe_authors). A review here: a buyer post naming us with a purchase
     word and nothing bad about us (about_us_badly, smears_us). One like per post; likes are not limited."""
     try:
         st = json.loads(VOTES.read_text())

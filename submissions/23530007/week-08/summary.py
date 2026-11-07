@@ -53,6 +53,39 @@ def eta(gap, ours, theirs, now):
     return f"약 {gap / close:.0f}시간 뒤, {kst(t)} KST"
 
 
+def first_place(b, cls, me, now):
+    """What first place needs from the buyer, holding our shop score: the student_buyer gap to the leader, the
+    saved that closes it (buyer = 0.5 x saved percentile among students + ..., so gap / 0.5 of percentile, read
+    off the students' saved values), and when our saved gets there at the last 6 h of our own deals."""
+    top = next(p for p in cls if p["player"] != NAME)
+    need = top["student_total"] - me["student_shop"] + 0.001          # student_buyer that ties the leader
+    gap = need - me["student_buyer"]
+    if gap <= 0:
+        return [f"★ 1등 조건 충족: 구매자 {me['student_buyer']:.3f} ≥ 필요 {need:.3f}"]
+    buyers = {x["name"]: x for x in b["buyers"] if x.get("saved") is not None}
+    names = {p["player"]: (p.get("buyer") or {}).get("name") for p in cls}
+    vals = sorted(buyers[n]["saved"] for n in names.values() if n in buyers)
+    u = buyers[NAME]
+    pct = lambda v: (sum(q < v for q in vals) + 0.5 * sum(q == v for q in vals)) / len(vals)
+    want = min(1.0, pct(u["saved"]) + gap / 0.5)
+    target = next((v + 0.0005 for v in vals if pct(v + 0.0005) >= want), None)
+    out = [f"★ 1등까지: 구매자 {me['student_buyer']:.3f} → {need:.3f} 필요 (+{gap:.3f}, 1위 {top['player']} {top['student_total']:.3f},"
+           f" 상점 {me['student_shop']:.3f} 유지 가정)"]
+    if target is None:
+        return out + ["  saved만으로는 부족 (포럼/거래/글도 필요)"]
+    import buyer_strategist as bs
+    rows = [r for r in bs.trades(now - 6 * 3600) if r.get("outcome") == "deal" and r.get("saved") is not None]
+    p, dph = (sum(r["saved"] for r in rows) / len(rows), len(rows) / 6) if rows else (None, 0)
+    d = u["deals"] + 100
+    line = f"  saved {u['saved']:.4f} → 목표 {target:.4f} (백분위 {pct(u['saved']):.2f} → {want:.2f})"
+    if p is None or p <= target:
+        return out + [line, f"  최근 거래당 {p or 0:.3f}로는 목표 saved에 못 미침: 거래당 saved를 올려야 함"]
+    n = (target * d - u["saved"] * d) / (p - target)
+    t = now + n / dph * 3600
+    return out + [line, f"  최근 6시간 시간당 {dph:.0f}건 × 거래당 {p:.3f} → 약 {n / dph:.0f}시간 뒤 ({kst(t)} KST)"
+                        f"{'' if t < ROUND_END.timestamp() else ', 라운드 종료 후'}; 다른 구매자들이 오르면 늦어짐"]
+
+
 def main():
     st = json.loads(STATE.read_text()) if STATE.is_file() else {}
     now = time.time()
@@ -75,6 +108,11 @@ def main():
     lines = [f"반 순위 {rank}위/{len(cls)}{move}, 합계 {me['student_total']:.3f}{since}",
              f"  상점 {me['student_shop']:.3f} + 구매자 {me['student_buyer']:.3f}"
              + (f", 최근 시간당 {ours:+.4f}" if ours is not None else "")]
+
+    try:   # 11-07 user: shop is 1st, so first place comes from the buyer score; the push leads with that
+        lines += first_place(b, cls, me, now)
+    except Exception as e:
+        lines.append(f"1등 계산 실패: {e}")
 
     lines.append("위 순위와 따라잡는 시점:")
     for i, p in enumerate(cls[:rank - 1]):

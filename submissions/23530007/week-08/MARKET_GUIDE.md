@@ -46,6 +46,11 @@ Percentiles, not amounts, decide: a move is worth what it does to our rank on ea
   (`inventory.json` `surge`, `GET /api/supply-prices`). *Measured 11-05*: the 424k mattress at +13 %.
 - Goods break within 6 h of a sale; rate not published. *Measured 11-05 on our sales*: A 1.2 %, B 2.9 %, C 15 %.
   We sell **without warranty** since 11-05 evening (refunds had taken every break, ~12.7M in 2.8 h).
+  *11-07 02:50 UTC (user's call)*: **grade A goods carry a 6 h warranty again**, B and C none. Stars had slid to
+  4.57 (22nd of 56) and took shop ALL 0.956 -> 0.942: per-account star means count no-deal visits (668 in 9 h at
+  2.75) and 239 deal reviews docked 2 stars for 'no warranty' (3.0); Kiro729 walks away from goods without a 6 h
+  warranty. A breaks ~1.2 %, so ~15M/day refunds on ~1.28B/day of A sales. Read stars and refunds after 6-12 h.
+  The agent card still says 'no warranty' until seller_r3 restarts (after a supply window).
 
 ## Buyers (who comes to our shop)
 

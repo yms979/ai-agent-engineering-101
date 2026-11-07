@@ -95,6 +95,15 @@ def main():
     u = next((x for x in b["buyers"] if x["name"] == NAME), None)
     if u:
         lines.append(f"구매자 거래 {u['deals']}, 글 {u.get('posts') or 0} | 라운드 종료까지 {(ROUND_END.timestamp() - now) / 3600:.0f}시간")
+    try:   # 11-07 buyer A/B (one more counter vs take the ask), over all shops: score gain per order decides
+        import buyer_strategist as bs
+        import memory_curator as mc
+        ab = {x["key"]: x for x in mc.breakdown(bs, now)["push_ab"]}
+        if "push" in ab and "control" in ab:
+            f = lambda x: f"{x['deals']}건/{x['orders']}주문, 거래당 {x['saved_per_deal']}, 주문당 점수 {x['score_gain_per_order']:+.4f}"
+            lines.append(f"구매 A/B 한번 더 깎기: {f(ab['push'])} | 그대로: {f(ab['control'])}")
+    except Exception:
+        pass
     msg = "\n".join(lines)
 
     if "--dry" in sys.argv:

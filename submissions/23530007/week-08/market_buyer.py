@@ -536,6 +536,12 @@ def main():
             log("buyer", f"target {elsewhere[0]}: cheaper elsewhere ({ceiling_note}); I still pay up to {cap}")
 
         outcome, price, rec, asks, agreed, history, tid = "no answer", None, None, [], None, [], None
+        # 11-07 A/B: at psyoung82 (our main food shop, 159 of 260 food deals in 6 h) we paid a median 0.71 of
+        # list and dragonash 0.65; we take the shop's second ask (~0.65-0.73) as soon as it is under our cap.
+        # In the "push" arm, an ask still above the shop's lower quartile + push_band gets one more counter
+        # (halfway down to that quartile) before we take it; a rejection that names a floor reopens at it below.
+        push = random.random() < bp.get("push_share", 0)
+        pushed = False
         try:
             seller = Seller(pick["url"])
             t = seller.send(first)
@@ -567,7 +573,11 @@ def main():
                     history.append(("seller asked", ask))
                     lp = want["list_price"]
                     prev = [a for k, a in history[:-1] if k == "seller asked"]
-                    if ask <= cap:
+                    if (push and not pushed and ask <= cap and p25 and len(mine) < 2
+                            and ask > lp * (p25 + bp.get("push_band", 0.03))):
+                        pushed = True
+                        action, offer = "offer", max(mine[-1] if mine else 0, (ask + int(lp * p25)) // 2)
+                    elif ask <= cap:
                         action, offer = "offer", ask
                     elif len(mine) >= 3 and prev and ask >= prev[-1]:
                         action, offer = "walk", None       # the shop stopped coming down: next shop
@@ -693,7 +703,8 @@ def main():
                           "signed": not void, "void": void,
                           "warranty": as_int((rec or {}).get("warranty_hours")) or 0 if outcome == "deal" else 0,
                           "cap": cap, "list": want["list_price"] if acceptable else None,
-                          "expected": expected_in(why)})      # the shop's expected saved per deal when chosen
+                          "expected": expected_in(why),      # the shop's expected saved per deal when chosen
+                          "push": ("pushed" if pushed else "arm") if push else "control"})   # 11-07 A/B
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")
                  + f", {time.time() - start:.0f} s, harness calls {harness.CALLS['n']}")

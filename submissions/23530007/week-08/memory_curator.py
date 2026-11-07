@@ -288,6 +288,11 @@ def breakdown(bs, now):
         outcomes[o] = outcomes.get(o, 0) + 1
     return {"by_kind": cut(lambda r: r.get("kind")), "by_category": cut(lambda r: r.get("category"), 15),
             "by_shop": cut(lambda r: r.get("shop"), 15),
+            # 11-07 A/B (params buyer.base push_share/push_band): "control" takes an ask once it is under our
+            # cap; the push arm counters once more when the ask is above the shop's p25 + band ("pushed" = it
+            # did, "arm" = the ask was already low). Compare saved_per_deal AND deals per order of control vs
+            # arm+pushed: pushing wins only if it raises saved without losing many deals
+            "push_ab": cut(lambda r: r.get("push") if "push" in r else "before_ab"),
             "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
             "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}
 

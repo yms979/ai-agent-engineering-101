@@ -1,136 +1,49 @@
 {
- "t": 1793930402.7297444,
+ "t": 1794016803.4995325,
  "answer": {
-  "read": "We push saved (weight 0.5), the only component our knobs move. Saved is 0.2208 at percentile 0.46; forum (0.872, rank 18), deals (rank 24) and posts (rank 14) are not on these knobs. Running sum is about 0.2208 × 3398 ≈ 750.3. Passing the next buyer at 0.228 needs about 24.4 / (m − 0.228) deals. At our last-6h pace of 92 deals/h, that is ~18 h if the forward mean stays at 0.243, or ~12 h if it reaches 0.25. Passing 0.231 then takes ~20 h at m = 0.25. The goods caps went to 0.70 less than an hour ago, so the 24h category numbers (beds 0.23, sofas 0.224) still mostly reflect the old 0.74–0.75 caps (L6, L7). I hold beds and sofas at 0.70 this cycle and read the 6h result before cutting further. Our shop's settle band (0.66–0.77) suggests a further cut there could cost half our goods volume. The cheap wins are the small categories that sit well below our mean and drag it every deal: bedding 0.201, curtains/rugs 0.204 and phone accessories 0.225 (goods, cut to 0.66). Nuts 0.226 and banchan 0.229 (food, cut from 0.72 to 0.68). Food above the mean (snacks 0.267 on 396 deals, fruit 0.295, kimchi 0.282) keeps value_share 0.72, because every one of those deals lifts the mean and adds to the deal count. Expected effect: forward mean ≥ 0.25 with deals still ≥ 450 per 6h, passing 0.228 in about 12 h.",
-  "moves": [
-   {
-    "knob": "cap",
-    "category": "침구",
-    "value": 0.66,
-    "why": "Worst saved of any category (0.201) on 56 deals/24h. Breaks are only 3-5% (shop note), so the problem is price. Our shop sells bedding at 0.75 median, and lower-ask shops exist.",
-    "uses": [
-     "L3",
-     "L7",
-     "L2"
-    ],
-    "prediction": {
-     "metric": "mean_saved_next_6h",
-     "category": "침구",
-     "op": ">=",
-     "value": 0.24
-    }
-   },
-   {
-    "knob": "cap",
-    "category": "커튼/러그/쿠션/덮개",
-    "value": 0.66,
-    "why": "Saved 0.204, below our running mean, so every deal pulls it down. Low volume, so losing deals costs little on deals count.",
-    "uses": [
-     "L3",
-     "L7"
-    ],
-    "prediction": {
-     "metric": "mean_saved_next_6h",
-     "category": "커튼/러그/쿠션/덮개",
-     "op": ">=",
-     "value": 0.24
-    }
-   },
-   {
-    "knob": "cap",
-    "category": "통신기기액세서리",
-    "value": 0.66,
-    "why": "Saved 0.225 at cap 0.70 with goods break risk. A 0.66 cap should net about 0.27.",
-    "uses": [
-     "L3",
-     "L7"
-    ],
-    "prediction": {
-     "metric": "mean_saved_next_6h",
-     "category": "통신기기액세서리",
-     "op": ">=",
-     "value": 0.25
-    }
-   },
-   {
-    "knob": "cap",
-    "category": "조리/가공 견과류",
-    "value": 0.68,
-    "why": "Food at 0.226 saved under value_share 0.72 is the weakest food line. Cutting from 0.72 to 0.68 moves it above the running mean.",
-    "uses": [
-     "L1"
-    ],
-    "prediction": {
-     "metric": "mean_saved_next_6h",
-     "category": "조리/가공 견과류",
-     "op": ">=",
-     "value": 0.25
-    }
-   },
-   {
-    "knob": "cap",
-    "category": "반찬/젓갈",
-    "value": 0.68,
-    "why": "Saved 0.229, first ask 0.90 of list. Sellers here open high, so a lower cap forces the lower floor.",
-    "uses": [
-     "L1"
-    ],
-    "prediction": {
-     "metric": "mean_saved_next_6h",
-     "category": "반찬/젓갈",
-     "op": ">=",
-     "value": 0.25
-    }
-   }
-  ],
+  "read": "Curator read: rank 4 at 1.586 against Lee-sungsoo 1.649 (class_top). The gap of 0.063 is all in the buyer part: our class buyer is 0.651 against a needed ~0.714 to tie (0.73-0.75 with a margin). Board buyer ALL is 0.688, and the target is still 0.80. Running mean: saved 0.2442 over 5260 deals gives a sum of ~1309 over a denominator of 5360. The last 6 h ran 100 deals/h at 0.302, so saved_speed is ~5.8, about +0.0011 saved per hour. At that pace saved reaches ~0.252 at +7 h, ~0.262 at +24 h, ~0.272 at +48 h and ~0.277 at +72 h. If other buyers held still, board buyer ALL would be ~0.75 at +12 h and ~0.79-0.80 at +24-30 h (saved p~0.75-0.77). The class buyer would reach the ~0.72 tie at about +24 h. Peers rise too, so read this as +30-40 h. I do not take the curator's item 1 (55/h at 0.32): on today's mean it gives saved_speed 55×(0.32−0.244)=4.2 against our 5.8, so volume near 0.30 still wins (L69), and the extra deals hold the deals percentile. Item 2's weak shops (dae-yangkim 0.20, willow-goods 0.257, sergiobuilds 0.26) are all small and already at or just above our mean, so tilting them gains a few hundredths of a point per hour at most. Three peers are closest to us. dae-yangkim (saved 0.252, 0.39 per deal) beats us on saved by paying psyoung82 x0.65 against our x0.72; our knob is psyoung82 shop_cap, whose read is due 06:00. winun1127 (0.260) beats us on saved through nocha12 at x0.673 with 100 % warranty; our knob is nocha12 shop_bias, the queued next move. thisjonghoon (0.279 at 88/h) beats us on saved by using warranted goods shops (inextro, dragonash); max_shops is already 6. I hold every knob this run. The psyoung82 shop_cap read (06:00) and the olstjr bias read (~05:00) are not due, and a nocha12 bias now would pull orders off psyoung82 and blur that read. Waiting ~4 h costs well under 0.001 saved. One anomaly: rules_by_shop_6h still shows psyoung82 at cap 0.75, not the 0.73 we set. Another: 'unpaid: not paying' cost 24 agreed deals in 6 h at olstjr, jiseokkk and choo-chu, which are cheap shops (first asks 0.65-0.76). That is likely our accept filter in the code, not something a knob reaches. I ask to verify both.",
+  "moves": [],
   "lessons": [
    {
     "op": "rewrite",
-    "id": "L5",
-    "text": "Running-mean arithmetic (11-06 02:00 UTC): saved 0.2208, deals 3298, sum ≈ 750.3, denominator 3398. Passing S with forward mean m takes N = (S·3398 − 750.3)/(m − S) deals at ~92 deals/h. Next above is 0.228: ~1,630 deals (18 h) at m=0.243, ~1,110 (12 h) at m=0.25. 0.231 needs ~1,820 at m=0.25.",
-    "why": "Refresh with current board numbers."
+    "id": "L67",
+    "text": "11-07 02:00 UTC: saved 0.2442 over 5260 deals (sum ~1309 over 5360). 6h: 100/h at 0.302, saved_speed ~5.8 (+0.0011 saved/h). Projection at this pace: 0.252 at +7h, 0.262 at +24h, 0.272 at +48h, 0.277 at +72h. Board buyer ALL ~0.79-0.80 at +24-30h if peers hold; class buyer reaches the ~0.72 tie with the class leader near +24h. Re-check against the real slope each run.",
+    "why": "Updated running-mean arithmetic with this run's numbers."
    },
    {
     "op": "add",
-    "id": "L8",
-    "text": "Do not stack a second cap cut on a category before 6 h of data at the current cap. 24h category stats lag cap changes, so a cut made within the hour looks ineffective. Beds/sofas went to 0.70 around 11-06 01:00 UTC; judge them on mean_saved and conversion after 07:00 UTC.",
-    "why": "Beds and sofas at 0.23/0.224 are mostly from the old 0.74-0.75 caps. Cutting again blind risks halving goods volume (our shop's settle band is 0.66-0.77)."
-   },
-   {
-    "op": "add",
-    "id": "L9",
-    "text": "Small categories under the running mean are the cheapest saved gain: cutting their cap costs few deals (0.1 weight) and removes deals that drag the mean. Food above the mean (snacks, fruit, kimchi, meat) should stay uncapped, since each deal lifts the mean and the deal count.",
-    "why": "This cycle's moves rely on it. Check it next cycle against category mean_saved."
+    "id": "L71",
+    "text": "Compare the curator's low-volume setting on saved_speed at today's mean, not on round-end totals: 55/h at 0.32 gives 4.2 against 5.8 for 100/h at 0.302 (mean 0.244). Low volume wins only once our mean nears ~0.27.",
+    "why": "The curator's briefing compared against a stale 100/h at 0.26 baseline; the measured per-deal is 0.30."
    }
   ],
-  "investigate": [
+  "requests": [
    {
-    "kind": "sku_prices",
-    "sku": "G1515d951"
+    "kind": "knobs",
+    "knob": "shop_cap"
    },
    {
-    "kind": "sku_prices",
-    "sku": "G8ec51935"
+    "kind": "trades",
+    "shop": "psyoung82"
    },
    {
-    "kind": "sku_prices",
-    "sku": "G05277ffe"
+    "kind": "trades",
+    "outcome": "unpaid: not paying"
    },
    {
-    "kind": "competitor",
-    "shop": "nocha12"
+    "kind": "buyer",
+    "name": "winun1127"
    },
    {
-    "kind": "category",
-    "category": "과자"
+    "kind": "question",
+    "text": "For our buyer since 00:01 UTC: which cap was applied per visit at psyoung82 (0.73 or 0.75)? And for orders where nocha12 or inextro held an acceptable SKU, what were their value scores against the chosen shop's (incl. rival_penalty)?"
    }
   ],
   "notes_for_shop": [
-   "Buyer goods caps are 0.70 on beds, sofas and bedding-adjacent categories (bedding, curtains, phone accessories now 0.66), so our buyer will not close above 0.70 of list. This is our own buyer only and should not change your ask decisions.",
-   "Buyer-side data: nocha12 opens at 0.91 of list and nets our buyer only 0.145 saved on 51 deals. psyoung82 is our buyer's main counterparty (485 deals, 0.255 saved). Useful if you benchmark competitor first asks.",
-   "Unserved demand (our buyer, 24h): 즉석조리식품 6 of 48 orders, 신선조개류/갑각류 3 of 15, 소스/양념 2 of 25, 신선생선 2 of 10, 오일 2 of 6. Small food lines with few sellers could be a restock candidate if margin holds.",
-   "Agreed that the class gap is on the buyer side. Expect buyer saved to move over ~12-18 h, not within one cycle. Deals and forum are not on buyer knobs."
+   "Buyer holds every knob this run. The psyoung82 shop_cap read is due 06:00 and the olstjr read ~05:00, so nothing from the buyer side moves your reads.",
+   "choo-chu buys from our shop at x0.657 (24/6h). It is one of the highest-saved buyers, so our food asks there are close to the cheap end; no action needed.",
+   "Agreed buys fail as 'unpaid: not paying' at olstjr, jiseokkk and choo-chu (24 in 6h). If the shop side sees the same failure on its sales, it is the kit's checkout accept filter, a code fix for the human."
   ]
  },
- "raw": ".25 with deals still ≥ 450 per 6h, passing 0.228 in about 12 h.\",\n \"moves\": [\n  {\"knob\": \"cap\", \"category\": \"침구\", \"value\": 0.66, \"why\": \"Worst saved of any category (0.201) on 56 deals/24h. Breaks are only 3-5% (shop note), so the problem is price. Our shop sells bedding at 0.75 median, and lower-ask shops exist.\", \"uses\": [\"L3\", \"L7\", \"L2\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"침구\", \"op\": \">=\", \"value\": 0.24}},\n  {\"knob\": \"cap\", \"category\": \"커튼/러그/쿠션/덮개\", \"value\": 0.66, \"why\": \"Saved 0.204, below our running mean, so every deal pulls it down. Low volume, so losing deals costs little on deals count.\", \"uses\": [\"L3\", \"L7\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"커튼/러그/쿠션/덮개\", \"op\": \">=\", \"value\": 0.24}},\n  {\"knob\": \"cap\", \"category\": \"통신기기액세서리\", \"value\": 0.66, \"why\": \"Saved 0.225 at cap 0.70 with goods break risk. A 0.66 cap should net about 0.27.\", \"uses\": [\"L3\", \"L7\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"통신기기액세서리\", \"op\": \">=\", \"value\": 0.25}},\n  {\"knob\": \"cap\", \"category\": \"조리/가공 견과류\", \"value\": 0.68, \"why\": \"Food at 0.226 saved under value_share 0.72 is the weakest food line. Cutting from 0.72 to 0.68 moves it above the running mean.\", \"uses\": [\"L1\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"조리/가공 견과류\", \"op\": \">=\", \"value\": 0.25}},\n  {\"knob\": \"cap\", \"category\": \"반찬/젓갈\", \"value\": 0.68, \"why\": \"Saved 0.229, first ask 0.90 of list. Sellers here open high, so a lower cap forces the lower floor.\", \"uses\": [\"L1\"], \"prediction\": {\"metric\": \"mean_saved_next_6h\", \"category\": \"반찬/젓갈\", \"op\": \">=\", \"value\": 0.25}}\n ],\n \"lessons\": [\n  {\"op\": \"rewrite\", \"id\": \"L5\", \"text\": \"Running-mean arithmetic (11-06 02:00 UTC): saved 0.2208, deals 3298, sum ≈ 750.3, denominator 3398. Passing S with forward mean m takes N = (S·3398 − 750.3)/(m − S) deals at ~92 deals/h. Next above is 0.228: ~1,630 deals (18 h) at m=0.243, ~1,110 (12 h) at m=0.25. 0.231 needs ~1,820 at m=0.25.\", \"why\": \"Refresh with current board numbers.\"},\n  {\"op\": \"add\", \"id\": \"L8\", \"text\": \"Do not stack a second cap cut on a category before 6 h of data at the current cap. 24h category stats lag cap changes, so a cut made within the hour looks ineffective. Beds/sofas went to 0.70 around 11-06 01:00 UTC; judge them on mean_saved and conversion after 07:00 UTC.\", \"why\": \"Beds and sofas at 0.23/0.224 are mostly from the old 0.74-0.75 caps. Cutting again blind risks halving goods volume (our shop's settle band is 0.66-0.77).\"},\n  {\"op\": \"add\", \"id\": \"L9\", \"text\": \"Small categories under the running mean are the cheapest saved gain: cutting their cap costs few deals (0.1 weight) and removes deals that drag the mean. Food above the mean (snacks, fruit, kimchi, meat) should stay uncapped, since each deal lifts the mean and the deal count.\", \"why\": \"This cycle's moves rely on it. Check it next cycle against category mean_saved.\"}\n ],\n \"investigate\": [\n  {\"kind\": \"sku_prices\", \"sku\": \"G1515d951\"},\n  {\"kind\": \"sku_prices\", \"sku\": \"G8ec51935\"},\n  {\"kind\": \"sku_prices\", \"sku\": \"G05277ffe\"},\n  {\"kind\": \"competitor\", \"shop\": \"nocha12\"},\n  {\"kind\": \"category\", \"category\": \"과자\"}\n ],\n \"notes_for_shop\": [\n  \"Buyer goods caps are 0.70 on beds, sofas and bedding-adjacent categories (bedding, curtains, phone accessories now 0.66), so our buyer will not close above 0.70 of list. This is our own buyer only and should not change your ask decisions.\",\n  \"Buyer-side data: nocha12 opens at 0.91 of list and nets our buyer only 0.145 saved on 51 deals. psyoung82 is our buyer's main counterparty (485 deals, 0.255 saved). Useful if you benchmark competitor first asks.\",\n  \"Unserved demand (our buyer, 24h): 즉석조리식품 6 of 48 orders, 신선조개류/갑각류 3 of 15, 소스/양념 2 of 25, 신선생선 2 of 10, 오일 2 of 6. Small food lines with few sellers could be a restock candidate if margin holds.\",\n  \"Agreed that the class gap is on the buyer side. Expect buyer saved to move over ~12-18 h, not within one cycle. Deals and forum are not on buyer knobs.\"\n ]\n}\n```"
+ "raw": "n the buyer part: our class buyer is 0.651 against a needed ~0.714 to tie (0.73-0.75 with a margin). Board buyer ALL is 0.688, and the target is still 0.80. Running mean: saved 0.2442 over 5260 deals gives a sum of ~1309 over a denominator of 5360. The last 6 h ran 100 deals/h at 0.302, so saved_speed is ~5.8, about +0.0011 saved per hour. At that pace saved reaches ~0.252 at +7 h, ~0.262 at +24 h, ~0.272 at +48 h and ~0.277 at +72 h. If other buyers held still, board buyer ALL would be ~0.75 at +12 h and ~0.79-0.80 at +24-30 h (saved p~0.75-0.77). The class buyer would reach the ~0.72 tie at about +24 h. Peers rise too, so read this as +30-40 h. I do not take the curator's item 1 (55/h at 0.32): on today's mean it gives saved_speed 55×(0.32−0.244)=4.2 against our 5.8, so volume near 0.30 still wins (L69), and the extra deals hold the deals percentile. Item 2's weak shops (dae-yangkim 0.20, willow-goods 0.257, sergiobuilds 0.26) are all small and already at or just above our mean, so tilting them gains a few hundredths of a point per hour at most. Three peers are closest to us. dae-yangkim (saved 0.252, 0.39 per deal) beats us on saved by paying psyoung82 x0.65 against our x0.72; our knob is psyoung82 shop_cap, whose read is due 06:00. winun1127 (0.260) beats us on saved through nocha12 at x0.673 with 100 % warranty; our knob is nocha12 shop_bias, the queued next move. thisjonghoon (0.279 at 88/h) beats us on saved by using warranted goods shops (inextro, dragonash); max_shops is already 6. I hold every knob this run. The psyoung82 shop_cap read (06:00) and the olstjr bias read (~05:00) are not due, and a nocha12 bias now would pull orders off psyoung82 and blur that read. Waiting ~4 h costs well under 0.001 saved. One anomaly: rules_by_shop_6h still shows psyoung82 at cap 0.75, not the 0.73 we set. Another: 'unpaid: not paying' cost 24 agreed deals in 6 h at olstjr, jiseokkk and choo-chu, which are cheap shops (first asks 0.65-0.76). That is likely our accept filter in the code, not something a knob reaches. I ask to verify both.\",\n  \"moves\": [],\n  \"lessons\": [\n    {\"op\": \"rewrite\", \"id\": \"L67\", \"text\": \"11-07 02:00 UTC: saved 0.2442 over 5260 deals (sum ~1309 over 5360). 6h: 100/h at 0.302, saved_speed ~5.8 (+0.0011 saved/h). Projection at this pace: 0.252 at +7h, 0.262 at +24h, 0.272 at +48h, 0.277 at +72h. Board buyer ALL ~0.79-0.80 at +24-30h if peers hold; class buyer reaches the ~0.72 tie with the class leader near +24h. Re-check against the real slope each run.\", \"why\": \"Updated running-mean arithmetic with this run's numbers.\"},\n    {\"op\": \"add\", \"id\": \"L71\", \"text\": \"Compare the curator's low-volume setting on saved_speed at today's mean, not on round-end totals: 55/h at 0.32 gives 4.2 against 5.8 for 100/h at 0.302 (mean 0.244). Low volume wins only once our mean nears ~0.27.\", \"why\": \"The curator's briefing compared against a stale 100/h at 0.26 baseline; the measured per-deal is 0.30.\"}\n  ],\n  \"requests\": [\n    {\"kind\": \"knobs\", \"knob\": \"shop_cap\"},\n    {\"kind\": \"trades\", \"shop\": \"psyoung82\"},\n    {\"kind\": \"trades\", \"outcome\": \"unpaid: not paying\"},\n    {\"kind\": \"buyer\", \"name\": \"winun1127\"},\n    {\"kind\": \"question\", \"text\": \"For our buyer since 00:01 UTC: which cap was applied per visit at psyoung82 (0.73 or 0.75)? And for orders where nocha12 or inextro held an acceptable SKU, what were their value scores against the chosen shop's (incl. rival_penalty)?\"}\n  ],\n  \"notes_for_shop\": [\n    \"Buyer holds every knob this run. The psyoung82 shop_cap read is due 06:00 and the olstjr read ~05:00, so nothing from the buyer side moves your reads.\",\n    \"choo-chu buys from our shop at x0.657 (24/6h). It is one of the highest-saved buyers, so our food asks there are close to the cheap end; no action needed.\",\n    \"Agreed buys fail as 'unpaid: not paying' at olstjr, jiseokkk and choo-chu (24 in 6h). If the shop side sees the same failure on its sales, it is the kit's checkout accept filter, a code fix for the human.\"\n  ]\n}\n```"
 }

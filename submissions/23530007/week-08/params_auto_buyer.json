@@ -1,42 +1,29 @@
 {
  "globals": {
   "value_share": 0.75,
-  "food_extra_hours": 3,
-  "quick_accept": 0.7,
-  "max_shops": 5,
+  "food_extra_hours": 1,
+  "max_shops": 6,
   "skip_below": 0.24,
   "cap_margin": 0.05
  },
  "category": {
-  "침구": {
-   "cap": 0.74
-  },
+  "침구": {},
   "침대/매트리스": {
    "cap": 0.74
   },
-  "소파/의자/스툴": {
-   "cap": 0.74
-  },
-  "통신기기액세서리": {
-   "cap": 0.74
-  },
-  "커튼/러그/쿠션/덮개": {
-   "cap": 0.74
-  },
+  "소파/의자/스툴": {},
+  "통신기기액세서리": {},
+  "커튼/러그/쿠션/덮개": {},
   "조리/가공 견과류": {
    "cap": 0.74
   },
-  "반찬/젓갈": {
-   "cap": 0.74
-  }
+  "반찬/젓갈": {}
  },
- "t": 1793948404.6606503,
+ "t": 1794016803.4995325,
  "shop": {
-  "25620027": {
-   "shop_cap": 0.02
-  },
+  "25620027": {},
   "nocha12": {
-   "shop_bias": -0.03
+   "shop_bias": 0.0
   },
   "jiseokkk": {
    "shop_bias": 0.03
@@ -46,6 +33,19 @@
   },
   "buzllightyear": {
    "shop_bias": -0.03
+  },
+  "totato2203-r3": {
+   "shop_bias": -0.03
+  },
+  "Kiro729": {},
+  "dae-yangkim": {
+   "shop_bias": -0.03
+  },
+  "olstjr": {
+   "shop_bias": 0.03
+  },
+  "psyoung82": {
+   "shop_cap": -0.02
   }
  }
 }

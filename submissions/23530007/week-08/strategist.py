@@ -34,6 +34,8 @@ import json
 import shlex
 import shutil
 import subprocess
+
+import model_env
 import tempfile
 import time
 import urllib.request
@@ -250,8 +252,7 @@ def ask_model(prompt, role):
     with tempfile.TemporaryDirectory() as empty:
         t = time.time()
         try:
-            p = subprocess.run(shlex.split(MODEL_CMD), input=prompt, cwd=empty, capture_output=True, text=True,
-                               timeout=MODEL_TIMEOUT)
+            p = model_env.run(shlex.split(MODEL_CMD), prompt, empty, MODEL_TIMEOUT)   # user's API key, else login
             log(f"{role}: model answered in {time.time() - t:.0f} s ({len(prompt)} chars in)")
             return p.stdout.strip()
         except (subprocess.TimeoutExpired, OSError) as e:

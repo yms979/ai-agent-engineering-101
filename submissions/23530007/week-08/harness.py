@@ -17,6 +17,8 @@ from pathlib import Path
 import re
 import shlex
 import subprocess
+
+import model_env
 import sys
 import tempfile
 import time
@@ -72,8 +74,7 @@ def decide(who: str, prompt: str, timeout: float | None = None) -> dict | None:
         CALLS["n"] += 1
         with tempfile.TemporaryDirectory() as empty:
             try:
-                proc = subprocess.run(shlex.split(HARNESS_CMD), input=prompt, cwd=empty,
-                                      capture_output=True, text=True, timeout=timeout or TIMEOUT)
+                proc = model_env.run(shlex.split(HARNESS_CMD), prompt, empty, timeout or TIMEOUT)   # API key, else login
                 raw = proc.stdout.strip()
             except subprocess.TimeoutExpired:
                 raw = ""

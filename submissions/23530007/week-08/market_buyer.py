@@ -25,7 +25,7 @@
    so any shop reading "the first number" or "the last number" reads the right price.
 4. Memory (buyer_memory.json): one record per order: shop name (URLs change on every restart), item,
    budget, outcome, price, the asks I saw, my last offer, whether the receipt matched. A receipt
-   price above what I agreed marks the shop as dishonest for good.
+   price above what I agreed marks the shop as dishonest for DISHONEST_HOURS (12 h; for good until 11-08).
 5. Round 2. A deal counts only when its receipt is signed, names the ordered item, stays within the
    budget and carries a task id the market has not seen. Before I review, I check the receipt the
    same way: sig_seller present, item = the order, price <= the agreed offer and the budget,
@@ -173,6 +173,14 @@ def review_view(shop):
     return text, avg, flags, len(verified)
 
 
+DISHONEST_HOURS = 12
+
+
+def dishonest_live(entry):
+    """A dishonest-receipt mark keeps the shop out for DISHONEST_HOURS (old string entries: expired)."""
+    return isinstance(entry, dict) and time.time() - entry.get("t", 0) < DISHONEST_HOURS * 3600
+
+
 def failed_last(mem, name):
     """Why my last visit to `name` failed (error, or a deal with an unsigned receipt), or None."""
     ts = [t for t in mem["trades"] if t["shop"] == name]
@@ -267,7 +275,10 @@ def choose(shops, mem, item, budget, ask_model=True, ctx=None):
     lines = "\n".join(f"- {n} | {v['text']} | {v['mem']}" for n, v in views.items())
     log("buyer", "shops seen:\n" + lines)
 
-    caught = {n for n in views if n in mem["dishonest"]}
+    # 11-08: a receipt mismatch used to ban a shop for good; inextro (851 goods settles in 6 h at 0.345 saved, 95%
+    # warranted, the market's best goods source) was out since one 1.6M -> 1.7M receipt. Every receipt is still
+    # checked before paying, so a ban now lasts DISHONEST_HOURS; old entries without a time count as expired
+    caught = {n for n in views if n in mem["dishonest"] and dishonest_live(mem["dishonest"][n])}
     n_reviews = {s["name"]: len(s.get("reviews", [])) for s in shops}
     flagged = {n for n, v in views.items() if v["flags"] or (v["avg"] is not None and v["avg"] <= 2 and n_reviews[n] >= 2)}
     allowed = [s for s in shops if s["name"] not in caught] or shops
@@ -791,7 +802,7 @@ def main():
     stars, review = stars_and_review(outcome, label if acceptable else a.item, price, cap, agreed, lowest,
                                      len([h for h in history if h[0] == "you offered"]), ceiling_note, honest, void, "; ".join(bad))
     if not honest:
-        mem["dishonest"][pick["name"]] = f"{'; '.join(bad)} ({label})"
+        mem["dishonest"][pick["name"]] = {"t": time.time(), "why": f"{'; '.join(bad)} ({label})"}
         log("buyer", f"DISHONEST: {pick['name']}: {'; '.join(bad)}; remembered")
     if acceptable and asks and want.get("list_price"):
         try:

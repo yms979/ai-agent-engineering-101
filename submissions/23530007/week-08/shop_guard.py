@@ -116,6 +116,14 @@ def main(dry=False):
     s = slope(hist, now)
     level = g.get("level", 2)
     new, why = decide(level, lead, s, now - g.get("since", 0))
+    # 11-08 (user: 'warranty was not the problem, why change it? analyse the cause'): the guard read only the book
+    # slope and toggled the warranty 5 times in a night while the real cause was settles refused for an 8760 h
+    # warranty. It no longer moves the warranty, except as a last resort when the lead is nearly gone (level 0 at
+    # < LEAD_ALL); otherwise it reports, and the shop strategist (opus) decides from the causes.
+    if new != 0:
+        if new != level:
+            log(f"ALERT (not applied) {why}: the shop strategist decides")
+        new, why = 2, "advisory only: " + why
     line = (f"book {me['book'] / 1e6:.0f}M vs {rival['name']} {rival['book'] / 1e6:.0f}M, lead {lead / 1e6:.0f}M, "
             f"slope {'n/a' if s is None else f'{s / 1e6:+.1f}M/h'} -> level {new} {GRADES[new]} ({why})")
     if dry:

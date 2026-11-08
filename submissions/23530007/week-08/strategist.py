@@ -68,6 +68,14 @@ KNOBS = {                             # per-SKU factors: bounds, default step
 GLOBAL = {                            # whitelisted shared parameters: role, bounds, step
     "sku_cover_hours": ("shop", (2, 8), 1),
     "market_share": ("shop", (0.05, 0.3), 0.05),
+    # 11-08 (user: 'why does an opus agent only nudge SKUs like a rule? check the shop agent'): the levers that
+    # decide the race, so the strategist can answer a cause it found instead of noting it as 'a human call'
+    "ask_share_A": ("shop", (0.7, 0.95), 0.05),    # first ask for grade A goods, share of list (x other factors)
+    "ask_share_B": ("shop", (0.65, 0.9), 0.05),
+    "ask_share_C": ("shop", (0.55, 0.8), 0.05),
+    "meet_frac": ("shop", (0.2, 0.8), 0.1),        # how far the seller moves toward a buyer's offer per round
+    "floor_mult": ("shop", (1.02, 1.15), 0.02),    # floor = cost x this
+    "warranty_b": ("shop", (0, 1), 1),             # 1 = grade B goods carry the warranty (A always does), 0 = not
 }
 METRICS = ("sold_next_6h", "no_stock_next_6h", "cancels_next_6h", "margin_next_6h")
 
@@ -173,7 +181,31 @@ def evidence(m, mem, b):
             "board": b, "skus": [r for _, r in sorted(rows, key=lambda x: -x[0])[:TOP_SKUS]],
             "globals_now": {k: (auto.get("globals") or {}).get(k) for k in GLOBAL},
             "market_picture": market_picture(), "your_watch_list": w.get("watch", []),
+            "settle_health": settle_health(), "lead_guard": read(HERE / ".market" / "warranty_guard.json", {}).get("why"),
             "woken_by": w.get("woken_by")}
+
+
+def settle_health(hours=6):
+    """Our seller's closed deals against the market's settles and refusals, from the kit log (11-08: 129 warranted
+    receipts in a row were refused at settle and nobody saw it for ~10 h)."""
+    import re
+    from collections import Counter
+    cut = time.time() - hours * 3600
+    deals = sum(1 for line in open(HERE / "seller_r3_log.jsonl", encoding="utf-8")
+                if '"deal"' in line and json.loads(line).get("t", 0) >= cut)
+    settled, refused, why = 0, 0, Counter()
+    try:
+        for line in open(HERE / "logs" / "market-kit.log", encoding="utf-8", errors="ignore"):
+            if "[acp] settled" in line:
+                settled += 1
+            elif "[acp] settle refused" in line or "[acp] checkout refused" in line:
+                refused += 1
+                why[re.sub(r"u-[0-9a-f]+", "u-…", line.split("refused", 1)[1].strip())[:80]] += 1
+    except OSError:
+        pass
+    return {"window_h": hours, "seller_deals": deals, "kit_log_settled": settled, "kit_log_refused": refused,
+            "refusal_reasons": dict(why.most_common(5)),
+            "note": "kit log counts cover the log since its last rotation; compare the ratio, not the totals"}
 
 
 DECIDE = """You are the strategist of an agent shop and buyer (yms979) in a course market. Your job: read the
@@ -188,12 +220,24 @@ Market guide (rules, score, API, our system, what we measured):
 Knobs (only these):
   per SKU  "ask"   factor on the seller's ask for that SKU, 0.85-1.05
            "cover" factor on the stock restock holds of that SKU, 0-2 (0 stops buying it)
-  global   "sku_cover_hours" (2-8), "market_share" (0.05-0.3)
+  global   "sku_cover_hours" (2-8), "market_share" (0.05-0.3), "ask_share_A" (0.7-0.95), "ask_share_B"
+           (0.65-0.9), "ask_share_C" (0.55-0.8) (first ask per grade, share of list), "meet_frac" (0.2-0.8),
+           "floor_mult" (1.02-1.15), "warranty_b" (0 or 1: grade B goods carry the warranty; A always does,
+           C never: C breaks ~15%)
 Steps allowed now (bigger moves are clipped; they shrink after your misses): {steps}
 HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often the best answer. Move a knob
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
 predictions are not yet due, when the numbers are on track, or when the evidence is thin or noisy, hold and say
 in the read why holding is right. Changing settings every run makes it impossible to tell what worked.
+DIAGNOSE BEFORE YOU MOVE (user, 11-08: 'opus is here to find causes; otherwise how is this different from a
+rule?'): when a number moves (book, sales, cancels, a rival's gain), name its cause with evidence before any move,
+and rule out the others: demand (market volume), our price (our asks vs settles vs rivals' x), our terms
+(warranty, grade), our plumbing (evidence "settle_health": deals our seller closed vs settles the market
+accepted, and the market's refusal reasons) and bad data (e.g. our shop shown with zero sales or zero warranty
+right after a kit restart). 11-07/08 night: an 8760 h warranty made the market refuse every warranted settle
+('claim_and_warranty_well_formed'); the book stalled for ~10 h, we blamed the market's goods slide and held, and
+a rule toggled the warranty five times. A cause found but outside your knobs goes in notes_for_buyer or a
+request with the numbers; the operator reads them.
 THE SHOP'S GOAL (user, 11-08): our shop is first in class; first place does not need the most sales, only a lead
 over the second and third shops that holds to the round end. So set the overall course from what the 2nd and 3rd
 shops do (curator: WATCH.shop_race, briefing item 0): their class shop score and its parts (book, revenue,

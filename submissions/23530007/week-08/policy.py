@@ -118,6 +118,11 @@ def merged(cfg, role, regime):
     for k, v in (auto.get("globals") or {}).items():               # and the regime (shop and buyer each own one)
         if k in p:
             p[k] = v
+        elif k.startswith("ask_share_") and isinstance(p.get("ask_share"), dict):   # 11-08: shop price level per grade
+            p["ask_share"] = dict(p["ask_share"], **{k[-1]: v})
+        elif k == "warranty_b" and role == "shop":                    # 11-08: the shop strategist's B warranty call
+            g = [x for x in p.get("warranty_grades", []) if x != "B"]
+            p["warranty_grades"] = g + (["B"] if v >= 0.5 else [])
     p["sku_auto"] = auto.get("sku") or {}
     p["cat_auto"] = auto.get("category") or {}
     p["shop_auto"] = auto.get("shop") or {}          # buyer_strategist.py: per-shop bias and cap adjustment

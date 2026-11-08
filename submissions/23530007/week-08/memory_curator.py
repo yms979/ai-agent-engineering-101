@@ -294,6 +294,14 @@ def watch(rules_changed):
                                        for k in ("class_shop", "book", "revenue", "stars")}
             race.append(r)
         out["shop_race"] = race
+        # 11-08 (user: read the shop trend together with the buyer trend, not the buyer alone): every student's
+        # class total, shop and buyer at each run, for 1-2 h trends of both parts
+        try:
+            with open(HERE / ".market" / "class_history.jsonl", "a", encoding="utf-8") as f:
+                f.write(json.dumps({"t": now, "p": {p["player"]: [p.get("student_total"), p.get("student_shop"), p.get("student_buyer")]
+                                                    for p in fb["players"] if p.get("student")}}) + "\n")
+        except OSError:
+            pass
         # 11-08 (user: widen the shop lead; inextro caught up on stars alone): our stars diagnosis, the per-account
         # means behind our score (each account weighs the same) with the reasons of the low ones, and the ladder
         try:

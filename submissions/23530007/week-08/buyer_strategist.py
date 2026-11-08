@@ -39,6 +39,8 @@ AUTO = HERE / "params_auto_buyer.json"
 STATE = HERE / "buyer_strategist_memory.json"
 LOGF = HERE / "logs" / "buyer_strategist.log"
 BMEM = HERE / "buyer_memory.json"
+OPERATOR_NOTE = HERE / "operator_to_buyer.json"   # 11-08: the operator (with the user) asks; you answer (answer file)
+OPERATOR_ANSWER = HERE / "buyer_answer_to_operator.json"
 CATALOG = HERE / ".market" / "catalog.json"
 EVERY = 3600 - 120
 MAX_MOVES = 8
@@ -223,6 +225,7 @@ def evidence(mem, b, auto, params):
             "our_shop_sells_at_24h": shop_prices(now),
             "market_picture": market_picture(),
             "ab_tests": ab_tests(), "buy_health": buy_health(now),
+            "from_operator": shop.read(OPERATOR_NOTE, {}).get("note") or None,
             "your_watch_list": mem.d["working"].get("watch", [])}
 
 
@@ -316,6 +319,9 @@ score per order, cut one that loses, and say why from "ab_tests".
 THE RACE (user, 11-08): what moves our buyer rank is the class buyers just above and below us. Read the curator's
 WATCH.buyer_race (their buyer score, saved, per-deal saved, deals/h, what they buy and where) and say who we pass
 next, who is closing on us, and what they do that we could do.
+THE OPERATOR (11-08): evidence "from_operator" may hold a question or analysis from the operator and the user. When
+it does, think it through with your evidence, answer it in "answer_to_operator" (agree or disagree, with numbers),
+and act on it through your knobs if you agree.
 TOP PRIORITY (user, 11-06): raise buyer ALL above everything else. Find the best way to raise saved and apply it,
 weighing deals, posts, forum and saved on the formula itself (the curator's briefing item 1 gives the arithmetic
 and its best setting; check it against your evidence and act on it unless the evidence contradicts it).
@@ -353,7 +359,8 @@ Answer with one JSON object only:
              "uses": [...], "prediction": {{...}}}}],
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "...", "text": "...", "why": "..."}}],
   "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"knobs"|"trades"|"question", ...}}],
-  "notes_for_shop": ["<what the shop strategist should know or check: competitor prices, stock-outs, demand>"]
+  "notes_for_shop": ["<what the shop strategist should know or check: competitor prices, stock-outs, demand>"],
+  "answer_to_operator": "<only when evidence 'from_operator' holds a question: your answer, with numbers and what you will do>"
 }}
 The shop strategist (it ran 15 minutes before you and runs again 15 minutes after) left you its reads and notes
 in the evidence under "from_shop_strategist"; use them."""
@@ -447,6 +454,11 @@ def run(force=False):
         mem.save()
         return
     log(f"[{mode}] read: {str(ans.get('read'))[:1200]}")
+    if ans.get("answer_to_operator") and shop.read(OPERATOR_NOTE, {}).get("note"):
+        OPERATOR_ANSWER.write_text(json.dumps({"t": time.time(), "question": shop.read(OPERATOR_NOTE, {}).get("note"),
+                                               "answer": ans["answer_to_operator"]}, ensure_ascii=False, indent=1),
+                                   encoding="utf-8")
+        log(f"answered the operator: {str(ans['answer_to_operator'])[:600]}")
     requests = valid_requests(ans.get("requests") or ans.get("investigate"))
     post_board("buyer", ans.get("read"), {"moves": [(m.get("knob"), m.get("category"), m.get("value"))
                                                    for m in (ans.get("moves") or [])][:8],

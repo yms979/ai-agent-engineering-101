@@ -67,7 +67,7 @@ def poll():
         if m.get("event") != "message" or not (m.get("message") or "").strip():
             continue
         st["last_id"] = m["id"]
-        if str(m.get("title") or "").startswith("[yms979]"):      # our own alert, not the user
+        if str(m.get("title") or "").startswith("[yms979]") or m["message"].strip().lower() in ("triggered", "test"):
             continue
         who, text = route(m["message"])
         with open(INBOX, "a", encoding="utf-8") as f:

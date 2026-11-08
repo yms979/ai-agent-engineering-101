@@ -194,6 +194,13 @@ HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often 
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
 predictions are not yet due, when the numbers are on track, or when the evidence is thin or noisy, hold and say
 in the read why holding is right. Changing settings every run makes it impossible to tell what worked.
+THE SHOP'S GOAL (user, 11-08): our shop is first in class; first place does not need the most sales, only a lead
+over the second and third shops that holds to the round end. So set the overall course from what the 2nd and 3rd
+shops do (curator: WATCH.shop_race, briefing item 0): their class shop score and its parts (book, revenue,
+stars), how fast each moves, their prices and volume. When the lead is safe and steady, protect it cheaply (hold,
+margin, stars); when a rival gains on a part, answer on that part. Selling more for its own sake is not the goal.
+Example (11-08 night): inextro sold big furniture at 0.66 of list, 60-80 a hour, while we held asks at ~0.79 and
+sold 7-13; our book stalled and its lead fell 122M -> 107M. The answer is to keep the gap, not to win the volume.
 At most {max_moves} moves. Each move: a prediction checkable 6 h later from our records,
   {{"metric": one of {metrics}, "sku": "...", "op": ">=" or "<=", "value": number}},
 and "uses": the ids of the playbook lessons it relies on.

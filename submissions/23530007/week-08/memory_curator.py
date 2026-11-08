@@ -106,7 +106,10 @@ Write (one JSON object, keys exactly as in the template at the end):
    whether skip_below_goods / skip_below_food sit at it, and say to raise them when our saved has risen; item 2 where saved is lost (WATCH.where_saved_goes_24h: kind, category, shop, outcome;
    minus_one deals cost most; name the knob); then what saved_speed says about the last move (WATCH.saved_speed,
    higher is better: since_last_move vs before_6h), what the ranking buyers do that ours does not, and what the shop
-   strategist found that concerns it. Shop: cover of its top sellers, its prices vs the market's p50_x in those
+   strategist found that concerns it. Shop: item 0 the race (user 11-08: first place needs only a lead over
+   the 2nd and 3rd shops): from WATCH.shop_race, our class shop score against the 2nd and 3rd, the gap on each part
+   (book, revenue, stars) and how it moved since the last run, what the rivals do (prices x, volume, warranty) and
+   which part needs an answer; then cover of its top sellers, its prices vs the market's p50_x in those
    categories, what buyers asked for and it lacked, what the ranking shops do, and anything that could hurt the
    buyer. Do not repeat what a strategist already said it acts on.
 5. "rules_change": if WATCH.rules_changed has lines, what the patch changes in the score and what should change in
@@ -262,7 +265,29 @@ def watch(rules_changed):
                "moves": [(e.get("knob"), e.get("sku"), e.get("value")) for e in eps if e["t"] == last]}}}
     out["buyer_formula"] = formula(b, hourly)
     out["where_saved_goes_24h"] = breakdown(bs, now)
-    WATCH_STATE.write_text(json.dumps({"t": now, "class_top": top, "class_rank": b.get("class_rank")},
+    # 11-08: the shop race, class shop score and its parts for us and the next two shops, and the move since last run
+    race = []
+    try:
+        import urllib.request
+        fb = json.load(urllib.request.urlopen("https://market.ourolabs.ai/api/board?round=3", timeout=30))
+        stud = sorted((p for p in fb["players"] if p.get("student") and p.get("student_shop") is not None),
+                      key=lambda p: -p["student_shop"])
+        byname = {x["name"]: x for x in fb["shops"]}
+        old = {r["player"]: r for r in st.get("shop_race", [])}
+        for p in stud[:3] + [p for p in stud[3:] if p["player"] == "yms979"]:
+            x = byname.get((p.get("shop") or {}).get("name"), {})
+            r = {"player": p["player"], "class_shop": p["student_shop"], "book": x.get("book"),
+                 "revenue": x.get("revenue"), "stars": x.get("stars"), "refunds": x.get("refunds")}
+            o = old.get(p["player"])
+            if o:
+                r["since_last_run"] = {k: round((r[k] or 0) - (o.get(k) or 0), 3 if k in ("class_shop", "stars") else 0)
+                                       for k in ("class_shop", "book", "revenue", "stars")}
+            race.append(r)
+        out["shop_race"] = race
+    except Exception as e:
+        out["shop_race"] = {"error": repr(e)}
+    WATCH_STATE.write_text(json.dumps({"t": now, "class_top": top, "class_rank": b.get("class_rank"),
+                                       "shop_race": race},
                                       ensure_ascii=False), encoding="utf-8")
     return out
 

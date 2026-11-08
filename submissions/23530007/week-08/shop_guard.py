@@ -8,7 +8,7 @@ of shop ALL, where we lead. Each check reads the board, keeps the lead over the 
 .market/warranty_guard.json) and its slope over the last 4 h, and sets a level:
 
     2  A and B carry the warranty (params as they are)
-    1  A only                                          when the lead < LEAD_B or it shrinks (slope < 0)
+    1  A only                                          when the lead < LEAD_B or it shrinks fast (< SHRINK_B)
     0  no warranty                                     when the lead < LEAD_ALL or it would be gone in 24 h
 
 Going back up is one step at a time and needs a growing lead above a higher bar (hysteresis), so the level does
@@ -31,6 +31,9 @@ LOG = HERE / "logs" / "shop_guard.log"
 NAME = "yms979"
 LEAD_ALL, LEAD_B = 30e6, 60e6          # lowering bars
 UP_TO_A, UP_TO_B = 60e6, 90e6          # raising bars (with a growing lead)
+SHRINK_B = -1.5e6                      # 11-08: B goes off only on a clear shrink; -0.2M/h flipped it 5 times a night
+GROW_UP = 1.0e6                        # and comes back only on a clear growth
+HOLD_UP = 2 * 3600                     # held this long at a level before going back up
 SLOPE_HOURS, KEEP = 4, 24 * 3600
 GRADES = {2: ["A", "B"], 1: ["A"], 0: []}
 
@@ -63,20 +66,20 @@ def slope(hist, now):
     return (pts[-1][1] - pts[0][1]) / ((pts[-1][0] - pts[0][0]) / 3600)     # credits per hour
 
 
-def decide(level, lead, s):
+def decide(level, lead, s, held=1e9):
     gone_in_24h = s is not None and s < 0 and lead + 24 * s < 0
     if lead < LEAD_ALL or gone_in_24h:
         return 0, f"lead {lead / 1e6:.0f}M" + (", gone within 24 h at this slope" if gone_in_24h else f" < {LEAD_ALL / 1e6:.0f}M")
-    if level >= 1 and (lead < LEAD_B or (s is not None and s < 0)):
+    if level >= 1 and (lead < LEAD_B or (s is not None and s < SHRINK_B)):
         if level == 2:
             return 1, f"lead {lead / 1e6:.0f}M" + (f" < {LEAD_B / 1e6:.0f}M" if lead < LEAD_B else f" shrinking {s / 1e6:+.1f}M/h")
         return 1, "holding A only"
     if level == 0:
-        if lead >= UP_TO_A and s is not None and s >= 0:
+        if lead >= UP_TO_A and s is not None and s >= 0 and held >= HOLD_UP:
             return 1, f"lead {lead / 1e6:.0f}M and not shrinking: back to A"
         return 0, "holding no warranty"
     if level == 1:
-        if lead >= UP_TO_B and s is not None and s > 0:
+        if lead >= UP_TO_B and s is not None and s > GROW_UP and held >= HOLD_UP:
             return 2, f"lead {lead / 1e6:.0f}M and growing {s / 1e6:+.1f}M/h: back to A and B"
         return 1, "holding A only"
     return 2, "lead safe"
@@ -112,7 +115,7 @@ def main(dry=False):
     hist = [h for h in g.get("hist", []) if now - h[0] <= KEEP] + [[now, lead]]
     s = slope(hist, now)
     level = g.get("level", 2)
-    new, why = decide(level, lead, s)
+    new, why = decide(level, lead, s, now - g.get("since", 0))
     line = (f"book {me['book'] / 1e6:.0f}M vs {rival['name']} {rival['book'] / 1e6:.0f}M, lead {lead / 1e6:.0f}M, "
             f"slope {'n/a' if s is None else f'{s / 1e6:+.1f}M/h'} -> level {new} {GRADES[new]} ({why})")
     if dry:
@@ -132,7 +135,7 @@ def main(dry=False):
         pid = restart_kit()
         log(f"restarted the kit (pid {pid}) after the supply window so the card states {GRADES[new] or 'no warranty'}")
         pending = False
-    GUARD.write_text(json.dumps({"t": now, "level": new, "grades": GRADES[new], "lead": lead, "slope": s,
+    GUARD.write_text(json.dumps({"t": now, "since": now if new != level else g.get("since", now), "level": new, "grades": GRADES[new], "lead": lead, "slope": s,
                                  "rival": rival["name"], "why": why, "hist": hist, "restart_pending": pending}))
 
 

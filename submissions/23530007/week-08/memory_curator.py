@@ -106,8 +106,9 @@ Write (one JSON object, keys exactly as in the template at the end):
    whether skip_below_goods / skip_below_food sit at it, and say to raise them when our saved has risen; item 2 where saved is lost (WATCH.where_saved_goes_24h: kind, category, shop, outcome;
    minus_one deals cost most; name the knob); then what saved_speed says about the last move (WATCH.saved_speed,
    higher is better: since_last_move vs before_6h), what the ranking buyers do that ours does not, and what the shop
-   strategist found that concerns it. Shop: item 0 the race (user 11-08: first place needs only a lead over
-   the 2nd and 3rd shops): from WATCH.shop_race, our class shop score against the 2nd and 3rd, the gap on each part
+   strategist found that concerns it. Shop: item 0 the race (user 11-08: a dominant first place, a gap over the
+   2nd and 3rd shops that grows): from WATCH.shop_race and WATCH.rivals (their 6 h profiles: what they sell, x,
+   volume, warranty, stock), our class shop score against the 2nd and 3rd, the gap on each part
    (book, revenue, stars) and how it moved since the last run, what the rivals do (prices x, volume, warranty) and
    which part needs an answer; then cover of its top sellers, its prices vs the market's p50_x in those
    categories, what buyers asked for and it lacked, what the ranking shops do, and anything that could hurt the
@@ -284,6 +285,13 @@ def watch(rules_changed):
                                        for k in ("class_shop", "book", "revenue", "stars")}
             race.append(r)
         out["shop_race"] = race
+        # 11-08 (user: to make the gap, know the 2nd and 3rd shops' situation and strategy): their 6 h profiles
+        try:
+            import market_picture as mpic
+            names = [((p.get("shop") or {}).get("name")) for p in stud[:4] if p["player"] != "yms979"][:2]
+            out["rivals"] = {n: mpic.profile_shop(n) for n in names if n}
+        except Exception as e:
+            out["rivals"] = {"error": repr(e)}
     except Exception as e:
         out["shop_race"] = {"error": repr(e)}
     WATCH_STATE.write_text(json.dumps({"t": now, "class_top": top, "class_rank": b.get("class_rank"),

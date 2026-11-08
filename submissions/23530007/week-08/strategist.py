@@ -66,16 +66,45 @@ KNOBS = {                             # per-SKU factors: bounds, default step
     "cover": ((0.0, 2.0), 0.5),       # x the stock restock holds of this SKU (0 = stop buying it)
 }
 GLOBAL = {                            # whitelisted shared parameters: role, bounds, step
-    "sku_cover_hours": ("shop", (2, 8), 1),
-    "market_share": ("shop", (0.05, 0.3), 0.05),
-    # 11-08 (user: 'why does an opus agent only nudge SKUs like a rule? check the shop agent'): the levers that
-    # decide the race, so the strategist can answer a cause it found instead of noting it as 'a human call'
+    # 11-08 (user: 'the shop agent manages everything about the shop, not just weights'): every operating
+    # setting of the shop is the strategist's, inside bounds that keep it legal and solvent
+    # -- price and negotiation
     "ask_share_A": ("shop", (0.7, 0.95), 0.05),    # first ask for grade A goods, share of list (x other factors)
     "ask_share_B": ("shop", (0.65, 0.9), 0.05),
     "ask_share_C": ("shop", (0.55, 0.8), 0.05),
     "meet_frac": ("shop", (0.2, 0.8), 0.1),        # how far the seller moves toward a buyer's offer per round
     "floor_mult": ("shop", (1.02, 1.15), 0.02),    # floor = cost x this
-    "warranty_b": ("shop", (0, 1), 1),             # 1 = grade B goods carry the warranty (A always does), 0 = not
+    "intel_undercut": ("shop", (0.0, 0.06), 0.01),  # how far under the competitors' usual first ask
+    "intel_band": ("shop", (0.0, 0.1), 0.02),      # how far the competitor read may move our ask
+    "scarce_floor_mult": ("shop", (1.05, 1.3), 0.05),   # floor on SKUs that keep selling out
+    "rep_step": ("shop", (0.0, 0.06), 0.01),       # ask change when our recent stars are low / high
+    # -- slow and old stock
+    "slow_hours": ("shop", (8, 48), 4),            # unsold this long = slow
+    "slow_ask_cut": ("shop", (0.8, 1.0), 0.05),
+    "slow_floor_mult": ("shop", (0.95, 1.05), 0.02),
+    "clear_ask_min": ("shop", (0.4, 0.9), 0.05),
+    "clear_window_hours": ("shop", (12, 72), 12),
+    # -- terms
+    "warranty_b": ("shop", (0, 1), 1),             # 1 = grade B goods carry the warranty (A always does)
+    "warranty_c": ("shop", (0, 1), 1),             # 1 = grade C too (C breaks ~15%: each refund leaves the book)
+    "warranty_hours": ("shop", (6, 72), 6),        # the market refuses settles above some length (8760 h was refused)
+    # -- stock and restock
+    "buy": ("shop", (0, 1), 1),                    # 0 stops all restock
+    "keep_cash": ("shop", (500000, 50000000), 1000000),
+    "max_stock_share": ("shop", (0.3, 0.95), 0.05),     # stock cost cap as a share of equity
+    "extra": ("shop", (0, 8), 1),                  # units over the expected sales a SKU line holds
+    "max_goods_price": ("shop", (200000, 2000000), 100000),
+    "max_goods_price_hot": ("shop", (300000, 3000000), 100000),
+    "sku_cover_hours": ("shop", (2, 8), 1),
+    "sku_lines": ("shop", (6, 30), 2),
+    "max_goods_lines": ("shop", (6, 30), 2),
+    "market_top": ("shop", (5, 30), 5),
+    "market_share": ("shop", (0.05, 0.3), 0.05),
+    "cover_min_sales": ("shop", (0.1, 2.0), 0.2),
+    "tier_count": ("shop", (0, 6), 1),
+    "tier_value_share": ("shop", (0.0, 0.3), 0.05),
+    "scarce_share": ("shop", (0.1, 0.6), 0.1),
+    "scarce_cover_hours": ("shop", (1, 6), 1),
 }
 METRICS = ("sold_next_6h", "no_stock_next_6h", "cancels_next_6h", "margin_next_6h")
 
@@ -179,10 +208,20 @@ def evidence(m, mem, b):
             "time_utc": time.strftime("%Y-%m-%d %H:%M", time.gmtime()), "round_ends": "2026-11-17T23:59 KST",
             "cash": inv.get("balance"), "stock_cost": sum(u.get("cost") or 0 for u in inv.get("units", [])),
             "board": b, "skus": [r for _, r in sorted(rows, key=lambda x: -x[0])[:TOP_SKUS]],
-            "globals_now": {k: (auto.get("globals") or {}).get(k) for k in GLOBAL},
+            "globals_now": {k: (auto.get("globals") or {}).get(k, current_base(k)) for k in GLOBAL},
             "market_picture": market_picture(), "your_watch_list": w.get("watch", []),
             "settle_health": settle_health(), "lead_guard": read(HERE / ".market" / "warranty_guard.json", {}).get("why"),
             "woken_by": w.get("woken_by")}
+
+
+def current_base(k):
+    """The base value of a shop setting the strategist has not set (params.json shop.base)."""
+    base = read(HERE / "params.json", {}).get("shop", {}).get("base", {})
+    if k.startswith("ask_share_"):
+        return (base.get("ask_share") or {}).get(k[-1])
+    if k in ("warranty_b", "warranty_c"):
+        return int(k[-1].upper() in (base.get("warranty_grades") or []))
+    return base.get(k)
 
 
 def settle_health(hours=6):
@@ -220,10 +259,12 @@ Market guide (rules, score, API, our system, what we measured):
 Knobs (only these):
   per SKU  "ask"   factor on the seller's ask for that SKU, 0.85-1.05
            "cover" factor on the stock restock holds of that SKU, 0-2 (0 stops buying it)
-  global   "sku_cover_hours" (2-8), "market_share" (0.05-0.3), "ask_share_A" (0.7-0.95), "ask_share_B"
-           (0.65-0.9), "ask_share_C" (0.55-0.8) (first ask per grade, share of list), "meet_frac" (0.2-0.8),
-           "floor_mult" (1.02-1.15), "warranty_b" (0 or 1: grade B goods carry the warranty; A always does,
-           C never: C breaks ~15%)
+  global   every operating setting of the shop is yours (user 11-08: the shop agent manages everything about the
+           shop): price and negotiation, slow stock, warranty terms, stock and restock. Names, bounds and steps:
+           {globals_doc}
+           Current values are in the evidence "globals_now"; params.json holds the base and the market guide
+           says what each part of our system does with it. Regimes near the round end (WIND_DOWN, LIQUIDATE)
+           still override you there.
 Steps allowed now (bigger moves are clipped; they shrink after your misses): {steps}
 HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often the best answer. Move a knob
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
@@ -238,13 +279,16 @@ right after a kit restart). 11-07/08 night: an 8760 h warranty made the market r
 ('claim_and_warranty_well_formed'); the book stalled for ~10 h, we blamed the market's goods slide and held, and
 a rule toggled the warranty five times. A cause found but outside your knobs goes in notes_for_buyer or a
 request with the numbers; the operator reads them.
-THE SHOP'S GOAL (user, 11-08): our shop is first in class; first place does not need the most sales, only a lead
-over the second and third shops that holds to the round end. So set the overall course from what the 2nd and 3rd
-shops do (curator: WATCH.shop_race, briefing item 0): their class shop score and its parts (book, revenue,
-stars), how fast each moves, their prices and volume. When the lead is safe and steady, protect it cheaply (hold,
-margin, stars); when a rival gains on a part, answer on that part. Selling more for its own sake is not the goal.
-Example (11-08 night): inextro sold big furniture at 0.66 of list, 60-80 a hour, while we held asks at ~0.79 and
-sold 7-13; our book stalled and its lead fell 122M -> 107M. The answer is to keep the gap, not to win the volume.
+THE SHOP'S GOAL (user, 11-08): a dominant first place in class shop score, i.e. a gap over the 2nd and 3rd shops
+that grows, not just one that holds; the most sales is not the aim. To widen it you must know the rivals: read
+the curator's WATCH.shop_race and "rivals" (the 2nd and 3rd shops' class score and parts, what they sell, at what
+x, volume, warranty, stock, and how that moved) and its shop briefing item 0, and ask for more ("shop" requests)
+when you need it. Then choose where to win: the part (book 0.5, revenue 0.3, stars 0.2, each a class percentile)
+where our percentile can still rise or a rival is gaining, at a cost the other parts can carry. Say in
+market_read what each rival is doing, where the gap is moving and why, and which part you play for.
+Example (11-08 night): inextro sold big furniture at 0.66 of list, 60-80 an hour, while our warranted goods failed
+to settle (8760 h warranty) and our book stalled; the lead fell 122M -> 107M. Diagnose first, then answer on the
+part they gain on.
 At most {max_moves} moves. Each move: a prediction checkable 6 h later from our records,
   {{"metric": one of {metrics}, "sku": "...", "op": ">=" or "<=", "value": number}},
 and "uses": the ids of the playbook lessons it relies on.
@@ -413,6 +457,7 @@ def run(force=False):
     lessons = [{k: x[k] for k in ("id", "text", "for", "against")} for x in mem.lessons()]
     prompt = DECIDE.format(guide=GUIDE.read_text(encoding="utf-8") if GUIDE.is_file() else "",
                            steps=json.dumps(steps), max_moves=MAX_MOVES, metrics=", ".join(METRICS),
+                           globals_doc=json.dumps({k: {"bounds": v[1], "step": v[2]} for k, v in GLOBAL.items()}),
                            record=json.dumps(rec, ensure_ascii=False),
                            playbook=json.dumps(lessons, ensure_ascii=False) if lessons else "(empty: write one)",
                            evidence=json.dumps(ev, ensure_ascii=False), digest=read_digest("shop"),
@@ -460,7 +505,8 @@ def run(force=False):
         elif knob in GLOBAL:
             sku = pred.get("sku")
             lo, hi = GLOBAL[knob][1]
-            base = read(PARAMS, {}).get(GLOBAL[knob][0], {}).get("base", {}).get(knob, value)
+            base = current_base(knob)
+            base = value if base is None else base
             cur = (auto.get("globals") or {}).get(knob, base)
         else:
             log(f"dropped unknown knob {knob!r}")

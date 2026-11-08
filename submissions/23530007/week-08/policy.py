@@ -115,19 +115,26 @@ AUTO_BUYER = Path(os.environ.get("PARAMS_AUTO_BUYER", HERE / "params_auto_buyer.
 def merged(cfg, role, regime):
     p = json.loads(json.dumps(cfg[role]["base"]))
     auto = read_json(AUTO if role == "shop" else AUTO_BUYER, {})   # the strategists' moves sit between base
-    for k, v in (auto.get("globals") or {}).items():               # and the regime (shop and buyer each own one)
-        if k in p:
-            p[k] = v
-        elif k.startswith("ask_share_") and isinstance(p.get("ask_share"), dict):   # 11-08: shop price level per grade
-            p["ask_share"] = dict(p["ask_share"], **{k[-1]: v})
-        elif k == "warranty_b" and role == "shop":                    # 11-08: the shop strategist's B warranty call
-            g = [x for x in p.get("warranty_grades", []) if x != "B"]
-            p["warranty_grades"] = g + (["B"] if v >= 0.5 else [])
     p["sku_auto"] = auto.get("sku") or {}
     p["cat_auto"] = auto.get("category") or {}
     p["shop_auto"] = auto.get("shop") or {}          # buyer_strategist.py: per-shop bias and cap adjustment
     for k, v in cfg[role].get(regime, {}).items():
         p[k] = dict(p[k], **v) if isinstance(v, dict) and isinstance(p.get(k), dict) else v
+    # 11-08: the shop strategist manages the whole shop, so its settings now win over the situation regimes, except
+    # in the end-of-round ones (WIND_DOWN, LIQUIDATE*) whose clearance rules protect the book at the close
+    end = regime in ("WIND_DOWN", "LIQUIDATE", "LIQUIDATE_LAST")
+    for k, v in (auto.get("globals") or {}).items():
+        if end and role == "shop" and k in cfg[role].get(regime, {}):
+            continue
+        if k.startswith("ask_share_") and isinstance(p.get("ask_share"), dict):   # shop price level per grade
+            p["ask_share"] = dict(p["ask_share"], **{k[-1]: v})
+        elif k in ("warranty_b", "warranty_c") and role == "shop":              # shop warranty by grade
+            g = [x for x in p.get("warranty_grades", []) if x != k[-1].upper()]
+            p["warranty_grades"] = sorted(g + ([k[-1].upper()] if v >= 0.5 else []))
+        elif k == "buy" and role == "shop":
+            p["buy"] = v >= 0.5
+        elif k in p:
+            p[k] = v
     return p
 
 

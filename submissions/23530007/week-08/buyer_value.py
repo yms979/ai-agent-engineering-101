@@ -55,6 +55,25 @@ def _shop_names():
     return out
 
 
+def _our_urls():
+    """Every tunnel URL our own shop has had (the kit logs '[tunnel] https://...' at each start), as yms979."""
+    import re
+    out = {}
+    for f in [HERE / "logs" / "market-kit.log"]:
+        try:
+            for m in re.finditer(r"\[tunnel\] (https://[a-z0-9-]+\.trycloudflare\.com)", f.read_text(encoding="utf-8", errors="ignore")):
+                out[m.group(1)] = "yms979"
+        except OSError:
+            pass
+    try:
+        for u, n in json.loads((HERE / ".market" / "shop_names.json").read_text()).get("names", {}).items():
+            if n == "yms979":
+                out[u.rstrip("/")] = "yms979"
+    except (OSError, ValueError):
+        pass
+    return out
+
+
 def _catalog():
     try:
         return json.loads((HERE / ".market" / "catalog.json").read_text(encoding="utf-8"))
@@ -67,6 +86,13 @@ def refresh(st):
     cat = _catalog()
     names = _shop_names()
     st.setdefault("names", {}).update(names)
+    st["names"].update(_our_urls())
+    # 11-08: rows settled before a shop's (new) URL was known were kept under the URL; every kit restart gives our
+    # shop a new tunnel URL, so our own sales read as an unknown shop (the shop strategist saw warranty_share 0 and
+    # goods sales near 0 for us). Re-map those rows on every refresh.
+    for r in st.get("deals", []):
+        if str(r.get("shop", "")).startswith("http"):
+            r["shop"] = st["names"].get(r["shop"].rstrip("/")) or r["shop"]
     after = st.get("seq")
     if after is None:
         after = -500 * FIRST_PAGES

@@ -174,7 +174,11 @@ def pick_unit(text, held, now):
         lasting = [u for u in fit if hours_left(u, now) >= need + 1]
         # none lasts the stated need: no sale. Selling the freshest anyway drew 19 low reviews on 11-05
         # ("Only 3.5 h of shelf life left; I needed 12.0 h") and is worth nothing to that buyer
-        return min(lasting, key=lambda u: u["expires_at"]) if lasting else None
+        # 11-08: the freshest unit that lasts, not the oldest. Food is ~0.1% of our stock value but its buyers are
+        # many of the accounts in our per-account star mean, and older food draws 3-4 stars: 11im rated every grade C
+        # food 3 ("grade C, N h left"), move_76 rates B 4, buyer-01/02 rated 2 when the shelf life fell short
+        # (158 low ratings in 24 h). Older units that nobody's need fits now expire: a small cost, paid in food
+        return max(lasting, key=lambda u: u["expires_at"]) if lasting else None
     # 11-08: goods buyers often say they will not pay for grade C ("Grade A or B only", "I will not buy grade C",
     # "I buy grade A"); we still handed them our oldest unit, often C, and their kit refused it at checkout:
     # 117 of 338 grade C goods closes in 6 h never settled (36.8M). Honour the stated grades; when the buyer

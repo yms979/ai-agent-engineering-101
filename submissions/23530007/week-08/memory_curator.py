@@ -95,7 +95,9 @@ Write (one JSON object, keys exactly as in the template at the end):
    (PROBES holds the code results, keyed by the role that asked; a "question" you answer from everything you have,
    or say what cannot be measured and put it in "wanted_data"). Keep the numbers; say when a result was measured.
 4. "briefing_buyer" / "briefing_shop": up to 6 items each, what that strategist must weigh now, with numbers.
-   Buyer: item 0 the goal (WATCH.buyer_formula.first_place, user 11-07: our shop is 1st in class, so first place
+   Buyer: item 0 the goal and the race (WATCH.buyer_formula.first_place and WATCH.buyer_race: who is just above
+   and below us in class buyer score, their saved per deal and pace, what they buy; who we pass next, who closes in;
+   user 11-08), (WATCH.buyer_formula.first_place, user 11-07: our shop is 1st in class, so first place
    comes from the buyer alone): the buyer score that ties the class leader, the saved that gets there (and with the
    margin), our buyer rank among students, and how many hours at the last 3 h pace; every later item serves it.
    Item 1 the best setting by the formula (WATCH.buyer_formula, percentiles among students: buyer ALL per step of each component and the
@@ -294,6 +296,34 @@ def watch(rules_changed):
             out["rivals"] = {"error": repr(e)}
     except Exception as e:
         out["shop_race"] = {"error": repr(e)}
+    # 11-08 (user: the buyer is judged by the class buyers around it): the 4 above and 3 below us in class buyer
+    # score, with what they did in the last ~6 h
+    try:
+        import buyer_value as bvx
+        bst = json.loads(bvx.STATE.read_text()); brk = bst.get("broken", {})
+        span = max(1.0, (now - min(r["ts"] for r in bst["deals"])) / 3600)
+        byb = {}
+        for r in bst["deals"]:
+            byb.setdefault(r["buyer"], []).append(r)
+        bl = sorted((p for p in fb["players"] if p.get("student") and p.get("student_buyer") is not None),
+                    key=lambda p: -p["student_buyer"])
+        names = [(p.get("buyer") or {}).get("name") for p in bl]
+        i = names.index("yms979")
+        board_b = {x["name"]: x for x in fb["buyers"]}
+        brace = []
+        for p, nm in list(zip(bl, names))[max(0, i - 4): i + 4]:
+            v = byb.get(nm, []); bx = board_b.get(nm, {})
+            fsh = sum(1 for r in v if not r["goods"]) / len(v) if v else None
+            brace.append({"rank": bl.index(p) + 1, "player": p["player"], "buyer": nm, "class_buyer": p["student_buyer"],
+                          "saved": bx.get("saved"), "deals": bx.get("deals"), "posts": bx.get("posts"), "forum": bx.get("forum"),
+                          "deals_per_h_6h": round(len(v) / span, 1),
+                          "saved_per_deal_6h": round(sum(bvx._saved(r, brk) for r in v) / len(v), 3) if v else None,
+                          "food_share": round(fsh, 2) if fsh is not None else None,
+                          "goods_bc_warranty_share": round(sum(1 for r in v if r["goods"] and r["grade"] in "BC" and r["w"])
+                                                           / max(1, sum(1 for r in v if r["goods"])), 2) if v else None})
+        out["buyer_race"] = brace
+    except Exception as e:
+        out["buyer_race"] = {"error": repr(e)}
     WATCH_STATE.write_text(json.dumps({"t": now, "class_top": top, "class_rank": b.get("class_rank"),
                                        "shop_race": race},
                                       ensure_ascii=False), encoding="utf-8")

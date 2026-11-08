@@ -24,6 +24,7 @@ Log: logs/buyer_strategist.log.
 """
 import argparse
 import json
+import sys
 from collections import Counter
 import time
 from pathlib import Path
@@ -54,6 +55,18 @@ GLOBAL = {                                    # role, bounds, step
     "near_cap": ((0.0, 0.04), 0.005),         # an ask within this x list above the cap is taken (near misses)
     "open_offset": ((0.0, 0.08), 0.01),       # code haggling opens at (shop's lower-quartile price/list - this) x list
     "max_shops": ((1, 6), 1),                 # shops tried per order (an order comes every ~20 s; time under that is free)
+    # 11-08 (user: like the shop, the buyer agent owns all of the buyer): the negotiation and choice arms the
+    # operator ran as A/B tests, now yours; each *_share is the share of orders that use it (the rest is control)
+    "push_share": ((0.0, 1.0), 0.1),          # counter once more on an ask still above the shop's p25 band
+    "push3_share": ((0.0, 1.0), 0.1),         # of those, the deeper push3 (aim p25 - push3_below, two counters)
+    "push3_below": ((0.0, 0.2), 0.02),
+    "push_below": ((0.0, 0.15), 0.02),        # push2's aim under p25
+    "cheapfood_share": ((0.0, 1.0), 0.1),     # food: ask for the cheapest unit that lasts and open low
+    "cheapfood_open": ((0.2, 0.6), 0.05),     # food opening offer, share of list
+    "cheapgoods_share": ((0.0, 1.0), 0.1),    # goods: ask for C/B with a warranty first, A only if nothing else
+    "skubest_share": ((0.0, 1.0), 0.1),       # pick the SKU with the best market saved at the shop (not the dearest)
+    "wpen_share": ((0.0, 1.0), 0.1),          # charge shops for goods sold without a warranty
+    "wpen_cost": ((0.0, 0.12), 0.02),
 }
 SHOP = {                                      # per shop (user 11-06: the strategist steers the rule-based buyer)
     "shop_bias": ((-0.1, 0.1), 0.03),         # added to the shop's value score (prefer > 0, avoid < 0)
@@ -209,7 +222,30 @@ def evidence(mem, b, auto, params):
             "throughput": throughput(r6),
             "our_shop_sells_at_24h": shop_prices(now),
             "market_picture": market_picture(),
+            "ab_tests": ab_tests(), "buy_health": buy_health(now),
             "your_watch_list": mem.d["working"].get("watch", [])}
+
+
+def ab_tests():
+    """The operator's A/B arms as the curator measures them: per arm orders, deals, saved per deal, deals per order
+    and score gain per order (deals/order x (saved per deal - our running saved)). Decide the *_share knobs on it."""
+    try:
+        import memory_curator as mc
+        b = mc.breakdown(sys.modules[__name__], time.time())
+        return {k: [x for x in b.get(k, []) if x.get("key") not in ("other", "before_ab")]
+                for k in ("push_ab", "cheapfood_ab_food", "cheapgoods_ab_goods", "skubest_ab", "wpen_ab_goods")}
+    except Exception as e:
+        return {"error": repr(e)}
+
+
+def buy_health(now, hours=3):
+    """Plumbing (11-08: the shop lost ~10 h of sales to refused settles nobody saw): our deal records against the
+    market's settles for our buyer, and where the other visits ended."""
+    from collections import Counter
+    rows = [t for t in shop.read(BMEM, {}).get("trades", []) if t.get("t", 0) >= now - hours * 3600]
+    out = Counter(str(t.get("outcome"))[:30] for t in rows)
+    return {"window_h": hours, "deal_records": out.get("deal", 0), "outcomes": dict(out.most_common(10)),
+            "note": "compare deal_records with the board's deal count growth; 'unpaid'/'refused' are plumbing"}
 
 
 DECIDE = """You run the BUYER of yms979 in a course market (the shop has its own strategist). Buyer ALL = 0.5 saved
@@ -266,9 +302,20 @@ food_extra_hours. Evidence "now"/"by_*" count saved as the score does (a break -
 Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75), "food_extra_hours" (1-12),
 "skip_below" (0.15-0.33), "skip_below_food" (0.05-0.33) and "skip_below_goods" (0.15-0.4) (per-kind bars that
 replace skip_below; see BUYER_STRATEGY.md 0a2), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1), "near_cap" (0-0.04),
-"open_offset" (0-0.08), "max_shops" (1-6); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
+"open_offset" (0-0.08), "max_shops" (1-6), and the arms (11-08): "push_share", "push3_share", "cheapfood_share",
+"cheapgoods_share", "skubest_share", "wpen_share" (each 0-1, share of orders), "push3_below" (0-0.2), "push_below"
+(0-0.15), "cheapfood_open" (0.2-0.6), "wpen_cost" (0-0.12); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
 added to its value score) and "shop_cap" (-0.05..0.05, added to the cap there as a share of list);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
+DIAGNOSE BEFORE YOU MOVE (user, 11-08: 'opus is here to find causes; otherwise how is it different from a rule?'):
+when a number moves (saved per deal, deals/h, conversion, a rival's climb), name its cause with evidence before a
+move and rule out the others: the orders (kind/category mix the market sends), prices (our x vs the shops' and
+rivals'), terms (grade, warranty, shelf life), our rules (skip bars, caps, the arms in "ab_tests"), plumbing
+("buy_health": unpaid, refused, too short) and bad data. The A/B arms are yours now: widen an arm that wins on
+score per order, cut one that loses, and say why from "ab_tests".
+THE RACE (user, 11-08): what moves our buyer rank is the class buyers just above and below us. Read the curator's
+WATCH.buyer_race (their buyer score, saved, per-deal saved, deals/h, what they buy and where) and say who we pass
+next, who is closing on us, and what they do that we could do.
 TOP PRIORITY (user, 11-06): raise buyer ALL above everything else. Find the best way to raise saved and apply it,
 weighing deals, posts, forum and saved on the formula itself (the curator's briefing item 1 gives the arithmetic
 and its best setting; check it against your evidence and act on it unless the evidence contradicts it).

@@ -336,13 +336,18 @@ Your playbook:
 Evidence:
 {evidence}
 
+ALERTING THE USER (user 11-08: 'why did I find this and not the agent?'): when you find something the user must
+know now, put it in "alert_user" (it goes to their phone at once); keep it empty otherwise.
 Answer with one JSON object only:
 {{"market_read": "<what is happening and why, 6-12 sentences>",
   "moves": [{{"knob": "...", "sku": "...", "value": n, "why": "...", "uses": ["L3"], "prediction": {{...}}}}],
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "L4", "text": "...", "why": "..."}}],
   "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"knobs"|"trades"|"question", ...}}],
   "watch": [{{"metric": "surge"|"market_units"|"our_stock"|"class_rank", "sku": "...", "op": ">="|"<=", "value": n, "why": "..."}}],
-  "notes_for_buyer": ["<what the buyer strategist should know or check, from what you saw>"]
+  "notes_for_buyer": ["<what the buyer strategist should know or check, from what you saw>"],
+  "alert_user": ["<Korean, 1-3 short items, ONLY for what the user must know now: a threat to first place (a rival's
+                 jump, our score falling), money leaking (deals not settling, refunds), a fault, a rule change, or a
+                 decision only the user can make; give the number and what you do about it. Usually empty.>"]
 }}
 The buyer strategist (it ran 15 minutes before you and runs again 15 minutes after) left you its reads and notes
 in the evidence under "from_buyer_strategist"; use them.
@@ -507,6 +512,9 @@ def run(force=False):
         mem.save()
         return
     log(f"[{mode}] market read: {str(ans.get('market_read'))[:1200]}")
+    sent = model_env.alert_user("shop", ans.get("alert_user"))
+    if sent:
+        log(f"alerted the user: {sent}")
     requests = valid_requests(ans.get("requests") or ans.get("investigate"))
     post_board("shop", ans.get("market_read"), {"moves": [(m.get("knob"), m.get("sku"), m.get("value"))
                                                           for m in (ans.get("moves") or [])][:12]},

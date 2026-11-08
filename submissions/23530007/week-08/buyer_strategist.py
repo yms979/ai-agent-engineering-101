@@ -30,6 +30,7 @@ import time
 from pathlib import Path
 
 import market_probe as probe
+import model_env
 import strategist as shop
 from harness import last_json_object
 from strategist_memory import Memory, market_picture, my_turn, post_board, read_board, read_digest, valid_requests
@@ -358,6 +359,8 @@ Your record: {record}
 Your playbook: {playbook}
 Evidence: {evidence}
 
+ALERTING THE USER (user 11-08: 'why did I find this and not the agent?'): when you find something the user must
+know now, put it in "alert_user" (it goes to their phone at once); keep it empty otherwise.
 Answer with one JSON object only:
 {{"read": "<6-10 sentences>",
   "moves": [{{"knob": "<a knob above>", "category": "<for cap>", "shop": "<for shop_bias/shop_cap>", "value": n, "why": "...",
@@ -365,7 +368,10 @@ Answer with one JSON object only:
   "lessons": [{{"op": "add"|"rewrite"|"retire", "id": "...", "text": "...", "why": "..."}}],
   "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"knobs"|"trades"|"question", ...}}],
   "notes_for_shop": ["<what the shop strategist should know or check: competitor prices, stock-outs, demand>"],
-  "answer_to_operator": "<only when evidence 'from_operator' holds a question: your answer, with numbers and what you will do>"
+  "answer_to_operator": "<only when evidence 'from_operator' holds a question: your answer, with numbers and what you will do>",
+  "alert_user": ["<Korean, 1-3 short items, ONLY for what the user must know now: a threat to first place (a rival's
+                 jump, our score falling), money leaking (deals not settling, refunds), a fault, a rule change, or a
+                 decision only the user can make; give the number and what you do about it. Usually empty.>"]
 }}
 The shop strategist (it ran 15 minutes before you and runs again 15 minutes after) left you its reads and notes
 in the evidence under "from_shop_strategist"; use them."""
@@ -459,6 +465,9 @@ def run(force=False):
         mem.save()
         return
     log(f"[{mode}] read: {str(ans.get('read'))[:1200]}")
+    sent = model_env.alert_user("buyer", ans.get("alert_user"))
+    if sent:
+        log(f"alerted the user: {sent}")
     if ans.get("answer_to_operator") and shop.read(OPERATOR_NOTE, {}).get("note"):
         OPERATOR_ANSWER.write_text(json.dumps({"t": time.time(), "question": shop.read(OPERATOR_NOTE, {}).get("note"),
                                                "answer": ans["answer_to_operator"]}, ensure_ascii=False, indent=1),

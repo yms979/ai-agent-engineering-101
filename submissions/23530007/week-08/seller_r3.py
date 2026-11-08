@@ -165,10 +165,11 @@ def pick_unit(text, held, now):
     if fit[0].get("kind") == "food":
         m = NEED.search(text)
         if not m:
-            doomed = [u for u in fit if is_doomed(u, now)]
-            if doomed:                              # its last chance before it is thrown away at cost
-                return min(doomed, key=lambda u: u["expires_at"])
-            return max(fit, key=lambda u: u["expires_at"])   # need unknown: the freshest, so it lasts
+            # need unknown: the freshest, so it lasts. 11-08: we handed doomed units here ('its last chance') and
+            # the house buyers, who never state their hours, rated them 2 ("Only 9.8 h of shelf life left; I
+            # needed 12.0 h"): buyer-01 4.34 and buyer-02 4.22 over 178 deals, two of ~29 accounts in our star mean.
+            # Doomed units now go only to buyers whose stated need they meet (below); food value is tiny, stars are not
+            return max(fit, key=lambda u: u["expires_at"])
         need = float(m.group(1))
         lasting = [u for u in fit if hours_left(u, now) >= need + 1]
         # none lasts the stated need: no sale. Selling the freshest anyway drew 19 low reviews on 11-05

@@ -111,7 +111,9 @@ Write (one JSON object, keys exactly as in the template at the end):
    minus_one deals cost most; name the knob); then what saved_speed says about the last move (WATCH.saved_speed,
    higher is better: since_last_move vs before_6h), what the ranking buyers do that ours does not, and what the shop
    strategist found that concerns it. Shop: item 0 the race (user 11-08: a dominant first place, a gap over the
-   2nd and 3rd shops that grows): from WATCH.shop_race and WATCH.rivals (their 6 h profiles: what they sell, x,
+   2nd and 3rd shops that grows): from WATCH.shop_race, WATCH.stars_diag (stars decide the shop race now: book
+   and revenue split 1st/2nd with inextro; name the accounts and reasons that pull our per-account mean down and
+   what in our shop causes them) and WATCH.rivals (their 6 h profiles: what they sell, x,
    volume, warranty, stock), and WATCH.total_rivals_shop (the shops of the class-TOTAL 2nd-4th: a jump in their
    stars, book or warranty is a threat to first place even when their shop ranks low), our class shop score against the 2nd and 3rd, the gap on each part
    (book, revenue, stars) and how it moved since the last run, what the rivals do (prices x, volume, warranty) and
@@ -292,6 +294,28 @@ def watch(rules_changed):
                                        for k in ("class_shop", "book", "revenue", "stars")}
             race.append(r)
         out["shop_race"] = race
+        # 11-08 (user: widen the shop lead; inextro caught up on stars alone): our stars diagnosis, the per-account
+        # means behind our score (each account weighs the same) with the reasons of the low ones, and the ladder
+        try:
+            import buyer_value as bvy
+            from collections import defaultdict
+            rt = json.loads(bvy.STATE.read_text()).get("our_ratings", [])
+            acc = defaultdict(list)
+            for t_, who, stars_, rev in rt:
+                acc[who].append((stars_, rev))
+            means = sorted(((sum(x[0] for x in v) / len(v), len(v), w) for w, v in acc.items()))
+            stud_names = {(p.get("shop") or {}).get("name") for p in fb["players"] if p.get("student")}
+            ladder = sorted({round(x.get("stars") or 0, 2) for x in fb["shops"] if x["name"] in stud_names and x.get("deals")},
+                            reverse=True)
+            ours_st = (byname.get("yms979") or {}).get("stars")
+            out["stars_diag"] = {
+                "our_board_stars": ours_st, "student_ladder_top": ladder[:20],
+                "rank_now": 1 + sum(1 for v in ladder if v > (ours_st or 0)),
+                "window_accounts": len(means), "window_per_account_mean": round(sum(m for m, _, _ in means) / len(means), 3) if means else None,
+                "lowest_accounts": [{"buyer": w, "n": n_, "mean": round(m, 2),
+                                     "low_reasons": [r for s_, r in acc[w] if s_ <= 3][:2]} for m, n_, w in means[:6]]}
+        except Exception as e:
+            out["stars_diag"] = {"error": repr(e)}
         # 11-08 (user: to make the gap, know the 2nd and 3rd shops' situation and strategy): their 6 h profiles
         try:
             import market_picture as mpic

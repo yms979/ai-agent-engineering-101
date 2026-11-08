@@ -118,6 +118,10 @@ def refresh(st):
                              "x": round(d["amount"] / lp, 4), "w": (d.get("warranty_hours") or 0) > 0,
                              "unit": d.get("unit"), "grade": d.get("grade"),
                              "sku": d.get("sku"), "amt": d.get("amount")})      # 11-06: market_picture.py reads these
+            elif e.get("kind") == "result" and d.get("receipt") and d.get("stars") is not None \
+                    and st["names"].get(str(d.get("shop") or "").rstrip("/")) == "yms979":
+                # 11-08: the ratings our shop gets (paid deals only count for stars), for the shop's star diagnosis
+                st.setdefault("our_ratings", []).append([e["ts"], d.get("buyer"), d["stars"], str(d.get("review") or "")[:90]])
             elif e.get("kind") == "broken":
                 broken[d.get("unit")] = (d.get("refunded") or 0) > 0
         after = page[-1]["seq"]
@@ -126,6 +130,7 @@ def refresh(st):
     st["seq"] = after
     cut = time.time() - WINDOW
     st["deals"] = [r for r in rows if r["ts"] >= cut]
+    st["our_ratings"] = [x for x in st.get("our_ratings", []) if x[0] >= cut]
     units = {r["unit"] for r in st["deals"]}
     st["broken"] = {u: v for u, v in broken.items() if u in units}
     st["t"] = time.time()

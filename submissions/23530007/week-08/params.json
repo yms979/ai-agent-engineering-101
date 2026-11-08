@@ -129,6 +129,9 @@
       "cheapfood_open": 0.3,
       "cheapgoods_share": 0.9,
       "skubest_share": 0.8,
+      "gradeaware_share": 0.5,
+      "gradeaware_cap_c": 0.78,
+      "gradeaware_cap_b": 0.72,
       "max_shops": 4
     },
     "END_SALE": {},

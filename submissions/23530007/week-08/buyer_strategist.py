@@ -70,6 +70,9 @@ GLOBAL = {                                    # role, bounds, step
     "skubest_share": ((0.0, 1.0), 0.1),       # pick the SKU with the best market saved at the shop (not the dearest)
     "wpen_share": ((0.0, 1.0), 0.1),          # charge shops for goods sold without a warranty
     "wpen_cost": ((0.0, 0.12), 0.02),
+    "gradeaware_share": ((0.0, 1.0), 0.1),    # goods: read the offered grade/warranty; warranted C/B get a higher cap
+    "gradeaware_cap_c": ((0.65, 0.85), 0.03), # cap for a warranted C, share of list ((1-x)+0.16x beats the mean)
+    "gradeaware_cap_b": ((0.62, 0.8), 0.03),
 }
 SHOP = {                                      # per shop (user 11-06: the strategist steers the rule-based buyer)
     "shop_bias": ((-0.1, 0.1), 0.03),         # added to the shop's value score (prefer > 0, avoid < 0)
@@ -237,7 +240,7 @@ def ab_tests():
         import memory_curator as mc
         b = mc.breakdown(sys.modules[__name__], time.time())
         return {k: [x for x in b.get(k, []) if x.get("key") not in ("other", "before_ab")]
-                for k in ("push_ab", "cheapfood_ab_food", "cheapgoods_ab_goods", "skubest_ab", "wpen_ab_goods")}
+                for k in ("push_ab", "cheapfood_ab_food", "cheapgoods_ab_goods", "skubest_ab", "wpen_ab_goods", "gradeaware_ab_goods")}
     except Exception as e:
         return {"error": repr(e)}
 
@@ -307,8 +310,8 @@ Knobs (only these): global "value_share" (0.65-0.85), "quick_accept" (0.55-0.75)
 "skip_below" (0.15-0.33), "skip_below_food" (0.05-0.33) and "skip_below_goods" (0.15-0.4) (per-kind bars that
 replace skip_below; see BUYER_STRATEGY.md 0a2), "conv_weight" (0-0.3), "rival_penalty" (0-0.1), "cap_margin" (0-0.1), "near_cap" (0-0.04),
 "open_offset" (0-0.08), "max_shops" (1-6), and the arms (11-08): "push_share", "push3_share", "cheapfood_share",
-"cheapgoods_share", "skubest_share", "wpen_share" (each 0-1, share of orders), "push3_below" (0-0.2), "push_below"
-(0-0.15), "cheapfood_open" (0.2-0.6), "wpen_cost" (0-0.12); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
+"cheapgoods_share", "skubest_share", "wpen_share", "gradeaware_share" (each 0-1, share of orders), "push3_below" (0-0.2), "push_below"
+(0-0.15), "cheapfood_open" (0.2-0.6), "wpen_cost" (0-0.12), "gradeaware_cap_c" (0.65-0.85), "gradeaware_cap_b" (0.62-0.8); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
 added to its value score) and "shop_cap" (-0.05..0.05, added to the cap there as a share of list);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
 THREE RACES (user, 11-08: 'look at the shop rank and the buyer rank apart; the 2nd shop is not the 2nd overall; do

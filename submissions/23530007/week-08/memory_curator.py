@@ -440,6 +440,12 @@ def breakdown(bs, now):
                                 score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
                                                            * ((x["saved_per_deal"] or 0) - 0.256), 4))
                            for x in cut(lambda r: ("skubest" if r["skubest"] else "base") if "skubest" in r else "other")],
+            # 11-08 A/B "gradeaware": goods orders; warranted C/B offers get a higher cap, unwarranted C is left at once
+            "gradeaware_ab_goods": [dict(x, deals_per_order=round(x["deals"] / max(x["orders"], 1), 3),
+                                         score_gain_per_order=round(x["deals"] / max(x["orders"], 1)
+                                                                    * ((x["saved_per_deal"] or 0) - 0.275), 4))
+                                    for x in cut(lambda r: ("gradeaware" if r["gradeaware"] else "base")
+                                                 if "gradeaware" in r and r.get("kind") == "goods" else "other")],
             "outcomes": dict(sorted(outcomes.items(), key=lambda kv: -kv[1])[:12]),
             "knobs_now": {k: v for k, v in (read_json(HERE / "params_auto_buyer.json", {}).get("globals") or {}).items()}}
 

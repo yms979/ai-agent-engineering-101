@@ -111,6 +111,19 @@ class ShortShelf(Exception):
     """The shop's unit will not last as long as the order needs: walk before agreeing, try the next shop."""
 
 
+def unit_terms(text):
+    """(grade, warranty hours) a shop states for the unit it offers, e.g. 'grade A, ... 72 h warranty' or
+    'grade C (refurbished) ... 6-hour warranty'; grade None when not stated, hours 0 when no warranty."""
+    m = re.search(r"grade\s*([ABC])\b|([ABC])\s*grade|등급\s*([ABC])", text, re.I)
+    g = next((x.upper() for x in (m.groups() if m else ()) if x), None)
+    w = re.search(r"(\d+(?:\.\d+)?)\s*[- ]?\s*(?:h|hours?|시간)\b[^.]{0,25}warrant|warrant[^.]{0,25}?(\d+(?:\.\d+)?)\s*(?:h|hours?|시간)",
+                  text, re.I)
+    hours = float(next((x for x in w.groups() if x), 0)) if w else 0.0
+    if re.search(r"no warranty|without (a )?warranty|warranty: none|보증 없음", text, re.I):
+        hours = 0.0
+    return g, hours
+
+
 def shelf_hours(t):
     """Hours of shelf life left on the unit a shop offers: the market certificate's expires_at in the reply
     (any data part), else the shop's own words ("265 h shelf life left"). None when neither is there."""
@@ -509,7 +522,7 @@ def main():
             order = {}
     acceptable = order.get("acceptable") or []
     vctx = None
-    pricefirst = wpen = cheapfood = cheapgoods = skubest = False
+    pricefirst = wpen = cheapfood = cheapgoods = skubest = gradeaware = False
     md = Path(a.order).parent if a.order else HERE / ".market"
     regime, bp = "STEADY", {}
     if acceptable:
@@ -519,6 +532,7 @@ def main():
         cheapfood = order.get("kind") == "food" and random.random() < bp.get("cheapfood_share", 0)
         cheapgoods = order.get("kind") == "goods" and random.random() < bp.get("cheapgoods_share", 0)
         skubest = random.random() < bp.get("skubest_share", 0)
+        gradeaware = order.get("kind") == "goods" and random.random() < bp.get("gradeaware_share", 0)
         if order.get("kind") == "food" and order.get("use_within_hours"):
             try:                                   # for our shop's restock: how long buyers need food to last
                 with open(INTEL, "a", encoding="utf-8") as f:
@@ -621,6 +635,7 @@ def main():
         # In the "push" arm, an ask still above the shop's lower quartile + push_band gets one more counter
         # (halfway down to that quartile) before we take it; a rejection that names a floor reopens at it below.
         regraded = False
+        graded = None     # 11-08 gradeaware: (grade, warranty hours) read from the shop's first reply
         short = None    # 11-07: 43 of 69 lost food orders in 6 h agreed a price, then the kit refused to pay (shelf life)
         push = random.random() < bp.get("push_share", 0)
         pushed = False
@@ -636,6 +651,23 @@ def main():
             for _ in range(MAX_ROUNDS):
                 if state(t) not in ("TASK_STATE_INPUT_REQUIRED", "TASK_STATE_UNKNOWN") or time.time() - start > DEADLINE:
                     break
+                if gradeaware and graded is None and acceptable and order.get("kind") == "goods":
+                    # 11-08 A/B "gradeaware" (user: the last lever for the buyer rank): the shop states the unit's grade
+                    # and warranty in its first reply. A warranted unit scores (1 - x) + p_break * x (a refunded break
+                    # counts +1): C (p~0.16) still beats our running mean at x 0.78, B (p~0.057) at x 0.72, while A
+                    # (p~0.013) needs x <= ~0.70. So a warranted C/B gets a higher cap and no extra counter that could
+                    # lose it; an unwarranted C would be refused at checkout anyway, so we leave for the next shop now
+                    graded = unit_terms(said(t))
+                    g_, w_ = graded
+                    if g_ in ("B", "C") and w_ >= WARRANTY_MIN:
+                        cap = max(cap, min(a.budget, int(want["list_price"] * bp.get(f"gradeaware_cap_{g_.lower()}", 0.75))))
+                        npush = max_push          # no extra counter (keeps the push A/B labels intact)
+                        log("buyer", f"{pick['name']} offers grade {g_} with a {w_} h warranty: cap raised to {cap}, no push")
+                    elif g_ == "C" and w_ < WARRANTY_MIN:
+                        log("buyer", f"{pick['name']} offers grade C without a warranty: next shop")
+                        outcome = "grade C claimed"
+                        seller.cancel(tid)
+                        raise ShortShelf("grade C unwarranted")
                 if (cheapgoods and not regraded and acceptable and order.get("kind") == "goods"
                         and re.search(r"grade\s*A\b|A\s*grade|등급\s*A|A\s*등급", said(t), re.I)):
                     # 11-08: in the cheapgoods arm 71 of 94 goods still came as grade A (shops pick the unit; 14 C
@@ -771,8 +803,8 @@ def main():
                 outcome = "too dear" if ceiling_note and low is not None and low > cap and low <= a.budget else (
                     "over budget" if low is not None and low > cap else "walked away")
                 seller.cancel(tid)
-        except ShortShelf:
-            outcome = "too short (shelf life)"
+        except ShortShelf as e:
+            outcome = "grade C claimed" if "grade C" in str(e) else "too short (shelf life)"
         except (RpcError, Exception) as e:
             log("buyer", f"trade failed: {e!r}")
             outcome = f"error ({type(e).__name__})"
@@ -824,6 +856,7 @@ def main():
                           "cap": cap, "list": want["list_price"] if acceptable else None,
                           "expected": expected_in(why),      # the shop's expected saved per deal when chosen
                           "shopsel": "pricefirst" if pricefirst else "base", "wpen": wpen, "cheapfood": cheapfood, "cheapgoods": cheapgoods, "regraded": regraded, "skubest": skubest,
+                          "gradeaware": gradeaware, "graded": list(graded) if graded else None,
                           "push": (f"{arm}-pushed" if pushed else f"{arm}-arm") if push else "control2"})   # 11-07 A/B
     save_memory(mem)
     log("buyer", f"done: {outcome}" + (f" at {price}" if price is not None else "")

@@ -310,6 +310,11 @@ replace skip_below; see BUYER_STRATEGY.md 0a2), "conv_weight" (0-0.3), "rival_pe
 (0-0.15), "cheapfood_open" (0.2-0.6), "wpen_cost" (0-0.12); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
 added to its value score) and "shop_cap" (-0.05..0.05, added to the cap there as a share of list);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
+RULE CHANGES (user, 11-08: players have settled, so the quick answer to a rule update decides rank): when the
+digest's "rules_change" holds a change, before anything else re-check every knob you own against the new rule:
+what the change does to each part of our score and the rivals', which settings it makes wrong, and move them now
+(a rule change is the one time several moves in one run are right). Say in your read which rule changed and what
+you changed for it.
 DIAGNOSE BEFORE YOU MOVE (user, 11-08: 'opus is here to find causes; otherwise how is it different from a rule?'):
 when a number moves (saved per deal, deals/h, conversion, a rival's climb), name its cause with evidence before a
 move and rule out the others: the orders (kind/category mix the market sends), prices (our x vs the shops' and

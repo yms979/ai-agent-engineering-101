@@ -297,6 +297,11 @@ HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often 
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
 predictions are not yet due, when the numbers are on track, or when the evidence is thin or noisy, hold and say
 in the read why holding is right. Changing settings every run makes it impossible to tell what worked.
+RULE CHANGES (user, 11-08: players have settled, so the quick answer to a rule update decides rank): when the
+digest's "rules_change" holds a change, before anything else re-check every knob you own against the new rule:
+what the change does to each part of our score and the rivals', which settings it makes wrong, and move them now
+(a rule change is the one time several moves in one run are right). Say in your read which rule changed and what
+you changed for it.
 DIAGNOSE BEFORE YOU MOVE (user, 11-08: 'opus is here to find causes; otherwise how is this different from a
 rule?'): when a number moves (book, sales, cancels, a rival's gain), name its cause with evidence before any move,
 and rule out the others: demand (market volume), our price (our asks vs settles vs rivals' x), our terms

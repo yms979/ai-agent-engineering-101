@@ -116,7 +116,9 @@ Write (one JSON object, keys exactly as in the template at the end):
    categories, what buyers asked for and it lacked, what the ranking shops do, and anything that could hurt the
    buyer. Do not repeat what a strategist already said it acts on.
 5. "rules_change": if WATCH.rules_changed has lines, what the patch changes in the score and what should change in
-   each agent's behaviour, concretely; else "". "rank_change": if our class rank or the totals around us moved since
+   each agent's behaviour, concretely: which of our knobs and code rules it makes wrong (name them and the new
+   value), what it does to the rivals around us, and what cannot be answered by a knob (say so: the operator acts on
+   it). Put the same at item 1 of both briefings (user 11-08: the quick answer to a rule update decides rank); else "". "rank_change": if our class rank or the totals around us moved since
    the last run (WATCH.rank), why (ours or theirs, which part, which component); else "".
 6. Memory: merge the NEW entries into the CURRENT digest: "facts" (checkable: numbers, names, SKUs, UTC times;
    merge duplicates, a newer fact replaces an older one, update last_confirmed), "decisions" (moves in effect,
@@ -710,7 +712,9 @@ def main(force=False):
             done = curate(d, w, market, force)
             archive(d)
         st = read_json(WATCH_STATE, {})
-        st["pending_rules"] = {} if done else changed
+        # 11-08: rules_fast.py may queue a change meanwhile; drop only the changes this digest took in
+        st["pending_rules"] = ({k: v for k, v in (st.get("pending_rules") or {}).items() if k not in changed}
+                               if done else (st.get("pending_rules") or {}) | changed)
         WATCH_STATE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
         if changed and done:
             wake_strategists()

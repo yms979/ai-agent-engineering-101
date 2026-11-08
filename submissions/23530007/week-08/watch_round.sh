@@ -132,6 +132,9 @@ nohup "$HERE/.venv/bin/python" "$HERE/buyer_strategist.py" >/dev/null 2>&1 &   #
 # when the digest is an hour old even if no strategist posted, and sees rule patches within 15 min
 nohup "$HERE/.venv/bin/python" "$HERE/memory_curator.py" >/dev/null 2>&1 &
 
+# 11-08: the user's phone messages (private ntfy topic) read every 30 s and passed to the agents
+nohup "$HERE/.venv/bin/python" "$HERE/inbox.py" --loop 14 30 >/dev/null 2>&1 &
+
 # 11-08: the market's rules read every ~90 s until the next tick (user: answer rule updates fast); one loop at a time
 nohup "$HERE/.venv/bin/python" "$HERE/rules_fast.py" --loop 14 90 >/dev/null 2>&1 &
 

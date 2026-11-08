@@ -311,6 +311,11 @@ replace skip_below; see BUYER_STRATEGY.md 0a2), "conv_weight" (0-0.3), "rival_pe
 (0-0.15), "cheapfood_open" (0.2-0.6), "wpen_cost" (0-0.12); per shop (give "shop": name from the evidence) "shop_bias" (-0.1..0.1,
 added to its value score) and "shop_cap" (-0.05..0.05, added to the cap there as a share of list);
 per category "cap" (0.6-0.85, replaces value_share for that category; "category" is the order's item name as in
+THREE RACES (user, 11-08: 'look at the shop rank and the buyer rank apart; the 2nd shop is not the 2nd overall; do
+not feel safe on the total'): the total race (class total), the shop race (class shop score: our gap to the 2nd and
+3rd SHOPS, e.g. inextro) and the buyer race (class buyer score: who is just above and below us) have different
+rivals and move for different reasons. Read your own race first and on its own numbers; a safe total does not make
+your race safe. Alert the user when your race's gap to the next player falls under 0.01 or shrinks fast.
 RULE CHANGES (user, 11-08: players have settled, so the quick answer to a rule update decides rank): when the
 digest's "rules_change" holds a change, before anything else re-check every knob you own against the new rule:
 what the change does to each part of our score and the rivals', which settings it makes wrong, and move them now

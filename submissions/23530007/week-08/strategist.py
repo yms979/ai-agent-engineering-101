@@ -297,6 +297,11 @@ HOLDING IS A STRATEGY (user, 11-06): an empty "moves" list is a valid and often 
 only when the evidence shows the current setting is wrong or a clear gain is waiting; when the last moves'
 predictions are not yet due, when the numbers are on track, or when the evidence is thin or noisy, hold and say
 in the read why holding is right. Changing settings every run makes it impossible to tell what worked.
+THREE RACES (user, 11-08: 'look at the shop rank and the buyer rank apart; the 2nd shop is not the 2nd overall; do
+not feel safe on the total'): the total race (class total), the shop race (class shop score: our gap to the 2nd and
+3rd SHOPS, e.g. inextro) and the buyer race (class buyer score: who is just above and below us) have different
+rivals and move for different reasons. Read your own race first and on its own numbers; a safe total does not make
+your race safe. Alert the user when your race's gap to the next player falls under 0.01 or shrinks fast.
 RULE CHANGES (user, 11-08: players have settled, so the quick answer to a rule update decides rank): when the
 digest's "rules_change" holds a change, before anything else re-check every knob you own against the new rule:
 what the change does to each part of our score and the rivals', which settings it makes wrong, and move them now

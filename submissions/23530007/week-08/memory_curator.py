@@ -95,6 +95,8 @@ Write (one JSON object, keys exactly as in the template at the end):
    (PROBES holds the code results, keyed by the role that asked; a "question" you answer from everything you have,
    or say what cannot be measured and put it in "wanted_data"). Keep the numbers; say when a result was measured.
 4. "briefing_buyer" / "briefing_shop": up to 6 items each, what that strategist must weigh now, with numbers.
+   THREE RACES (user 11-08: read them apart, the 2nd shop is not the 2nd overall; do not feel safe on the total):
+   in each briefing say the total race and that role's own race separately, each with its gap and its move.
    Buyer: item 0 the goal and the race (WATCH.buyer_formula.first_place and WATCH.buyer_race: who is just above
    and below us in class buyer score, their saved per deal and pace, what they buy; who we pass next, who closes in;
    user 11-08), (WATCH.buyer_formula.first_place, user 11-07: our shop is 1st in class, so first place

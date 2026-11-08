@@ -35,7 +35,7 @@ SHRINK_B = -1.5e6                      # 11-08: B goes off only on a clear shrin
 GROW_UP = 1.0e6                        # and comes back only on a clear growth
 HOLD_UP = 2 * 3600                     # held this long at a level before going back up
 SLOPE_HOURS, KEEP = 4, 24 * 3600
-GRADES = {2: ["A", "B"], 1: ["A"], 0: []}
+GRADES = {2: ["A", "B", "C"], 1: ["A"], 0: []}     # 11-08: C carries the warranty too (user)
 
 
 def log(msg):

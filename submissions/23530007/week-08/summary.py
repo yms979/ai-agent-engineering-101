@@ -86,6 +86,40 @@ def first_place(b, cls, me, now):
                         f"{'' if t < ROUND_END.timestamp() else ', 라운드 종료 후'}; 다른 구매자들이 오르면 늦어짐"]
 
 
+def races(b, st, now):
+    """The shop race and the buyer race, each among students, each with its own 2nd and 3rd and the move since the
+    last push (user 11-08: do not feel safe on the total; the 2nd shop and the 2nd overall are different players)."""
+    stud = [p for p in b["players"] if p.get("student")]
+    shops = {x["name"]: x for x in b["shops"]}
+    prev = st.get("races", {})
+    out, snap = [], {}
+    for key, label in (("student_shop", "상점"), ("student_buyer", "구매자")):
+        L = sorted((p for p in stud if p.get(key) is not None), key=lambda p: -p[key])
+        r = next(i for i, p in enumerate(L) if p["player"] == NAME)
+        me = L[r]
+        old = prev.get(key, {})
+        d = lambda p: (f" ({p[key] - old[p['player']]:+.3f})" if p["player"] in old else "")
+        head = f"[{label}] 반 {r + 1}위 {me[key]:.3f}{d(me)}"
+        if r == 0:
+            sec = L[1:3]
+            gap = me[key] - sec[0][key]
+            oldgap = old.get(NAME, None) is not None and sec[0]["player"] in old and (old[NAME] - old[sec[0]["player"]])
+            head += f" | 2위와 {gap:+.3f}" + (f" (지난 알림 {oldgap:+.3f})" if oldgap is not False else "")
+            if oldgap is not False and gap < oldgap - 0.003:
+                head += " ⚠️ 격차 감소"
+        out.append(head)
+        around = L[max(0, r - 2): r] + L[r + 1: r + 3] if r else L[1:3]
+        for p in around:
+            extra = ""
+            if key == "student_shop":
+                x = shops.get((p.get("shop") or {}).get("name"), {})
+                extra = f" 장부 {(x.get('book') or 0) / 1e6:.0f}M 별점 {x.get('stars')}"
+            out.append(f"  {L.index(p) + 1}위 {p['player']} {p[key]:.3f}{d(p)}{extra}")
+        snap[key] = {p["player"]: p[key] for p in L}
+    st["_races_new"] = snap
+    return out
+
+
 def main():
     st = json.loads(STATE.read_text()) if STATE.is_file() else {}
     now = time.time()
@@ -114,7 +148,12 @@ def main():
     except Exception as e:
         lines.append(f"1등 계산 실패: {e}")
 
-    lines.append("위 순위와 따라잡는 시점:")
+    try:   # 11-08 user: read the shop race and the buyer race apart; the 2nd shop is not the 2nd overall
+        lines += races(b, st, now)
+    except Exception as e:
+        lines.append(f"상점/구매자 순위 계산 실패: {e}")
+
+    lines.append("[전체] 위 순위와 따라잡는 시점:")
     for i, p in enumerate(cls[:rank - 1]):
         gap = p["student_total"] - me["student_total"]
         theirs = rate(hist, p["player"], now)
@@ -164,6 +203,7 @@ def main():
     sent = subprocess.run([sys.executable, str(HERE / "notify.py"), f"[yms979] 반 {rank}위{move}", msg],
                           capture_output=True, text=True).stdout.strip()
     STATE.write_text(json.dumps({"t": now, "class_rank": rank, "class_total": me["student_total"],
+                                 "races": st.get("_races_new", st.get("races", {})),
                                  "order": [p["player"] for p in cls], "history": hist}))
     print(msg + f"\n(push: {sent or 'none'})")
 

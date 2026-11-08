@@ -31628,3 +31628,437 @@
 {"t": 1794130095, "shop": "Kiro729", "sku": "G03d0199f", "category": "가구/침구>가구>침대/매트리스", "list_price": 1611000, "first_ask": 1164753, "min_ask": 1164753, "price": 1164753, "outcome": "deal"}
 {"t": 1794130115, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1705200, "lo": 854050, "hi": 2320000, "served": true}
 {"t": 1794130117, "shop": "ddolcom", "sku": "G399e5df1", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 1313970, "first_ask": 1024896, "min_ask": 877685, "price": 877685, "outcome": "deal"}
+{"t": 1794130140, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 158710, "lo": 59480, "hi": 169560, "served": true}
+{"t": 1794130140, "shop": "Kiro729", "sku": "Gc21ca0bf", "category": "가구/침구>가구>침대/매트리스", "list_price": 59480, "first_ask": 44610, "min_ask": 43589, "price": 43589, "outcome": "deal"}
+{"t": 1794130159, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794130159, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13540, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794130164, "shop": "olstjr", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 12900, "min_ask": 8385, "price": 5948, "outcome": "deal"}
+{"t": 1794130179, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1705200, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794130204, "type": "order", "category": "통신기기>통신기기>통신기기액세서리", "kind": "goods", "budget": 30080, "lo": 17500, "hi": 39800, "served": true}
+{"t": 1794130223, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 2255400, "lo": 808200, "hi": 2332000, "served": true}
+{"t": 1794130224, "shop": "Kiro729", "sku": "G3e0d6c67", "category": "가구/침구>가구>침대/매트리스", "list_price": 2049300, "first_ask": 1530827, "min_ask": 1266130, "price": 1266130, "outcome": "deal"}
+{"t": 1794130243, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 502590, "lo": 180480, "hi": 525000, "served": true}
+{"t": 1794130244, "shop": "Kiro729", "sku": "G0667d440", "category": "가구/침구>가구>침대/매트리스", "list_price": 347850, "first_ask": 240156, "min_ask": 233575, "price": 233575, "outcome": "deal"}
+{"t": 1794130267, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 551250, "lo": 265000, "hi": 751410, "served": true}
+{"t": 1794130267, "shop": "Kiro729", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 443619, "min_ask": 443619, "price": 443619, "outcome": "deal"}
+{"t": 1794130285, "type": "order", "category": "가구/침구>침구/홈데코>침구", "kind": "goods", "budget": 83470, "lo": 39800, "hi": 118800, "served": true}
+{"t": 1794130286, "shop": "ddolcom", "sku": "Gcc75125e", "category": "가구/침구>침구/홈데코>침구", "list_price": 110500, "first_ask": 93925, "min_ask": 81132, "price": 81132, "outcome": "deal"}
+{"t": 1794130306, "type": "need", "category": "식품>해산물>신선조개류/갑각류", "hours": 12.0}
+{"t": 1794130306, "type": "order", "category": "식품>해산물>신선조개류/갑각류", "kind": "food", "budget": 45770, "lo": 20900, "hi": 57500, "served": true}
+{"t": 1794130306, "shop": "psyoung82", "sku": "G1c373db9", "category": "식품>해산물>신선조개류/갑각류", "list_price": 28900, "first_ask": 23120, "min_ask": 18207, "price": 18207, "outcome": "deal"}
+{"t": 1794130330, "type": "need", "category": "식품>음료>주스/코코아/생수", "hours": 360.0}
+{"t": 1794130330, "type": "order", "category": "식품>음료>주스/코코아/생수", "kind": "food", "budget": 25500, "lo": 10200, "hi": 30600, "served": true}
+{"t": 1794130334, "shop": "psyoung82", "sku": "G3434758a", "category": "식품>음료>주스/코코아/생수", "list_price": 20400, "first_ask": 16320, "min_ask": 12852, "price": 12852, "outcome": "deal"}
+{"t": 1794130349, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 754560, "lo": 420000, "hi": 1094400, "served": true}
+{"t": 1794130349, "shop": "Kiro729", "sku": "Gf44a316b", "category": "가구/침구>가구>침대/매트리스", "list_price": 751410, "first_ask": 552286, "min_ask": 552286, "price": 552286, "outcome": "deal"}
+{"t": 1794130370, "type": "order", "category": "가구/침구>침구/홈데코>침구", "kind": "goods", "budget": 154210, "lo": 67900, "hi": 199000, "served": true}
+{"t": 1794130372, "shop": "ddolcom", "sku": "G5cd4ffbc", "category": "가구/침구>침구/홈데코>침구", "list_price": 199000, "first_ask": 169150, "min_ask": 149492, "price": 145270, "outcome": "deal"}
+{"t": 1794130393, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2678940, "lo": 1619100, "hi": 3816000, "served": true}
+{"t": 1794130393, "shop": "Kiro729", "sku": "Ge5fe0d41", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3304000, "first_ask": 2487912, "min_ask": 2141666, "price": 2141666, "outcome": "deal"}
+{"t": 1794130412, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 835200, "lo": 479200, "hi": 1313970, "served": true}
+{"t": 1794130413, "shop": "ddolcom", "sku": "G5e3784e6", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 568080, "first_ask": 482868, "min_ask": 408651, "price": 408651, "outcome": "deal"}
+{"t": 1794130433, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2030000, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794130433, "shop": "Kiro729", "sku": "G8ec51935", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2320000, "first_ask": 1652695, "min_ask": 1652695, "price": 1652695, "outcome": "deal"}
+{"t": 1794130457, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 91770, "lo": 49000, "hi": 119200, "served": true}
+{"t": 1794130458, "shop": "choo-chu", "sku": "G8526e66c", "category": "가구/침구>가구>침대/매트리스", "list_price": 53100, "first_ask": 36527, "min_ask": 36527, "price": 36527, "outcome": "deal"}
+{"t": 1794130475, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2612110, "lo": 1313970, "hi": 3304000, "served": true}
+{"t": 1794130475, "shop": "Kiro729", "sku": "G00327e80", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2246800, "first_ask": 1630725, "min_ask": 1630725, "price": 1630725, "outcome": "deal"}
+{"t": 1794130496, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 734850, "lo": 322970, "hi": 851400, "served": true}
+{"t": 1794130496, "shop": "Kiro729", "sku": "Gf44a316b", "category": "가구/침구>가구>침대/매트리스", "list_price": 751410, "first_ask": 512325, "min_ask": 508605, "price": 508605, "outcome": "deal"}
+{"t": 1794130518, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 2681800, "lo": 1611000, "hi": 2332000, "served": true}
+{"t": 1794130519, "shop": "Kiro729", "sku": "G03d0199f", "category": "가구/침구>가구>침대/매트리스", "list_price": 1611000, "first_ask": 1209217, "min_ask": 1161810, "price": 1161810, "outcome": "deal"}
+{"t": 1794130537, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794130537, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 14830, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794130543, "shop": "choo-chu", "sku": "G0d52d508", "category": "식품>기타 가공식품>과자", "list_price": 16800, "first_ask": 10936, "min_ask": 10354, "price": 10354, "outcome": "deal"}
+{"t": 1794130557, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3423080, "lo": 1619100, "hi": 3816000, "served": true}
+{"t": 1794130558, "shop": "ddolcom", "sku": "G24f5f979", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3816000, "first_ask": 2976480, "min_ask": 2452160, "price": 2397592, "outcome": "deal"}
+{"t": 1794130580, "type": "need", "category": "식품>시리얼/곡물/콩류>곡물", "hours": 180.0}
+{"t": 1794130580, "type": "order", "category": "식품>시리얼/곡물/콩류>곡물", "kind": "food", "budget": 45880, "lo": 20000, "hi": 59300, "served": true}
+{"t": 1794130588, "shop": "psyoung82", "sku": "G80435d53", "category": "식품>시리얼/곡물/콩류>곡물", "list_price": 26500, "first_ask": 21200, "min_ask": 16695, "price": 16695, "outcome": "deal"}
+{"t": 1794130601, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 540.0}
+{"t": 1794130601, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13540, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794130615, "shop": "cheapest-in-town", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10086, "min_ask": 10086, "price": null, "outcome": "over budget"}
+{"t": 1794130621, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 330480, "lo": 191190, "hi": 545930, "served": true}
+{"t": 1794130623, "shop": "choo-chu", "sku": "G1515d951", "category": "가구/침구>가구>침대/매트리스", "list_price": 423810, "first_ask": 317003, "min_ask": 317003, "price": 317003, "outcome": "deal"}
+{"t": 1794130644, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 511270, "lo": 296000, "hi": 759000, "served": true}
+{"t": 1794130645, "shop": "choo-chu", "sku": "G5e3784e6", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 568080, "first_ask": 417066, "min_ask": 417066, "price": 417066, "outcome": "deal"}
+{"t": 1794130664, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3799590, "lo": 1672800, "hi": 3816000, "served": true}
+{"t": 1794130665, "shop": "ddolcom", "sku": "G24f5f979", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3816000, "first_ask": 2976480, "min_ask": 2896515, "price": 2896515, "outcome": "deal"}
+{"t": 1794130684, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 5342400, "lo": 2112000, "hi": 3816000, "served": true}
+{"t": 1794130707, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 727380, "lo": 408240, "hi": 1094400, "served": true}
+{"t": 1794130707, "shop": "Kiro729", "sku": "G8095ddd6", "category": "가구/침구>가구>침대/매트리스", "list_price": 851400, "first_ask": 642807, "min_ask": 622822, "price": 622822, "outcome": "deal"}
+{"t": 1794130727, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 4782400, "lo": 1776000, "hi": 3816000, "served": true}
+{"t": 1794130728, "shop": "ddolcom", "sku": "G47788edd", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3416000, "first_ask": 2664480, "min_ask": 2598400, "price": 2598400, "outcome": "deal"}
+{"t": 1794130748, "type": "need", "category": "식품>음료>주스/코코아/생수", "hours": 360.0}
+{"t": 1794130748, "type": "order", "category": "식품>음료>주스/코코아/생수", "kind": "food", "budget": 8610, "lo": 3850, "hi": 10900, "served": true}
+{"t": 1794130748, "shop": "Kiro729", "sku": "G9a240832", "category": "식품>음료>주스/코코아/생수", "list_price": 10600, "first_ask": 7420, "min_ask": 5295, "price": 5295, "outcome": "deal"}
+{"t": 1794130768, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 984960, "lo": 552980, "hi": 1611000, "served": true}
+{"t": 1794130768, "shop": "Kiro729", "sku": "Gf44a316b", "category": "가구/침구>가구>침대/매트리스", "list_price": 751410, "first_ask": 513488, "min_ask": 513488, "price": 513488, "outcome": "deal"}
+{"t": 1794130790, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794130790, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 12630, "lo": 5900, "hi": 15900, "served": true}
+{"t": 1794130808, "shop": "cheapest-in-town", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10086, "min_ask": 10086, "price": null, "outcome": "over budget"}
+{"t": 1794130811, "type": "need", "category": "식품>김치/반찬/즉석요리>반찬/젓갈", "hours": 42.0}
+{"t": 1794130811, "type": "order", "category": "식품>김치/반찬/즉석요리>반찬/젓갈", "kind": "food", "budget": 11440, "lo": 8900, "hi": 16300, "served": true}
+{"t": 1794130811, "shop": "psyoung82", "sku": "G0ec8941a", "category": "식품>김치/반찬/즉석요리>반찬/젓갈", "list_price": 15900, "first_ask": 12720, "min_ask": 10017, "price": 10017, "outcome": "deal"}
+{"t": 1794130831, "type": "need", "category": "식품>음료>주스/코코아/생수", "hours": 360.0}
+{"t": 1794130831, "type": "order", "category": "식품>음료>주스/코코아/생수", "kind": "food", "budget": 16750, "lo": 6800, "hi": 20000, "served": true}
+{"t": 1794130832, "shop": "psyoung82", "sku": "Gdf79cd07", "category": "식품>음료>주스/코코아/생수", "list_price": 15200, "first_ask": 12160, "min_ask": 9576, "price": 9576, "outcome": "deal"}
+{"t": 1794130853, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 2681800, "lo": 1611000, "hi": 2332000, "served": true}
+{"t": 1794130853, "shop": "Kiro729", "sku": "G03d0199f", "category": "가구/침구>가구>침대/매트리스", "list_price": 1611000, "first_ask": 1171593, "min_ask": 1171593, "price": 1171593, "outcome": "deal"}
+{"t": 1794130873, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3720750, "lo": 1619100, "hi": 3816000, "served": true}
+{"t": 1794130874, "shop": "Kiro729", "sku": "Ge5fe0d41", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3304000, "first_ask": 2190552, "min_ask": 2179175, "price": 2179175, "outcome": "deal"}
+{"t": 1794130893, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 575570, "lo": 253260, "hi": 742500, "served": true}
+{"t": 1794130893, "shop": "Kiro729", "sku": "G374f8060", "category": "가구/침구>가구>침대/매트리스", "list_price": 742500, "first_ask": 517222, "min_ask": 517222, "price": 517222, "outcome": "deal"}
+{"t": 1794130917, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 1258560, "lo": 552980, "hi": 1611000, "served": true}
+{"t": 1794130917, "shop": "Kiro729", "sku": "G03d0199f", "category": "가구/침구>가구>침대/매트리스", "list_price": 1611000, "first_ask": 1184905, "min_ask": 1184905, "price": 1184905, "outcome": "deal"}
+{"t": 1794130936, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 192210, "lo": 107410, "hi": 279000, "served": true}
+{"t": 1794130937, "shop": "ddolcom", "sku": "G07ec17d5", "category": "가구/침구>가구>침대/매트리스", "list_price": 279000, "first_ask": 237150, "min_ask": 194045, "price": 192210, "outcome": "deal"}
+{"t": 1794130957, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794130957, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 16120, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794130958, "shop": "choo-chu", "sku": "G0d52d508", "category": "식품>기타 가공식품>과자", "list_price": 16800, "first_ask": 10920, "min_ask": 10338, "price": 10338, "outcome": "deal"}
+{"t": 1794130980, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 142640, "lo": 63000, "hi": 180480, "served": true}
+{"t": 1794130999, "type": "need", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "hours": 18.0}
+{"t": 1794130999, "type": "order", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "kind": "food", "budget": 35530, "lo": 15500, "hi": 45900, "served": true}
+{"t": 1794131000, "shop": "Kiro729", "sku": "G67efbcf0", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "list_price": 20000, "first_ask": 9000, "min_ask": 9000, "price": 9000, "outcome": "deal"}
+{"t": 1794131020, "type": "need", "category": "식품>해산물>신선해조류", "hours": 6.0}
+{"t": 1794131020, "type": "order", "category": "식품>해산물>신선해조류", "kind": "food", "budget": 11500, "lo": 5200, "hi": 14900, "served": true}
+{"t": 1794131020, "shop": "myeonggi", "sku": "G584770fe", "category": "식품>해산물>신선해조류", "list_price": 10640, "first_ask": 7151, "min_ask": 6881, "price": 6881, "outcome": "deal"}
+{"t": 1794131041, "type": "need", "category": "식품>야채/과일>신선야채(부패주의)", "hours": 12.0}
+{"t": 1794131041, "type": "order", "category": "식품>야채/과일>신선야채(부패주의)", "kind": "food", "budget": 13860, "lo": 5500, "hi": 14500, "served": true}
+{"t": 1794131061, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 540.0}
+{"t": 1794131061, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 12510, "lo": 7900, "hi": 19990, "served": true}
+{"t": 1794131069, "shop": "yeonsong2", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10604, "min_ask": 10604, "price": null, "outcome": "rejected"}
+{"t": 1794131081, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 4270000, "lo": 1776000, "hi": 3816000, "served": true}
+{"t": 1794131081, "shop": "Kiro729", "sku": "Ge5fe0d41", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3304000, "first_ask": 2372272, "min_ask": 2372272, "price": 2372272, "outcome": "deal"}
+{"t": 1794131104, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794131104, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 18060, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794131108, "shop": "olstjr", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 8700, "min_ask": 7504, "price": 7504, "outcome": "deal"}
+{"t": 1794131123, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 623750, "lo": 253260, "hi": 742500, "served": true}
+{"t": 1794131123, "shop": "Kiro729", "sku": "G374f8060", "category": "가구/침구>가구>침대/매트리스", "list_price": 742500, "first_ask": 512325, "min_ask": 466800, "price": 466800, "outcome": "deal"}
+{"t": 1794131144, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 723870, "lo": 347850, "hi": 921600, "served": true}
+{"t": 1794131145, "shop": "ddolcom", "sku": "G85a1a856", "category": "가구/침구>가구>침대/매트리스", "list_price": 921600, "first_ask": 783360, "min_ask": 682206, "price": 682206, "outcome": "deal"}
+{"t": 1794131170, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 575570, "lo": 253260, "hi": 742500, "served": true}
+{"t": 1794131170, "shop": "Kiro729", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 414227, "min_ask": 389558, "price": 389558, "outcome": "deal"}
+{"t": 1794131188, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 141710, "lo": 59480, "hi": 169560, "served": true}
+{"t": 1794131209, "type": "need", "category": "식품>해산물>가공/조리 오징어/문어류", "hours": 360.0}
+{"t": 1794131209, "type": "order", "category": "식품>해산물>가공/조리 오징어/문어류", "kind": "food", "budget": 9810, "lo": 7300, "hi": 15900, "served": true}
+{"t": 1794131211, "shop": "elm-street", "sku": "Gd6a907bf", "category": "식품>해산물>가공/조리 오징어/문어류", "list_price": 11900, "first_ask": 11900, "min_ask": 9044, "price": 9044, "outcome": "deal"}
+{"t": 1794131231, "type": "need", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "hours": 6.0}
+{"t": 1794131231, "type": "order", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "kind": "food", "budget": 43580, "lo": 19500, "hi": 55900, "served": true}
+{"t": 1794131231, "shop": "Kiro729", "sku": "G67efbcf0", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "list_price": 20000, "first_ask": 9000, "min_ask": 9000, "price": 9000, "outcome": "deal"}
+{"t": 1794131250, "type": "order", "category": "청소/생활잡화>청소/세탁/정리용품>정리용품", "kind": "goods", "budget": 17020, "lo": 10000, "hi": 14800, "served": true}
+{"t": 1794131270, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 754560, "lo": 420000, "hi": 1094400, "served": true}
+{"t": 1794131270, "shop": "Kiro729", "sku": "Gf44a316b", "category": "가구/침구>가구>침대/매트리스", "list_price": 751410, "first_ask": 552286, "min_ask": 552286, "price": 552286, "outcome": "deal"}
+{"t": 1794131295, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2030000, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794131296, "shop": "ddolcom", "sku": "G0e4deffc", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2112000, "first_ask": 1647360, "min_ask": 1366205, "price": 1326969, "outcome": "deal"}
+{"t": 1794131313, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 540.0}
+{"t": 1794131313, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 18060, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794131324, "shop": "yeonsong2", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10604, "min_ask": 10604, "price": null, "outcome": "rejected"}
+{"t": 1794131334, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1972800, "lo": 1313970, "hi": 3060560, "served": true}
+{"t": 1794131335, "shop": "ddolcom", "sku": "G0e4deffc", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2112000, "first_ask": 1647360, "min_ask": 1371796, "price": 1371796, "outcome": "deal"}
+{"t": 1794131357, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 358150, "lo": 180480, "hi": 500500, "served": true}
+{"t": 1794131357, "shop": "Kiro729", "sku": "G3323e2b7", "category": "가구/침구>가구>침대/매트리스", "list_price": 399630, "first_ask": 293728, "min_ask": 293728, "price": 293728, "outcome": "deal"}
+{"t": 1794131376, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794131376, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13720, "lo": 5900, "hi": 15900, "served": true}
+{"t": 1794131383, "shop": "olstjr", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 8700, "min_ask": 8113, "price": 8113, "outcome": "deal"}
+{"t": 1794131396, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 348750, "lo": 139500, "hi": 411750, "served": true}
+{"t": 1794131396, "shop": "Kiro729", "sku": "G0667d440", "category": "가구/침구>가구>침대/매트리스", "list_price": 347850, "first_ask": 242899, "min_ask": 242899, "price": 242899, "outcome": "deal"}
+{"t": 1794131421, "type": "order", "category": "가구/침구>침구/홈데코>침구", "kind": "goods", "budget": 27440, "lo": 15390, "hi": 45180, "served": true}
+{"t": 1794131440, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 551250, "lo": 265000, "hi": 751410, "served": true}
+{"t": 1794131440, "shop": "Kiro729", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 470036, "min_ask": 410532, "price": 410532, "outcome": "deal"}
+{"t": 1794131460, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 421450, "lo": 216000, "hi": 479200, "served": true}
+{"t": 1794131461, "shop": "ddolcom", "sku": "G2cb8041b", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 296000, "first_ask": 251600, "min_ask": 199680, "price": 192129, "outcome": "deal"}
+{"t": 1794131482, "type": "order", "category": "가구/침구>침구/홈데코>침구", "kind": "goods", "budget": 1021490, "lo": 419000, "hi": 729640, "served": true}
+{"t": 1794131483, "shop": "ddolcom", "sku": "G05277ffe", "category": "가구/침구>침구/홈데코>침구", "list_price": 600000, "first_ask": 510000, "min_ask": 407730, "price": 407730, "outcome": "deal"}
+{"t": 1794131503, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794131503, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13540, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794131505, "shop": "ddolcom", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 12900, "min_ask": 8587, "price": 8253, "outcome": "deal"}
+{"t": 1794131523, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 826960, "lo": 365500, "hi": 921600, "served": true}
+{"t": 1794131523, "shop": "Kiro729", "sku": "G8095ddd6", "category": "가구/침구>가구>침대/매트리스", "list_price": 851400, "first_ask": 627893, "min_ask": 627893, "price": 627893, "outcome": "deal"}
+{"t": 1794131547, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 1010250, "lo": 408240, "hi": 1094400, "served": true}
+{"t": 1794131547, "shop": "Kiro729", "sku": "Gf44a316b", "category": "가구/침구>가구>침대/매트리스", "list_price": 751410, "first_ask": 512325, "min_ask": 505545, "price": 505545, "outcome": "deal"}
+{"t": 1794131566, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 691220, "lo": 279000, "hi": 808200, "served": true}
+{"t": 1794131566, "shop": "Kiro729", "sku": "Gf44a316b", "category": "가구/침구>가구>침대/매트리스", "list_price": 751410, "first_ask": 516780, "min_ask": 516780, "price": 516780, "outcome": "deal"}
+{"t": 1794131587, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2678940, "lo": 1619100, "hi": 3816000, "served": true}
+{"t": 1794131588, "shop": "Kiro729", "sku": "Ge5fe0d41", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3304000, "first_ask": 2283913, "min_ask": 2283913, "price": 2283913, "outcome": "deal"}
+{"t": 1794131610, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794131610, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 16120, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794131613, "shop": "ddolcom", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 12900, "min_ask": 8830, "price": 8830, "outcome": "deal"}
+{"t": 1794131629, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 360.0}
+{"t": 1794131629, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 11440, "lo": 5900, "hi": 15900, "served": true}
+{"t": 1794131631, "shop": "ddolcom", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 12900, "min_ask": 8248, "price": 8084, "outcome": "deal"}
+{"t": 1794131649, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 1782000, "lo": 1094400, "hi": 2332000, "served": true}
+{"t": 1794131650, "shop": "Kiro729", "sku": "G03d0199f", "category": "가구/침구>가구>침대/매트리스", "list_price": 1611000, "first_ask": 1175063, "min_ask": 1175063, "price": 1175063, "outcome": "deal"}
+{"t": 1794131672, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2973600, "lo": 1672800, "hi": 3816000, "served": true}
+{"t": 1794131672, "shop": "Kiro729", "sku": "Ge5fe0d41", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3304000, "first_ask": 2471392, "min_ask": 2395006, "price": 2395006, "outcome": "deal"}
+{"t": 1794131691, "type": "need", "category": "식품>양념/조미료/소스>소스/양념/조미료", "hours": 180.0}
+{"t": 1794131691, "type": "order", "category": "식품>양념/조미료/소스>소스/양념/조미료", "kind": "food", "budget": 92610, "lo": 56900, "hi": 124800, "served": true}
+{"t": 1794131771, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 792800, "lo": 347850, "hi": 921600, "served": true}
+{"t": 1794131773, "shop": "ddolcom", "sku": "G85a1a856", "category": "가구/침구>가구>침대/매트리스", "list_price": 921600, "first_ask": 783360, "min_ask": 694991, "price": 694991, "outcome": "deal"}
+{"t": 1794131795, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794131795, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 11610, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794131807, "shop": "cheapest-in-town", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10086, "min_ask": 10086, "price": null, "outcome": "over budget"}
+{"t": 1794131814, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2217600, "lo": 1313970, "hi": 3060560, "served": true}
+{"t": 1794131816, "shop": "ddolcom", "sku": "G19a70f63", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 1672800, "first_ask": 1304784, "min_ask": 1147378, "price": 1147378, "outcome": "deal"}
+{"t": 1794131835, "type": "need", "category": "식품>육류>신선육류", "hours": 2.5}
+{"t": 1794131835, "type": "order", "category": "식품>육류>신선육류", "kind": "food", "budget": 28120, "lo": 11900, "hi": 33700, "served": true}
+{"t": 1794131841, "shop": "kimauve", "sku": "G37bccafb", "category": "식품>육류>신선육류", "list_price": 22900, "first_ask": 15760, "min_ask": 15570, "price": 15570, "outcome": "deal"}
+{"t": 1794131859, "type": "order", "category": "가구/침구>침구/홈데코>커튼/러그/쿠션/덮개", "kind": "goods", "budget": 26910, "lo": 15800, "hi": 44800, "served": true}
+{"t": 1794131878, "type": "need", "category": "식품>조리/가공 과일/야채/견과류>조리/가공 견과류", "hours": 360.0}
+{"t": 1794131878, "type": "order", "category": "식품>조리/가공 과일/야채/견과류>조리/가공 견과류", "kind": "food", "budget": 114450, "lo": 54900, "hi": 109000, "served": true}
+{"t": 1794131880, "shop": "thisjonghoon", "sku": "G1324bb95", "category": "식품>조리/가공 과일/야채/견과류>조리/가공 견과류", "list_price": 54900, "first_ask": 37552, "min_ask": 36783, "price": 36783, "outcome": "deal"}
+{"t": 1794131898, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3213580, "lo": 1619100, "hi": 3816000, "served": true}
+{"t": 1794131899, "shop": "Kiro729", "sku": "Ge5fe0d41", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3304000, "first_ask": 2273152, "min_ask": 2273029, "price": 2273029, "outcome": "deal"}
+{"t": 1794131922, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2640000, "lo": 1313970, "hi": 3060560, "served": true}
+{"t": 1794131942, "type": "need", "category": "식품>음료>주스/코코아/생수", "hours": 180.0}
+{"t": 1794131942, "type": "order", "category": "식품>음료>주스/코코아/생수", "kind": "food", "budget": 14070, "lo": 6800, "hi": 20000, "served": true}
+{"t": 1794131942, "shop": "Kiro729", "sku": "Gdf79cd07", "category": "식품>음료>주스/코코아/생수", "list_price": 15200, "first_ask": 5120, "min_ask": 5120, "price": 5120, "outcome": "deal"}
+{"t": 1794131962, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3068800, "lo": 1313970, "hi": 3060560, "served": true}
+{"t": 1794131962, "shop": "ddolcom", "sku": "G4a12722c", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3060560, "first_ask": 2338333, "min_ask": 2338333, "price": 2338333, "outcome": "deal"}
+{"t": 1794131987, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 4130000, "lo": 1672800, "hi": 3816000, "served": true}
+{"t": 1794131988, "shop": "ddolcom", "sku": "G47788edd", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3416000, "first_ask": 2664480, "min_ask": 2230380, "price": 2149305, "outcome": "deal"}
+{"t": 1794132005, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2301600, "lo": 1313970, "hi": 3060560, "served": true}
+{"t": 1794132007, "shop": "ddolcom", "sku": "G4a12722c", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3060560, "first_ask": 2387236, "min_ask": 2196408, "price": 2196408, "outcome": "deal"}
+{"t": 1794132026, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 4130000, "lo": 1672800, "hi": 3816000, "served": true}
+{"t": 1794132027, "shop": "ddolcom", "sku": "G47788edd", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3416000, "first_ask": 2664480, "min_ask": 2605303, "price": 2605303, "outcome": "deal"}
+{"t": 1794132049, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 450450, "lo": 253260, "hi": 742500, "served": true}
+{"t": 1794132051, "shop": "ddolcom", "sku": "G021aae64", "category": "가구/침구>가구>침대/매트리스", "list_price": 545930, "first_ask": 464040, "min_ask": 404089, "price": 404089, "outcome": "deal"}
+{"t": 1794132069, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1461600, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794132069, "shop": "ddolcom", "sku": "G8adbc159", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 1872000, "first_ask": 1425375, "min_ask": 1425375, "price": 1425375, "outcome": "deal"}
+{"t": 1794132089, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 788980, "lo": 380210, "hi": 1094400, "served": true}
+{"t": 1794132091, "shop": "ddolcom", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 527085, "min_ask": 461450, "price": 461450, "outcome": "deal"}
+{"t": 1794132112, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 558600, "lo": 211000, "hi": 594900, "served": true}
+{"t": 1794132118, "shop": "olstjr", "sku": "G021aae64", "category": "가구/침구>가구>침대/매트리스", "list_price": 545930, "first_ask": 379164, "min_ask": 379164, "price": 379164, "outcome": "deal"}
+{"t": 1794132132, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 399220, "lo": 191190, "hi": 552980, "served": true}
+{"t": 1794132133, "shop": "ddolcom", "sku": "G9357d6c2", "category": "가구/침구>가구>침대/매트리스", "list_price": 525000, "first_ask": 446250, "min_ask": 372375, "price": 372375, "outcome": "deal"}
+{"t": 1794132152, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 857010, "lo": 322970, "hi": 851400, "served": true}
+{"t": 1794132153, "shop": "ddolcom", "sku": "G8095ddd6", "category": "가구/침구>가구>침대/매트리스", "list_price": 851400, "first_ask": 723690, "min_ask": 639122, "price": 639122, "outcome": "deal"}
+{"t": 1794132177, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 929420, "lo": 408240, "hi": 1094400, "served": true}
+{"t": 1794132179, "shop": "ddolcom", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 527085, "min_ask": 467753, "price": 467753, "outcome": "deal"}
+{"t": 1794132197, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 360.0}
+{"t": 1794132197, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 16120, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794132212, "shop": "cheapest-in-town", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10086, "min_ask": 10086, "price": null, "outcome": "too dear"}
+{"t": 1794132217, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794132217, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 11610, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794132227, "shop": "cheapest-in-town", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10086, "min_ask": 10086, "price": null, "outcome": "too dear"}
+{"t": 1794132243, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1972800, "lo": 1313970, "hi": 3060560, "served": true}
+{"t": 1794132244, "shop": "ddolcom", "sku": "G6cd0e9d4", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2616000, "first_ask": 2040480, "min_ask": 1870212, "price": 1870212, "outcome": "deal"}
+{"t": 1794132263, "type": "need", "category": "식품>계란/유제품>우유/두유", "hours": 72.0}
+{"t": 1794132263, "type": "order", "category": "식품>계란/유제품>우유/두유", "kind": "food", "budget": 68880, "lo": 30900, "hi": 73900, "served": true}
+{"t": 1794132283, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2273600, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794132284, "shop": "ddolcom", "sku": "G0e4deffc", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2112000, "first_ask": 1647360, "min_ask": 1381876, "price": 1381876, "outcome": "deal"}
+{"t": 1794132310, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 423750, "lo": 169560, "hi": 500500, "served": true}
+{"t": 1794132310, "shop": "ddolcom", "sku": "G2c023a8c", "category": "가구/침구>가구>침대/매트리스", "list_price": 500500, "first_ask": 360360, "min_ask": 333387, "price": 321371, "outcome": "deal"}
+{"t": 1794132329, "type": "order", "category": "가구/침구>가구>테이블/책상/식탁", "kind": "goods", "budget": 32370, "lo": 19900, "hi": 37710, "served": true}
+{"t": 1794132349, "type": "order", "category": "통신기기>통신기기>통신기기액세서리", "kind": "goods", "budget": 88060, "lo": 31900, "hi": 62900, "served": false}
+{"t": 1794132374, "type": "need", "category": "식품>야채/과일>신선과일(부패주의)", "hours": 36.0}
+{"t": 1794132374, "type": "order", "category": "식품>야채/과일>신선과일(부패주의)", "kind": "food", "budget": 26100, "lo": 14500, "hi": 43000, "served": true}
+{"t": 1794132374, "shop": "psyoung82", "sku": "Gef4d3036", "category": "식품>야채/과일>신선과일(부패주의)", "list_price": 28900, "first_ask": 23120, "min_ask": 18207, "price": 18207, "outcome": "deal"}
+{"t": 1794132394, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 1920950, "lo": 836100, "hi": 2332000, "served": true}
+{"t": 1794132395, "shop": "ddolcom", "sku": "Gb5d0dde7", "category": "가구/침구>가구>침대/매트리스", "list_price": 1094400, "first_ask": 853632, "min_ask": 823639, "price": 823639, "outcome": "deal"}
+{"t": 1794132414, "type": "order", "category": "통신기기>통신기기>통신기기액세서리", "kind": "goods", "budget": 28620, "lo": 11500, "hi": 33430, "served": true}
+{"t": 1794132436, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 343090, "lo": 191190, "hi": 552980, "served": true}
+{"t": 1794132437, "shop": "ddolcom", "sku": "G07ec17d5", "category": "가구/침구>가구>침대/매트리스", "list_price": 279000, "first_ask": 237150, "min_ask": 211649, "price": 206460, "outcome": "deal"}
+{"t": 1794132456, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2678940, "lo": 1619100, "hi": 3816000, "served": true}
+{"t": 1794132457, "shop": "ddolcom", "sku": "G47788edd", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3416000, "first_ask": 2459520, "min_ask": 2230352, "price": 2168306, "outcome": "deal"}
+{"t": 1794132476, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794132476, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13540, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794132488, "shop": "olstjr", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 8700, "min_ask": 8052, "price": 8052, "outcome": "deal"}
+{"t": 1794132499, "type": "order", "category": "가구/침구>침구/홈데코>침구", "kind": "goods", "budget": 45880, "lo": 20720, "hi": 59400, "served": true}
+{"t": 1794132518, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794132518, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 18060, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794132522, "shop": "olstjr", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 7800, "min_ask": 7231, "price": 6663, "outcome": "deal"}
+{"t": 1794132538, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 965150, "lo": 347850, "hi": 921600, "served": true}
+{"t": 1794132544, "shop": "ddolcom", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 527085, "min_ask": 409397, "price": 401695, "outcome": "deal"}
+{"t": 1794132564, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3928390, "lo": 1776000, "hi": 3816000, "served": true}
+{"t": 1794132564, "shop": "ddolcom", "sku": "G47788edd", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3416000, "first_ask": 2664480, "min_ask": 2599512, "price": 2599512, "outcome": "deal"}
+{"t": 1794132582, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 2277000, "lo": 1094400, "hi": 2332000, "served": true}
+{"t": 1794132583, "shop": "psyoung82", "sku": "Gf6b70da8", "category": "가구/침구>가구>침대/매트리스", "list_price": 2332000, "first_ask": 1609080, "min_ask": 1609080, "price": 1609080, "outcome": "deal"}
+{"t": 1794132603, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794132603, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13540, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794132608, "shop": "olstjr", "sku": "G114aefb6", "category": "식품>기타 가공식품>과자", "list_price": 8900, "first_ask": 6100, "min_ask": 4385, "price": 4098, "outcome": "deal"}
+{"t": 1794132626, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 133400, "lo": 73000, "hi": 116000, "served": true}
+{"t": 1794132626, "shop": "choo-chu", "sku": "G33e8bdd8", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 73000, "first_ask": 53104, "min_ask": 53104, "price": 53104, "outcome": "deal"}
+{"t": 1794132646, "type": "need", "category": "식품>야채/과일>신선과일(부패주의)", "hours": 5.0}
+{"t": 1794132646, "type": "order", "category": "식품>야채/과일>신선과일(부패주의)", "kind": "food", "budget": 69860, "lo": 25000, "hi": 73900, "served": true}
+{"t": 1794132649, "shop": "ddolcom", "sku": "Gef4d3036", "category": "식품>야채/과일>신선과일(부패주의)", "list_price": 28900, "first_ask": 28900, "min_ask": 21306, "price": 21306, "outcome": "deal"}
+{"t": 1794132666, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 4248090, "lo": 2049300, "hi": 4045800, "served": true}
+{"t": 1794132667, "shop": "psyoung82", "sku": "Gf6b70da8", "category": "가구/침구>가구>침대/매트리스", "list_price": 2332000, "first_ask": 1609080, "min_ask": 1609080, "price": 1609080, "outcome": "deal"}
+{"t": 1794132691, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1972800, "lo": 1313970, "hi": 3060560, "served": true}
+{"t": 1794132692, "shop": "ddolcom", "sku": "G0e4deffc", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2112000, "first_ask": 1647360, "min_ask": 1450243, "price": 1450243, "outcome": "deal"}
+{"t": 1794132710, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794132710, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 11610, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794132711, "shop": "ddolcom", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 12900, "min_ask": 8989, "price": 8363, "outcome": "deal"}
+{"t": 1794132730, "type": "order", "category": "냉방/난방/욕실>냉방/난방/욕실>욕실용품", "kind": "goods", "budget": 137060, "lo": 109650, "hi": 109650, "served": true}
+{"t": 1794132755, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3125430, "lo": 1619100, "hi": 3816000, "served": true}
+{"t": 1794132756, "shop": "psyoung82", "sku": "G24f5f979", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3816000, "first_ask": 2795482, "min_ask": 2795482, "price": 2795482, "outcome": "deal"}
+{"t": 1794132775, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 476270, "lo": 180480, "hi": 500500, "served": true}
+{"t": 1794132796, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 179280, "lo": 99900, "hi": 279000, "served": true}
+{"t": 1794132818, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 2915000, "lo": 1611000, "hi": 2332000, "served": true}
+{"t": 1794132820, "shop": "psyoung82", "sku": "Gf6b70da8", "category": "가구/침구>가구>침대/매트리스", "list_price": 2332000, "first_ask": 1609080, "min_ask": 1609080, "price": 1609080, "outcome": "deal"}
+{"t": 1794132837, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 299700, "lo": 169560, "hi": 499000, "served": true}
+{"t": 1794132857, "type": "order", "category": "가구/침구>침구/홈데코>침구", "kind": "goods", "budget": 187740, "lo": 67900, "hi": 199000, "served": true}
+{"t": 1794132858, "shop": "ddolcom", "sku": "G326ebe9a", "category": "가구/침구>침구/홈데코>침구", "list_price": 178500, "first_ask": 151725, "min_ask": 131835, "price": 131835, "outcome": "deal"}
+{"t": 1794132882, "type": "order", "category": "통신기기>통신기기>통신기기액세서리", "kind": "goods", "budget": 17250, "lo": 6900, "hi": 18900, "served": true}
+{"t": 1794132901, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2030000, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794132903, "shop": "ddolcom", "sku": "G8ec51935", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2320000, "first_ask": 1809600, "min_ask": 1760205, "price": 1760205, "outcome": "deal"}
+{"t": 1794132921, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 211950, "lo": 91760, "hi": 253260, "served": true}
+{"t": 1794132945, "type": "need", "category": "식품>김치/반찬/즉석요리>김치", "hours": 17.0}
+{"t": 1794132945, "type": "order", "category": "식품>김치/반찬/즉석요리>김치", "kind": "food", "budget": 20610, "lo": 11610, "hi": 34110, "served": true}
+{"t": 1794132945, "shop": "psyoung82", "sku": "G32bf9a8e", "category": "식품>김치/반찬/즉석요리>김치", "list_price": 25560, "first_ask": 20448, "min_ask": 17567, "price": 17567, "outcome": "deal"}
+{"t": 1794132964, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 160420, "lo": 71100, "hi": 199200, "served": true}
+{"t": 1794132984, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 544680, "lo": 322970, "hi": 851400, "served": true}
+{"t": 1794132984, "shop": "psyoung82", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 427869, "min_ask": 427869, "price": 427869, "outcome": "deal"}
+{"t": 1794133007, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 245600, "lo": 107410, "hi": 279000, "served": true}
+{"t": 1794133026, "type": "need", "category": "식품>야채/과일>신선과일(부패주의)", "hours": 36.0}
+{"t": 1794133026, "type": "order", "category": "식품>야채/과일>신선과일(부패주의)", "kind": "food", "budget": 80380, "lo": 35900, "hi": 73900, "served": true}
+{"t": 1794133161, "shop": "outseop-26510122", "sku": "Gbb126d7c", "category": "식품>야채/과일>신선과일(부패주의)", "list_price": 58900, "first_ask": 53010, "min_ask": 38000, "price": 34203, "outcome": "deal"}
+{"t": 1794133170, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 929420, "lo": 408240, "hi": 1094400, "served": true}
+{"t": 1794133170, "shop": "psyoung82", "sku": "Gb5d0dde7", "category": "가구/침구>가구>침대/매트리스", "list_price": 1094400, "first_ask": 755136, "min_ask": 755136, "price": 755136, "outcome": "deal"}
+{"t": 1794133194, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 156510, "lo": 76800, "hi": 215050, "served": true}
+{"t": 1794133213, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 1010250, "lo": 408240, "hi": 1094400, "served": true}
+{"t": 1794133234, "type": "need", "category": "식품>김치/반찬/즉석요리>김치", "hours": 84.0}
+{"t": 1794133234, "type": "order", "category": "식품>김치/반찬/즉석요리>김치", "kind": "food", "budget": 64460, "lo": 25900, "hi": 76800, "served": true}
+{"t": 1794133234, "shop": "psyoung82", "sku": "G200e39a3", "category": "식품>김치/반찬/즉석요리>김치", "list_price": 37900, "first_ask": 30320, "min_ask": 23877, "price": 23877, "outcome": "deal"}
+{"t": 1794133259, "type": "need", "category": "식품>기타 가공식품>디저트", "hours": 36.0}
+{"t": 1794133259, "type": "order", "category": "식품>기타 가공식품>디저트", "kind": "food", "budget": 12510, "lo": 10900, "hi": 18900, "served": true}
+{"t": 1794133260, "shop": "psyoung82", "sku": "G06a54b11", "category": "식품>기타 가공식품>디저트", "list_price": 13500, "first_ask": 10800, "min_ask": 9763, "price": 9763, "outcome": "deal"}
+{"t": 1794133279, "type": "order", "category": "통신기기>통신기기>통신기기액세서리", "kind": "goods", "budget": 13720, "lo": 4900, "hi": 13900, "served": true}
+{"t": 1794133298, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 449100, "lo": 253260, "hi": 742500, "served": true}
+{"t": 1794133299, "shop": "ddolcom", "sku": "G2c023a8c", "category": "가구/침구>가구>침대/매트리스", "list_price": 500500, "first_ask": 425425, "min_ask": 371237, "price": 371237, "outcome": "deal"}
+{"t": 1794133316, "type": "need", "category": "식품>야채/과일>신선과일(부패주의)", "hours": 24.0}
+{"t": 1794133317, "type": "order", "category": "식품>야채/과일>신선과일(부패주의)", "kind": "food", "budget": 42430, "lo": 18500, "hi": 54500, "served": true}
+{"t": 1794133317, "shop": "myeonggi", "sku": "Gef4d3036", "category": "식품>야채/과일>신선과일(부패주의)", "list_price": 28900, "first_ask": 19949, "min_ask": 19949, "price": 19949, "outcome": "deal"}
+{"t": 1794133339, "type": "order", "category": "가구/침구>침구/홈데코>침구", "kind": "goods", "budget": 182370, "lo": 73710, "hi": 209400, "served": true}
+{"t": 1794133358, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 219860, "lo": 95900, "hi": 279000, "served": true}
+{"t": 1794133359, "shop": "ddolcom", "sku": "G07ec17d5", "category": "가구/침구>가구>침대/매트리스", "list_price": 279000, "first_ask": 237150, "min_ask": 197660, "price": 197660, "outcome": "deal"}
+{"t": 1794133379, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1067200, "lo": 479200, "hi": 1313970, "served": true}
+{"t": 1794133380, "shop": "ddolcom", "sku": "G429bd69e", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 928000, "first_ask": 788800, "min_ask": 627864, "price": 601302, "outcome": "deal"}
+{"t": 1794133399, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3469200, "lo": 1672800, "hi": 3816000, "served": true}
+{"t": 1794133400, "shop": "ddolcom", "sku": "Ge5fe0d41", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 3304000, "first_ask": 2475682, "min_ask": 2444615, "price": 2444615, "outcome": "deal"}
+{"t": 1794133419, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 265920, "lo": 129000, "hi": 374250, "served": true}
+{"t": 1794133420, "shop": "ddolcom", "sku": "G0667d440", "category": "가구/침구>가구>침대/매트리스", "list_price": 347850, "first_ask": 295672, "min_ask": 257536, "price": 257536, "outcome": "deal"}
+{"t": 1794133440, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 362230, "lo": 131960, "hi": 383400, "served": true}
+{"t": 1794133463, "type": "need", "category": "식품>야채/과일>신선과일(부패주의)", "hours": 24.0}
+{"t": 1794133463, "type": "order", "category": "식품>야채/과일>신선과일(부패주의)", "kind": "food", "budget": 19840, "lo": 9500, "hi": 27900, "served": true}
+{"t": 1794133464, "shop": "totato2203-r3", "sku": "G74e686be", "category": "식품>야채/과일>신선과일(부패주의)", "list_price": 13500, "first_ask": 8931, "min_ask": 8665, "price": 8665, "outcome": "deal"}
+{"t": 1794133482, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 929420, "lo": 408240, "hi": 1094400, "served": true}
+{"t": 1794133484, "shop": "ddolcom", "sku": "G85a1a856", "category": "가구/침구>가구>침대/매트리스", "list_price": 921600, "first_ask": 783360, "min_ask": 685733, "price": 685733, "outcome": "deal"}
+{"t": 1794133503, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1062600, "lo": 385000, "hi": 928000, "served": true}
+{"t": 1794133504, "shop": "ddolcom", "sku": "G429bd69e", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 928000, "first_ask": 788800, "min_ask": 706236, "price": 706236, "outcome": "deal"}
+{"t": 1794133525, "type": "need", "category": "식품>김치/반찬/즉석요리>김치", "hours": 42.0}
+{"t": 1794133525, "type": "order", "category": "식품>김치/반찬/즉석요리>김치", "kind": "food", "budget": 22260, "lo": 8900, "hi": 23660, "served": true}
+{"t": 1794133525, "shop": "psyoung82", "sku": "G66ded25b", "category": "식품>김치/반찬/즉석요리>김치", "list_price": 17900, "first_ask": 14320, "min_ask": 11277, "price": 11277, "outcome": "deal"}
+{"t": 1794133544, "type": "need", "category": "식품>양념/조미료/소스>소스/양념/조미료", "hours": 360.0}
+{"t": 1794133544, "type": "order", "category": "식품>양념/조미료/소스>소스/양념/조미료", "kind": "food", "budget": 179400, "lo": 82900, "hi": 203110, "served": true}
+{"t": 1794133588, "shop": "mjforge", "sku": "G56b7eae7", "category": "식품>양념/조미료/소스>소스/양념/조미료", "list_price": 99000, "first_ask": 71280, "min_ask": 71280, "price": null, "outcome": "over budget"}
+{"t": 1794133594, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 360.0}
+{"t": 1794133594, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13540, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794133662, "shop": "mjforge", "sku": "G762d9d25", "category": "식품>기타 가공식품>과자", "list_price": 13900, "first_ask": 10008, "min_ask": 10008, "price": null, "outcome": "over budget"}
+{"t": 1794133665, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794133666, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 11610, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794133750, "shop": "mjforge", "sku": "G762d9d25", "category": "식품>기타 가공식품>과자", "list_price": 13900, "first_ask": 10008, "min_ask": 10008, "price": null, "outcome": "over budget"}
+{"t": 1794133753, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2973600, "lo": 1672800, "hi": 3816000, "served": true}
+{"t": 1794133754, "shop": "ddolcom", "sku": "G0e4deffc", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2112000, "first_ask": 1520640, "min_ask": 1520640, "price": 1345660, "outcome": "deal"}
+{"t": 1794133773, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 1045120, "lo": 419000, "hi": 1094400, "served": true}
+{"t": 1794133774, "shop": "ddolcom", "sku": "G2c023a8c", "category": "가구/침구>가구>침대/매트리스", "list_price": 500500, "first_ask": 425425, "min_ask": 371459, "price": 371459, "outcome": "deal"}
+{"t": 1794133894, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 3125430, "lo": 1619100, "hi": 3816000, "served": true}
+{"t": 1794133895, "shop": "ddolcom", "sku": "G0e4deffc", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2112000, "first_ask": 1647360, "min_ask": 1339308, "price": 1318521, "outcome": "deal"}
+{"t": 1794133916, "type": "need", "category": "식품>시리얼/곡물/콩류>곡물", "hours": 180.0}
+{"t": 1794133916, "type": "order", "category": "식품>시리얼/곡물/콩류>곡물", "kind": "food", "budget": 69720, "lo": 33900, "hi": 98800, "served": true}
+{"t": 1794133918, "shop": "dragonash", "sku": "G521b8b25", "category": "식품>시리얼/곡물/콩류>곡물", "list_price": 36900, "first_ask": 25239, "min_ask": 24481, "price": 24481, "outcome": "deal"}
+{"t": 1794133937, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 516630, "lo": 237600, "hi": 620100, "served": true}
+{"t": 1794133938, "shop": "ddolcom", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 527085, "min_ask": 463456, "price": 463456, "outcome": "deal"}
+{"t": 1794133957, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794133957, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 21730, "lo": 9500, "hi": 28200, "served": true}
+{"t": 1794133967, "shop": "yeonsong2", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10537, "min_ask": 7203, "price": 6382, "outcome": "deal"}
+{"t": 1794133979, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 540.0}
+{"t": 1794133979, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 16120, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794134073, "shop": "mjforge", "sku": "G0d52d508", "category": "식품>기타 가공식품>과자", "list_price": 16800, "first_ask": 12096, "min_ask": 12096, "price": null, "outcome": "over budget"}
+{"t": 1794134076, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 418590, "lo": 216000, "hi": 479200, "served": true}
+{"t": 1794134094, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1705200, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794134115, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 114700, "lo": 49000, "hi": 135200, "served": true}
+{"t": 1794134136, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 2338560, "lo": 836100, "hi": 2332000, "served": true}
+{"t": 1794134137, "shop": "ddolcom", "sku": "G3e0d6c67", "category": "가구/침구>가구>침대/매트리스", "list_price": 2049300, "first_ask": 1598454, "min_ask": 1538080, "price": 1538080, "outcome": "deal"}
+{"t": 1794134156, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 266400, "lo": 216000, "hi": 385000, "served": true}
+{"t": 1794134180, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 2199370, "lo": 1094400, "hi": 2332000, "served": true}
+{"t": 1794134181, "shop": "psyoung82", "sku": "Gf6b70da8", "category": "가구/침구>가구>침대/매트리스", "list_price": 2332000, "first_ask": 1609080, "min_ask": 1469160, "price": 1469160, "outcome": "deal"}
+{"t": 1794134199, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794134199, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13680, "lo": 6500, "hi": 17800, "served": true}
+{"t": 1794134200, "shop": "psyoung82", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10320, "min_ask": 8433, "price": 8433, "outcome": "deal"}
+{"t": 1794134220, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2620800, "lo": 1313970, "hi": 2616000, "served": true}
+{"t": 1794134221, "shop": "ddolcom", "sku": "G6cd0e9d4", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2616000, "first_ask": 1883520, "min_ask": 1670315, "price": 1670315, "outcome": "deal"}
+{"t": 1794134243, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794134243, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 15250, "lo": 5900, "hi": 15900, "served": true}
+{"t": 1794134245, "shop": "ddolcom", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 12900, "min_ask": 8887, "price": 8887, "outcome": "deal"}
+{"t": 1794134262, "type": "order", "category": "통신기기>통신기기>통신기기액세서리", "kind": "goods", "budget": 6190, "lo": 3900, "hi": 8800, "served": true}
+{"t": 1794134282, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794134282, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 12530, "lo": 5900, "hi": 15900, "served": true}
+{"t": 1794134285, "shop": "ddolcom", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 12900, "min_ask": 9711, "price": 9711, "outcome": "deal"}
+{"t": 1794134305, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 99750, "lo": 49000, "hi": 119200, "served": true}
+{"t": 1794134325, "type": "need", "category": "식품>육류>신선육류", "hours": 18.0}
+{"t": 1794134325, "type": "order", "category": "식품>육류>신선육류", "kind": "food", "budget": 131310, "lo": 79900, "hi": 145900, "served": false}
+{"t": 1794134345, "type": "need", "category": "식품>야채/과일>신선과일(부패주의)", "hours": 36.0}
+{"t": 1794134345, "type": "order", "category": "식품>야채/과일>신선과일(부패주의)", "kind": "food", "budget": 16090, "lo": 7300, "hi": 16900, "served": true}
+{"t": 1794134359, "shop": "ggari-shop", "sku": "G74e686be", "category": "식품>야채/과일>신선과일(부패주의)", "list_price": 13500, "first_ask": 9198, "min_ask": 9198, "price": 9198, "outcome": "deal"}
+{"t": 1794134368, "type": "need", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "hours": 2.5}
+{"t": 1794134368, "type": "order", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "kind": "food", "budget": 53060, "lo": 19500, "hi": 55900, "served": true}
+{"t": 1794134368, "shop": "choo-chu", "sku": "Gb2392fa9", "category": "식품>김치/반찬/즉석요리>즉석조리식품", "list_price": 26900, "first_ask": 15537, "min_ask": 15537, "price": 13986, "outcome": "deal"}
+{"t": 1794134388, "type": "need", "category": "식품>계란/유제품>우유/두유", "hours": 72.0}
+{"t": 1794134388, "type": "order", "category": "식품>계란/유제품>우유/두유", "kind": "food", "budget": 33500, "lo": 13900, "hi": 39900, "served": true}
+{"t": 1794134432, "shop": "ggari-shop", "sku": "G582603b2", "category": "식품>계란/유제품>우유/두유", "list_price": 28900, "first_ask": 18785, "min_ask": 18785, "price": 18785, "outcome": "deal"}
+{"t": 1794134438, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 877900, "lo": 419000, "hi": 1094400, "served": true}
+{"t": 1794134438, "shop": "psyoung82", "sku": "G2607d1f6", "category": "가구/침구>가구>침대/매트리스", "list_price": 620100, "first_ask": 460345, "min_ask": 420315, "price": 420315, "outcome": "deal"}
+{"t": 1794134458, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 2520800, "lo": 1313970, "hi": 3060560, "served": true}
+{"t": 1794134478, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 87210, "lo": 49000, "hi": 139500, "served": true}
+{"t": 1794134500, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 4248090, "lo": 2049300, "hi": 4045800, "served": true}
+{"t": 1794134520, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794134520, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 16120, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794134565, "shop": "choo-chu", "sku": "G0d52d508", "category": "식품>기타 가공식품>과자", "list_price": 16800, "first_ask": 10806, "min_ask": 10230, "price": 10230, "outcome": "deal"}
+{"t": 1794134571, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 360.0}
+{"t": 1794134571, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 11610, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794134699, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 74340, "lo": 34040, "hi": 76800, "served": true}
+{"t": 1794134719, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 551250, "lo": 265000, "hi": 751410, "served": true}
+{"t": 1794134740, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 4248090, "lo": 2049300, "hi": 4045800, "served": true}
+{"t": 1794134760, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 950590, "lo": 340200, "hi": 921600, "served": true}
+{"t": 1794134782, "type": "need", "category": "식품>음료>커피/차", "hours": 180.0}
+{"t": 1794134782, "type": "order", "category": "식품>음료>커피/차", "kind": "food", "budget": 107660, "lo": 38570, "hi": 84900, "served": false}
+{"t": 1794134801, "type": "need", "category": "식품>기타 가공식품>기타 가공식품", "hours": 180.0}
+{"t": 1794134801, "type": "order", "category": "식품>기타 가공식품>기타 가공식품", "kind": "food", "budget": 6930, "lo": 3900, "hi": 9900, "served": false}
+{"t": 1794134874, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1861960, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794134875, "shop": "ddolcom", "sku": "G0e4deffc", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2112000, "first_ask": 1520640, "min_ask": 1520640, "price": 1340169, "outcome": "deal"}
+{"t": 1794134888, "type": "need", "category": "식품>김치/반찬/즉석요리>김치", "hours": 17.0}
+{"t": 1794134888, "type": "order", "category": "식품>김치/반찬/즉석요리>김치", "kind": "food", "budget": 66580, "lo": 29300, "hi": 83900, "served": true}
+{"t": 1794134888, "shop": "psyoung82", "sku": "G16dcdc73", "category": "식품>김치/반찬/즉석요리>김치", "list_price": 76800, "first_ask": 61440, "min_ask": 30721, "price": 30721, "outcome": "deal"}
+{"t": 1794134909, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 540.0}
+{"t": 1794134909, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 14830, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794134978, "shop": "cheapest-in-town", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10139, "min_ask": 10139, "price": null, "outcome": "too dear"}
+{"t": 1794134980, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 116100, "lo": 65000, "hi": 191190, "served": true}
+{"t": 1794135000, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 72.0}
+{"t": 1794135000, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 14830, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794135000, "shop": "psyoung82", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10320, "min_ask": 10320, "price": 6708, "outcome": "deal"}
+{"t": 1794135022, "type": "need", "category": "식품>야채/과일>신선야채(부패주의)", "hours": 12.0}
+{"t": 1794135022, "type": "order", "category": "식품>야채/과일>신선야채(부패주의)", "kind": "food", "budget": 43580, "lo": 19800, "hi": 54900, "served": true}
+{"t": 1794135042, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 540.0}
+{"t": 1794135042, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 13540, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794135112, "shop": "cheapest-in-town", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10139, "min_ask": 10139, "price": null, "outcome": "too dear"}
+{"t": 1794135115, "type": "order", "category": "가구/침구>가구>침대/매트리스", "kind": "goods", "budget": 3641220, "lo": 2049300, "hi": 4045800, "served": true}
+{"t": 1794135136, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 1923710, "lo": 854050, "hi": 2320000, "served": true}
+{"t": 1794135136, "shop": "ddolcom", "sku": "G0e4deffc", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2112000, "first_ask": 1520640, "min_ask": 1520640, "price": 1339008, "outcome": "deal"}
+{"t": 1794135161, "type": "order", "category": "가구/침구>침구/홈데코>침구", "kind": "goods", "budget": 400260, "lo": 143200, "hi": 419000, "served": true}
+{"t": 1794135162, "shop": "ddolcom", "sku": "G72c86070", "category": "가구/침구>침구/홈데코>침구", "list_price": 419000, "first_ask": 306157, "min_ask": 302315, "price": 302315, "outcome": "deal"}
+{"t": 1794135180, "type": "need", "category": "식품>기타 가공식품>통조림캔", "hours": 180.0}
+{"t": 1794135180, "type": "order", "category": "식품>기타 가공식품>통조림캔", "kind": "food", "budget": 53060, "lo": 20900, "hi": 52560, "served": true}
+{"t": 1794135180, "shop": "psyoung82", "sku": "G6088e868", "category": "식품>기타 가공식품>통조림캔", "list_price": 31900, "first_ask": 25520, "min_ask": 20097, "price": 20097, "outcome": "deal"}
+{"t": 1794135199, "type": "need", "category": "식품>기타 가공식품>국수/파스타/누들", "hours": 72.0}
+{"t": 1794135200, "type": "order", "category": "식품>기타 가공식품>국수/파스타/누들", "kind": "food", "budget": 12510, "lo": 6950, "hi": 20400, "served": true}
+{"t": 1794135200, "shop": "psyoung82", "sku": "G0dfa250d", "category": "식품>기타 가공식품>국수/파스타/누들", "list_price": 13900, "first_ask": 11120, "min_ask": 5561, "price": 5561, "outcome": "deal"}
+{"t": 1794135224, "type": "order", "category": "가구/침구>가구>소파/의자/스툴", "kind": "goods", "budget": 4130000, "lo": 1672800, "hi": 3816000, "served": true}
+{"t": 1794135225, "shop": "ddolcom", "sku": "G8ec51935", "category": "가구/침구>가구>소파/의자/스툴", "list_price": 2320000, "first_ask": 1809600, "min_ask": 1763826, "price": 1763826, "outcome": "deal"}
+{"t": 1794135243, "type": "order", "category": "통신기기>통신기기>통신기기액세서리", "kind": "goods", "budget": 5460, "lo": 2900, "hi": 4900, "served": true}
+{"t": 1794135263, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794135263, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 8120, "lo": 3300, "hi": 9500, "served": true}
+{"t": 1794135264, "shop": "choo-chu", "sku": "G0e11c1b4", "category": "식품>기타 가공식품>과자", "list_price": 7900, "first_ask": 5419, "min_ask": 5131, "price": 5131, "outcome": "deal"}
+{"t": 1794135288, "type": "need", "category": "식품>기타 가공식품>과자", "hours": 180.0}
+{"t": 1794135288, "type": "order", "category": "식품>기타 가공식품>과자", "kind": "food", "budget": 14830, "lo": 6500, "hi": 18900, "served": true}
+{"t": 1794135288, "shop": "psyoung82", "sku": "G1831f2c0", "category": "식품>기타 가공식품>과자", "list_price": 12900, "first_ask": 10320, "min_ask": 5161, "price": 5161, "outcome": "deal"}

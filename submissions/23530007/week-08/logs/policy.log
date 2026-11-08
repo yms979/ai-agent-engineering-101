@@ -574,3 +574,6 @@
 2026-11-08 08:08:27 UTC [buyer] LOW_FILL -> STEADY {"hours_left": 222.8, "orders": 40, "deal_rate": 0.3}
 2026-11-08 08:45:24 UTC [buyer] STEADY -> LOW_FILL {"hours_left": 222.2, "orders": 40, "deal_rate": 0.3}
 2026-11-08 08:45:48 UTC [buyer] LOW_FILL -> STEADY {"hours_left": 222.2, "orders": 40, "deal_rate": 0.3}
+2026-11-08 10:35:15 UTC [buyer] STEADY -> LOW_FILL {"hours_left": 220.4, "orders": 40, "deal_rate": 0.2}
+2026-11-08 10:38:25 UTC [buyer] LOW_FILL -> STEADY {"hours_left": 220.3, "orders": 40, "deal_rate": 0.3}
+2026-11-08 10:41:18 UTC [buyer] STEADY -> LOW_FILL {"hours_left": 220.3, "orders": 40, "deal_rate": 0.2}

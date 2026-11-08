@@ -2528,3 +2528,69 @@
 2026-11-08 09:20:33 UTC digest updated from 1 entries (5 probes): facts 20, decisions 10, open_questions 8, for_shop 5, for_buyer 6, conflicts 5, briefing_buyer 6, briefing_shop 6, rankers_playbook 8, answers_for_buyer 0, answers_for_shop 5, wanted_data 4, rules_change 0, rank_change 0, market_flow 983 (24405 chars)
 2026-11-08 09:20:33 UTC archived 1 entries and 1 old digests
 2026-11-08 09:20:34 UTC buyer_memory.json: 23 trades older than 48 h archived, 12595 kept
+2026-11-08 09:30:22 UTC buyer_memory.json: 37 trades older than 48 h archived, 12598 kept
+2026-11-08 09:31:19 UTC curating: 1 new entries
+2026-11-08 09:31:19 UTC probe for buyer: {"kind": "trades", "outcome": "skipped (low value)"} -> ok
+2026-11-08 09:31:19 UTC probe for buyer: {"kind": "buyer", "name": "dae-yangkim"} -> ok
+2026-11-08 09:31:19 UTC probe for buyer: {"kind": "question", "text": "At 11:00 UTC: our goods deals/h and saved per deal for the 2 h before and after skip_below -> ok
+2026-11-08 09:31:19 UTC probe for buyer: {"kind": "question", "text": "Kiro729 ready meals G67efbcf0: first asks to us vs to dae-yangkim/kimauve in the same hour -> ok
+2026-11-08 09:31:19 UTC probe for buyer: {"kind": "trades", "shop": "olstjr"} -> ok
+2026-11-08 09:33:55 UTC model answered in 156 s (97590 chars in)
+2026-11-08 09:33:55 UTC digest updated from 1 entries (5 probes): facts 20, decisions 10, open_questions 8, for_shop 5, for_buyer 5, conflicts 5, briefing_buyer 6, briefing_shop 6, rankers_playbook 8, answers_for_buyer 5, answers_for_shop 0, wanted_data 4, rules_change 0, rank_change 240, market_flow 1006 (24290 chars)
+2026-11-08 09:33:55 UTC archived 1 entries and 1 old digests
+2026-11-08 09:33:55 UTC buyer_memory.json: 10 trades older than 48 h archived, 12603 kept
+2026-11-08 09:45:21 UTC buyer_memory.json: 46 trades older than 48 h archived, 12624 kept
+2026-11-08 09:46:36 UTC curating: 1 new entries
+2026-11-08 09:46:36 UTC probe for shop: {"kind": "question", "text": "Operator: seller closed 1520 deals vs 1177 market settles in 6 h, with only 4 refusals log -> ok
+2026-11-08 09:46:51 UTC probe for shop: {"kind": "sku_prices", "sku": "G0667d440"} -> ok
+2026-11-08 09:46:51 UTC probe for shop: {"kind": "knobs", "sku": "G8095ddd6"} -> ok
+2026-11-08 09:46:51 UTC probe for shop: {"kind": "shop", "name": "inextro"} -> ok
+2026-11-08 09:46:51 UTC probe for shop: {"kind": "rules", "term": "stars mean per account window no-deal visit"} -> ok
+2026-11-08 09:50:06 UTC model answered in 196 s (98604 chars in)
+2026-11-08 09:50:06 UTC digest updated from 1 entries (5 probes): facts 20, decisions 10, open_questions 7, for_shop 5, for_buyer 5, conflicts 5, briefing_buyer 6, briefing_shop 6, rankers_playbook 8, answers_for_buyer 0, answers_for_shop 5, wanted_data 4, rules_change 0, rank_change 0, market_flow 1004 (23521 chars)
+2026-11-08 09:50:06 UTC archived 1 entries and 1 old digests
+2026-11-08 09:50:07 UTC buyer_memory.json: 18 trades older than 48 h archived, 12631 kept
+2026-11-08 10:00:12 UTC buyer_memory.json: 35 trades older than 48 h archived, 12646 kept
+2026-11-08 10:01:12 UTC curating: 1 new entries
+2026-11-08 10:01:12 UTC probe for buyer: {"kind": "trades", "kind_": "goods", "outcome": "deal", "text": "Per clock hour 08:00-11:00 UTC, by kind: deals, saved p -> ok
+2026-11-08 10:01:12 UTC probe for buyer: {"kind": "question", "text": "At Kiro729 and inextro over the last 6h, list first asks by buyer (us, dae-yangkim, kimauv -> ok
+2026-11-08 10:01:12 UTC probe for buyer: {"kind": "category", "category": "침구"} -> ok
+2026-11-08 10:01:12 UTC probe for buyer: {"kind": "buyer", "name": "dae-yangkim"} -> ok
+2026-11-08 10:01:12 UTC probe for buyer: {"kind": "trades", "shop": "mjforge"} -> ok
+2026-11-08 10:04:05 UTC model answered in 173 s (98729 chars in)
+2026-11-08 10:04:05 UTC digest updated from 1 entries (5 probes): facts 20, decisions 10, open_questions 7, for_shop 5, for_buyer 5, conflicts 5, briefing_buyer 6, briefing_shop 6, rankers_playbook 8, answers_for_buyer 5, answers_for_shop 0, wanted_data 4, rules_change 0, rank_change 0, market_flow 1049 (24231 chars)
+2026-11-08 10:04:05 UTC archived 1 entries and 1 old digests
+2026-11-08 10:04:05 UTC buyer_memory.json: 19 trades older than 48 h archived, 12649 kept
+2026-11-08 10:15:11 UTC buyer_memory.json: 34 trades older than 48 h archived, 12658 kept
+2026-11-08 10:16:37 UTC curating: 1 new entries
+2026-11-08 10:16:37 UTC probe for shop: {"kind": "question", "text": "Our class shop score fell from 0.944 (10:01) to 0.930 (10:15) while board shop ALL held at -> ok
+2026-11-08 10:16:37 UTC probe for shop: {"kind": "question", "text": "Settle leak: split our seller's 6h closes (~1538) vs settles (~1177) by grade (A/B/C) and  -> ok
+2026-11-08 10:17:00 UTC probe for shop: {"kind": "sku_prices", "sku": "G3434758a"} -> ok
+2026-11-08 10:17:13 UTC probe for shop: {"kind": "sku_prices", "sku": "Gb2392fa9"} -> ok
+2026-11-08 10:17:26 UTC probe for shop: {"kind": "sku_prices", "sku": "G80435d53"} -> ok
+2026-11-08 10:20:35 UTC model answered in 189 s (94150 chars in)
+2026-11-08 10:20:35 UTC digest updated from 1 entries (5 probes): facts 20, decisions 10, open_questions 8, for_shop 4, for_buyer 5, conflicts 5, briefing_buyer 6, briefing_shop 6, rankers_playbook 8, answers_for_buyer 0, answers_for_shop 5, wanted_data 4, rules_change 0, rank_change 327, market_flow 999 (23555 chars)
+2026-11-08 10:20:35 UTC archived 1 entries and 1 old digests
+2026-11-08 10:20:35 UTC buyer_memory.json: 52 trades older than 48 h archived, 12651 kept
+2026-11-08 10:30:11 UTC buyer_memory.json: 32 trades older than 48 h archived, 12654 kept
+2026-11-08 10:31:08 UTC curating: 1 new entries
+2026-11-08 10:31:08 UTC probe for buyer: {"kind": "trades", "outcome": "skipped (low value)"} -> ok
+2026-11-08 10:31:08 UTC probe for buyer: {"kind": "buyer", "name": "dae-yangkim"} -> ok
+2026-11-08 10:31:08 UTC probe for buyer: {"kind": "question", "text": "Per clock hour since 08:00 UTC, split by kind (food/goods): our deals, saved per deal, and -> ok
+2026-11-08 10:31:08 UTC probe for buyer: {"kind": "shop", "name": "psyoung82"} -> ok
+2026-11-08 10:31:08 UTC probe for buyer: {"kind": "question", "text": "At inextro in the last 6h, first ask over list by buyer (us, dae-yangkim, 11im) on the sam -> ok
+2026-11-08 10:35:37 UTC model answered in 269 s (94752 chars in)
+2026-11-08 10:35:37 UTC digest updated from 1 entries (5 probes): facts 20, decisions 10, open_questions 8, for_shop 5, for_buyer 5, conflicts 5, briefing_buyer 6, briefing_shop 6, rankers_playbook 8, answers_for_buyer 5, answers_for_shop 0, wanted_data 4, rules_change 0, rank_change 350, market_flow 1104 (24571 chars)
+2026-11-08 10:35:37 UTC archived 2 entries and 1 old digests
+2026-11-08 10:35:37 UTC buyer_memory.json: 24 trades older than 48 h archived, 12649 kept
+2026-11-08 10:45:13 UTC buyer_memory.json: 66 trades older than 48 h archived, 12646 kept
+2026-11-08 10:47:22 UTC curating: 1 new entries
+2026-11-08 10:47:22 UTC probe for shop: {"kind": "question", "text": "Our settle gap is 1518 seller closes vs 1171 settles in 6h, with 3 refusals. Split the ~35 -> ok
+2026-11-08 10:47:22 UTC probe for shop: {"kind": "question", "text": "Our star ratings over the last 24h by visit type: settled deal vs walk-away without an off -> ok
+2026-11-08 10:47:22 UTC probe for shop: {"kind": "knobs", "knob": "warranty_c"} -> ok
+2026-11-08 10:47:22 UTC probe for shop: {"kind": "shop", "name": "inextro"} -> ok
+2026-11-08 10:47:32 UTC probe for shop: {"kind": "sku_prices", "sku": "Gf6b70da8"} -> ok
+2026-11-08 10:51:36 UTC model answered in 243 s (99553 chars in)
+2026-11-08 10:51:36 UTC digest updated from 1 entries (5 probes): facts 20, decisions 10, open_questions 8, for_shop 5, for_buyer 6, conflicts 5, briefing_buyer 6, briefing_shop 6, rankers_playbook 8, answers_for_buyer 0, answers_for_shop 5, wanted_data 4, rules_change 0, rank_change 317, market_flow 1096 (25072 chars)
+2026-11-08 10:51:36 UTC archived 1 entries and 1 old digests
+2026-11-08 10:51:36 UTC buyer_memory.json: 31 trades older than 48 h archived, 12635 kept

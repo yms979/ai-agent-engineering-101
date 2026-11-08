@@ -67,7 +67,9 @@ def slope(hist, now):
 
 
 def decide(level, lead, s, held=1e9):
-    gone_in_24h = s is not None and s < 0 and lead + 24 * s < 0
+    # 11-08: the projection test ('gone within 24 h at this slope') fired at a 157M lead on a 2 h slope of -7.5M/h and
+    # switched every warranty off; a short slope is too jumpy to act on. The last resort is now the lead itself
+    gone_in_24h = False
     if lead < LEAD_ALL or gone_in_24h:
         return 0, f"lead {lead / 1e6:.0f}M" + (", gone within 24 h at this slope" if gone_in_24h else f" < {LEAD_ALL / 1e6:.0f}M")
     if level >= 1 and (lead < LEAD_B or (s is not None and s < SHRINK_B)):

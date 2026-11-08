@@ -109,7 +109,7 @@ Write (one JSON object, keys exactly as in the template at the end):
    the projected round-end saved minus the small deals bonus, ~0.235 at saved 0.228; it rises with our saved) and
    whether skip_below_goods / skip_below_food sit at it, and say to raise them when our saved has risen; item 2 where saved is lost (WATCH.where_saved_goes_24h: kind, category, shop, outcome;
    minus_one deals cost most; name the knob); then what saved_speed says about the last move (WATCH.saved_speed,
-   higher is better: since_last_move vs before_6h), what the ranking buyers do that ours does not, and what the shop
+   higher is better: since_last_move vs before_2h), what the ranking buyers do that ours does not, and what the shop
    strategist found that concerns it. Shop: item 0 the race (user 11-08: a dominant first place, a gap over the
    2nd and 3rd shops that grows): from WATCH.shop_race, WATCH.stars_diag (stars decide the shop race now: book
    and revenue split 1st/2nd with inextro; name the accounts and reasons that pull our per-account mean down and
@@ -271,7 +271,7 @@ def watch(rules_changed):
            "saved_speed": {"by_hour": hourly, "since_last_move": None if not last else {
                "hours": round((now - last) / 3600, 2),
                "speed": bs.saved_speed(bs.trades(last), (now - last) / 3600, base),
-               "before_6h": bs.saved_speed(bs.trades(last - 6 * 3600, last), 6, base),
+               "before_2h": bs.saved_speed(bs.trades(last - 2 * 3600, last), 2, base),
                "moves": [(e.get("knob"), e.get("sku"), e.get("value")) for e in eps if e["t"] == last]}}}
     out["buyer_formula"] = formula(b, hourly)
     out["where_saved_goes_24h"] = breakdown(bs, now)

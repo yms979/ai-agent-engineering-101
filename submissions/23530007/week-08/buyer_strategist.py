@@ -360,7 +360,7 @@ predictions are not yet due, when the numbers are on track, or when the evidence
 in the read why holding is right. Changing settings every run makes it impossible to tell what worked.
 the evidence). Steps allowed now: {steps}. At most {max_moves} moves, each with a prediction checkable later
 from our records: {{"metric": one of {metrics}, "category": "<optional>", "op": ">=" or "<=", "value": n,
-"hours": 1-6 (when it is scored; default 6)}}, and
+"hours": 1-6 (when it is scored; default 2: user 11-08, 6 h is too long to see a change)}}, and
 "uses": the lesson ids it relies on. Think about the trade: a lower cap raises saved per deal but loses deals.
 
 Your record: {record}
@@ -540,7 +540,7 @@ def run(force=False):
             else:
                 auto.setdefault("globals", {})[knob] = new
         try:
-            hours = min(6.0, max(1.0, float(pred.get("hours") or 6)))
+            hours = min(6.0, max(1.0, float(pred.get("hours") or 2)))
         except (TypeError, ValueError):
             hours = 6.0
         mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + hours * 3600, "saved_at": b["buyer"].get("saved"), "knob": knob, "sku": key, "value": new,

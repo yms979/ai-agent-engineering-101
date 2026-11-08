@@ -34,7 +34,7 @@ UP_TO_A, UP_TO_B = 60e6, 90e6          # raising bars (with a growing lead)
 SHRINK_B = -1.5e6                      # 11-08: B goes off only on a clear shrink; -0.2M/h flipped it 5 times a night
 GROW_UP = 1.0e6                        # and comes back only on a clear growth
 HOLD_UP = 2 * 3600                     # held this long at a level before going back up
-SLOPE_HOURS, KEEP = 4, 24 * 3600
+SLOPE_HOURS, KEEP = 2, 24 * 3600    # 11-08 user: trends over 1-2 h, not 4-6 h
 GRADES = {2: ["A", "B", "C"], 1: ["A"], 0: []}     # 11-08: C carries the warranty too (user)
 
 

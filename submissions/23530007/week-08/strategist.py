@@ -225,7 +225,7 @@ def current_base(k):
     return base.get(k)
 
 
-def settle_health(hours=6):
+def settle_health(hours=2):
     """Our seller's closed deals against the market's settles and refusals in the last `hours`, from the kit log
     (11-08: 129 warranted receipts in a row were refused at settle and nobody saw it for ~10 h). The kit log has
     clock times only, so lines are dated walking back from the end (a jump forward in time = the previous day)."""
@@ -329,7 +329,8 @@ market_read what each rival is doing, where the gap is moving and why, and which
 Example (11-08 night): inextro sold big furniture at 0.66 of list, 60-80 an hour, while our warranted goods failed
 to settle (8760 h warranty) and our book stalled; the lead fell 122M -> 107M. Diagnose first, then answer on the
 part they gain on.
-At most {max_moves} moves. Each move: a prediction checkable 6 h later from our records,
+At most {max_moves} moves. Each move: a prediction checkable 2 h later from our records (user 11-08: 6 h is too long to
+see a change; judge moves within 1-2 h),
   {{"metric": one of {metrics}, "sku": "...", "op": ">=" or "<=", "value": number}},
 and "uses": the ids of the playbook lessons it relies on.
 
@@ -586,7 +587,7 @@ def run(force=False):
                 auto.setdefault("sku", {}).setdefault(sku, {})[knob] = new
             else:
                 auto.setdefault("globals", {})[knob] = new
-        mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + 6 * 3600, "knob": knob, "sku": sku, "value": new,
+        mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + 2 * 3600, "knob": knob, "sku": sku, "value": new,
                          "why": str(mv.get("why")), "uses": [str(x) for x in (mv.get("uses") or [])][:5],
                          "prediction": pred, "applied": applied})
     if mode == "apply":

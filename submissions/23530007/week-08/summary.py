@@ -22,8 +22,8 @@ HERE = Path(__file__).resolve().parent
 STATE = HERE / ".market" / "summary_state.json"
 NAME = "yms979"
 EVERY = 3600 - 120            # cron runs every 15 min; a little slack so it lands on the hour's run
-WINDOW = 13 * 3600            # rates are measured over the last ~12 h of snapshots (6 h was too noisy; +1 h slack)
-MIN_SPAN = 3600               # and need at least 1 h of them
+WINDOW = int(2.5 * 3600)      # rates over the last ~2 h of snapshots (user 11-08: 6 h is too long; 2 h or 1 h)
+MIN_SPAN = 1800               # and need at least 30 min of them
 KEEP = 48 * 3600
 ROUND_END = datetime(2026, 11, 17, 14, 59, tzinfo=timezone.utc)
 KST = timezone(timedelta(hours=9))

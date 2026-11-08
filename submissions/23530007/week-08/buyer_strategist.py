@@ -367,6 +367,12 @@ Your record: {record}
 Your playbook: {playbook}
 Evidence: {evidence}
 
+WHEN THE USER IS SILENT (user 11-08: 'if I do not answer, can't you or the agent decide?'): do not wait on the user for
+anything you can undo. Decide on the evidence, prefer the option that is easy to reverse, alert the user with what you
+did and why, and keep it under watch. A question you put to the user that has no answer (evidence "from_operator"
+holds no reply to it) after ~60 minutes is yours to decide the same way. Only these wait for the user: spending money
+for no sale (e.g. paid dislike votes), anything aimed at a classmate (conduct rule: no unjustified hits), and a change
+to the goals themselves.
 ALERTING THE USER (user 11-08: 'why did I find this and not the agent?'): when you find something the user must
 know now, put it in "alert_user" (it goes to their phone at once); keep it empty otherwise.
 Answer with one JSON object only:

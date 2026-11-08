@@ -174,7 +174,46 @@ def pick_unit(text, held, now):
         # none lasts the stated need: no sale. Selling the freshest anyway drew 19 low reviews on 11-05
         # ("Only 3.5 h of shelf life left; I needed 12.0 h") and is worth nothing to that buyer
         return min(lasting, key=lambda u: u["expires_at"]) if lasting else None
+    # 11-08: goods buyers often say they will not pay for grade C ("Grade A or B only", "I will not buy grade C",
+    # "I buy grade A"); we still handed them our oldest unit, often C, and their kit refused it at checkout:
+    # 117 of 338 grade C goods closes in 6 h never settled (36.8M). Honour the stated grades; when the buyer
+    # takes C only with a warranty and C carries none here, C is out too. Nothing that fits: no sale.
+    want = ok_grades(text)
+    if want:
+        fit = [u for u in fit if (u.get("grade") or "A") in want] or None
+        if not fit:
+            return None
     return min(fit, key=lambda u: u.get("supplied_at") or 0)
+
+
+NO_C = re.compile(r"(grade\s*)?A\s*(or|/)\s*B\s*(grade\s*)?only|only\s*grade\s*A|not\s*(buy|pay\s*for|take)\s*grade\s*C|"
+                  r"no\s*grade\s*C|grade\s*C\s*(is\s*)?not|A\s*/\s*B\s*only|I buy grade A", re.I)
+ONLY_A = re.compile(r"(only|just)\s*grade\s*A\b|grade\s*A\s*only", re.I)
+C_WITH_WARRANTY = re.compile(r"grade\s*C[^.]{0,80}warranty|C\s*\(refurbished\)[^.]{0,80}warranty", re.I)
+
+
+def ok_grades(text):
+    """The goods grades a buyer's first message says it will pay for, else None (no restriction stated).
+    B or C with a warranty count only when our policy gives that grade a warranty."""
+    p = shop_policy_now()
+    warranted = set(p.get("warranty_grades", [])) if p.get("warranty_hours") else set()
+    if ONLY_A.search(text):
+        ok = {"A"} | ({"B"} & warranted if re.search(r"grade\s*B[^.]{0,40}warranty", text, re.I) else set())
+        return ok
+    if NO_C.search(text):
+        return {"A", "B"}
+    if C_WITH_WARRANTY.search(text) and "C" not in warranted:
+        return {"A", "B"}
+    return None
+
+
+def shop_policy_now():
+    try:
+        from policy import shop_params
+        r = shop_params()
+        return next((x for x in r if isinstance(x, dict)), {})
+    except Exception:
+        return {}
 
 
 def last_number(text, ref=None):

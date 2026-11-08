@@ -211,6 +211,7 @@ def evidence(m, mem, b):
             "globals_now": {k: (auto.get("globals") or {}).get(k, current_base(k)) for k in GLOBAL},
             "market_picture": market_picture(), "your_watch_list": w.get("watch", []),
             "settle_health": settle_health(), "lead_guard": read(HERE / ".market" / "warranty_guard.json", {}).get("why"),
+            "from_operator": read(HERE / "operator_to_shop.json", {}).get("note") or None,
             "woken_by": w.get("woken_by")}
 
 
@@ -341,6 +342,9 @@ Your playbook:
 Evidence:
 {evidence}
 
+THE OPERATOR (11-08): evidence "from_operator" may hold a note or question from the operator and the user (e.g. why
+a setting changed outside your knobs). Take it as fact about our own system, answer it in "answer_to_operator" when
+it asks, and decide on it with your evidence.
 ALERTING THE USER (user 11-08: 'why did I find this and not the agent?'): when you find something the user must
 know now, put it in "alert_user" (it goes to their phone at once); keep it empty otherwise.
 Answer with one JSON object only:
@@ -350,6 +354,7 @@ Answer with one JSON object only:
   "requests": [{{"kind": "sku_prices"|"category"|"competitor"|"unserved"|"rules"|"buyer"|"shop"|"knobs"|"trades"|"question", ...}}],
   "watch": [{{"metric": "surge"|"market_units"|"our_stock"|"class_rank", "sku": "...", "op": ">="|"<=", "value": n, "why": "..."}}],
   "notes_for_buyer": ["<what the buyer strategist should know or check, from what you saw>"],
+  "answer_to_operator": "<only when evidence 'from_operator' asks: your answer with numbers>",
   "alert_user": ["<Korean, 1-3 short items, ONLY for what the user must know now: a threat to first place (a rival's
                  jump, our score falling), money leaking (deals not settling, refunds), a fault, a rule change, or a
                  decision only the user can make; give the number and what you do about it. Usually empty.>"]
@@ -517,6 +522,10 @@ def run(force=False):
         mem.save()
         return
     log(f"[{mode}] market read: {str(ans.get('market_read'))[:1200]}")
+    if ans.get("answer_to_operator") and read(HERE / "operator_to_shop.json", {}).get("note"):
+        (HERE / "shop_answer_to_operator.json").write_text(json.dumps({"t": time.time(), "answer": ans["answer_to_operator"]},
+                                                                      ensure_ascii=False, indent=1), encoding="utf-8")
+        log(f"answered the operator: {str(ans['answer_to_operator'])[:600]}")
     sent = model_env.alert_user("shop", ans.get("alert_user"))
     if sent:
         log(f"alerted the user: {sent}")

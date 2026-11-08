@@ -388,7 +388,11 @@ class Shop(AgentExecutor):
                 floor = max(floor, round(u["list_price"] * min_share))
                 record(event="rival", task=task.id, who=who, sku=u["sku"], floor=floor)
             ask = round100(min(u["list_price"], max(floor, u["list_price"] * share)))
-            d = self.open[task.id] = {"unit": u, "grade": grade, "floor": floor, "ask": max(ask, floor),
+            asked = None
+            if not SKU.search(text) and u.get("category"):
+                leaf = u["category"].split(">")[-1]
+                asked = leaf if leaf.lower() in text.lower() else None
+            d = self.open[task.id] = {"unit": u, "grade": grade, "floor": floor, "ask": max(ask, floor), "asked": asked,
                                       "offers": [], "seen": now, "regime": regime, "meet": p["meet_frac"],
                                       "warranty": p["warranty_hours"] if grade in p["warranty_grades"] else 0,
                                       "clear": round(c, 2),
@@ -434,7 +438,11 @@ class Shop(AgentExecutor):
 
     async def close(self, up, say, tid, d, price):
         u = d["unit"]
-        rec = sign_receipt(NAME, u["sku"], price, tid)
+        # 11-08: a buyer that asked by category ("I want to buy a 침구") got a receipt naming the SKU and rated it
+        # 1 ("SCAM. Ordered 침구, receipt names Gcc75125e. This shop forges receipts."). The market takes the order's
+        # item or one of its SKUs on a receipt, and the unit and certificate still name the SKU shipped: name what
+        # the buyer asked for
+        rec = sign_receipt(NAME, d.get("asked") or u["sku"], price, tid)
         if u["unit"]:
             rec.update(unit=u["unit"], claim=d["grade"])
             if u.get("kind") == "goods" and d["warranty"] > 0:

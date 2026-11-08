@@ -273,6 +273,7 @@ def wtext(hours):
             else f"{hours:g} h warranty")
 
 
+RECENT_HOLD = 300   # s an agreed unit is kept from other buyers while its checkout settles
 RIVALS = HERE / "rival_buyers.json"
 _rivals = [0.0, {}]
 
@@ -291,6 +292,7 @@ def rival(text):
 class Shop(AgentExecutor):
     def __init__(self):
         self.open = {}      # task id -> deal
+        self.closed = {}    # 11-08: unit -> when we agreed it; held RECENT_HOLD s so it is not sold twice before it settles
         self.cached = (0, None)
         self.asks = {}                                    # category -> competitors' first asks / list price
         self.scarce = set()                               # SKUs that keep selling out
@@ -359,6 +361,11 @@ class Shop(AgentExecutor):
                 await up.reject(say("Sorry, we are not able to take this order."))
                 return
             held = {x["unit"]["unit"] for x in self.open.values() if x["unit"]["unit"]}
+            # 11-08: a unit we agreed stays in inventory.json until the market settles it, and we sold it again: 38
+            # units went 2-10 times in 3 h and the later buyer's checkout was refused 'unit not in stock' (10-14/h).
+            # Hold an agreed unit for RECENT_HOLD s; if that buyer never pays it comes back after that
+            self.closed = {k: v for k, v in self.closed.items() if now - v < RECENT_HOLD}
+            held |= set(self.closed)
             u = pick_unit(text, held, now)
             if u is None:
                 log("seller", f"task {task.id[:8]} nothing in stock for {text[:80]!r}")
@@ -456,6 +463,8 @@ class Shop(AgentExecutor):
                grade=d["grade"], unit=u["unit"], offers=d["offers"], regime=d["regime"], first_ask=d["first_ask"],
                clear=d["clear"], comp=d["comp"], slow=d["slow"])
         log("seller", f"task {tid[:8]} deal {u['sku']} at {price} (cost {u['cost']}, floor {d['floor']})")
+        if u.get("unit"):
+            self.closed[u["unit"]] = time.time()
         del self.open[tid]
         await up.complete(say(f"Deal: {u['name']} at {price}. The receipt is signed; the unit ships with the "
                               f"market's certificate. An honest review helps us.", price))

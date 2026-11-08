@@ -428,12 +428,15 @@ def learn(m, mem, auto):
             f"{'HIT' if ok else 'MISS'} (lessons {e.get('uses')})")
         if not ok:
             new_misses += 1
+            b4 = e.get("before")                    # 11-08: restore the value before the move, not the base
             if e.get("applied") and e["knob"] in KNOBS and e.get("sku"):
-                ((auto.setdefault("sku", {})).get(e["sku"]) or {}).pop(e["knob"], None)
-                log(f"reverted {e['knob']} on {e['sku']}: its prediction failed")
+                d_ = (auto.setdefault("sku", {})).setdefault(e["sku"], {})
+                d_.pop(e["knob"], None) if b4 is None else d_.__setitem__(e["knob"], b4)
+                log(f"reverted {e['knob']} on {e['sku']} to {b4}: its prediction failed")
             elif e.get("applied") and e["knob"] in GLOBAL:
-                auto.setdefault("globals", {}).pop(e["knob"], None)
-                log(f"reverted global {e['knob']}: its prediction failed")
+                d_ = auto.setdefault("globals", {})
+                d_.pop(e["knob"], None) if b4 is None else d_.__setitem__(e["knob"], b4)
+                log(f"reverted global {e['knob']} to {b4}: its prediction failed")
     rec = mem.record()
     for knob, k in rec["by_kind"].items():           # how far each kind of move may go
         if len(k["last"]) >= 8:
@@ -587,7 +590,7 @@ def run(force=False):
                 auto.setdefault("sku", {}).setdefault(sku, {})[knob] = new
             else:
                 auto.setdefault("globals", {})[knob] = new
-        mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + 2 * 3600, "knob": knob, "sku": sku, "value": new,
+        mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + 2 * 3600, "knob": knob, "sku": sku, "value": new, "before": cur,
                          "why": str(mv.get("why")), "uses": [str(x) for x in (mv.get("uses") or [])][:5],
                          "prediction": pred, "applied": applied})
     if mode == "apply":

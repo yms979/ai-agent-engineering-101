@@ -6,10 +6,12 @@
   "skip_below": 0.24,
   "cap_margin": 0.05,
   "open_offset": 0.03,
-  "skip_below_goods": 0.3,
-  "cheapgoods_share": 0.0,
+  "skip_below_goods": 0.28,
   "wpen_share": 0.0,
-  "skubest_share": 0.7
+  "skubest_share": 0.6,
+  "quick_accept": 0.67,
+  "gradeaware_share": 0.4,
+  "cheapgoods_share": 0.0
  },
  "category": {
   "침구": {},
@@ -24,17 +26,17 @@
   },
   "반찬/젓갈": {}
  },
- "t": 1794133803.631638,
+ "t": 1794148203.2086904,
  "shop": {
   "25620027": {},
   "nocha12": {
-   "shop_bias": 0.0
+   "shop_bias": 0.03
   },
   "jiseokkk": {
    "shop_bias": 0.0
   },
   "mjforge": {
-   "shop_bias": -0.06
+   "shop_bias": -0.03
   },
   "buzllightyear": {
    "shop_bias": -0.03
@@ -54,13 +56,16 @@
    "shop_bias": -0.03
   },
   "inextro": {
-   "shop_bias": 0.03
+   "shop_bias": 0.06
   },
   "kimauve": {
    "shop_bias": -0.03
   },
   "choo-chu": {
    "shop_bias": -0.06
+  },
+  "shaun0927-lab1": {
+   "shop_bias": 0.03
   }
  }
 }

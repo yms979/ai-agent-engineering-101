@@ -436,13 +436,20 @@ def run(force=False):
         if not ok:
             mem.d["unreflected"] = mem.d.get("unreflected", 0) + 1
             if e.get("applied"):
+                # 11-08: a revert restores the value from before the move; it used to drop the key, so the knob fell
+                # back to params.json base (cheapgoods_share went 0 -> 0.9 at 14:00 after a 0.1 -> 0 move missed)
+                b4 = e.get("before")
                 if e["knob"] in CAT:
-                    ((auto.setdefault("category", {})).get(e["sku"]) or {}).pop(e["knob"], None)
+                    d_ = (auto.setdefault("category", {})).setdefault(e["sku"], {})
                 elif e["knob"] in SHOP:
-                    ((auto.setdefault("shop", {})).get(e["sku"]) or {}).pop(e["knob"], None)
+                    d_ = (auto.setdefault("shop", {})).setdefault(e["sku"], {})
                 else:
-                    auto.setdefault("globals", {}).pop(e["knob"], None)
-                log(f"reverted {e['knob']} {e.get('sku') or ''}: its prediction failed")
+                    d_ = auto.setdefault("globals", {})
+                if b4 is None:
+                    d_.pop(e["knob"], None)
+                else:
+                    d_[e["knob"]] = b4
+                log(f"reverted {e['knob']} {e.get('sku') or ''} to {b4}: its prediction failed")
     rec = mem.record()
     for knob, k in rec["by_kind"].items():
         if len(k["last"]) >= 8:
@@ -543,7 +550,7 @@ def run(force=False):
             hours = min(6.0, max(1.0, float(pred.get("hours") or 2)))
         except (TypeError, ValueError):
             hours = 6.0
-        mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + hours * 3600, "saved_at": b["buyer"].get("saved"), "knob": knob, "sku": key, "value": new,
+        mem.add_episode({"t": mem.d["t"], "due": mem.d["t"] + hours * 3600, "saved_at": b["buyer"].get("saved"), "knob": knob, "sku": key, "value": new, "before": cur,
                          "why": str(mv.get("why")), "uses": [str(x) for x in (mv.get("uses") or [])][:5],
                          "prediction": pred, "applied": applied})
     if mode == "apply":

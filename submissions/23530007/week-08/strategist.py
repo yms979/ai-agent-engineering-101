@@ -225,26 +225,53 @@ def current_base(k):
 
 
 def settle_health(hours=6):
-    """Our seller's closed deals against the market's settles and refusals, from the kit log (11-08: 129 warranted
-    receipts in a row were refused at settle and nobody saw it for ~10 h)."""
+    """Our seller's closed deals against the market's settles and refusals in the last `hours`, from the kit log
+    (11-08: 129 warranted receipts in a row were refused at settle and nobody saw it for ~10 h). The kit log has
+    clock times only, so lines are dated walking back from the end (a jump forward in time = the previous day)."""
     import re
     from collections import Counter
     cut = time.time() - hours * 3600
     deals = sum(1 for line in open(HERE / "seller_r3_log.jsonl", encoding="utf-8")
                 if '"deal"' in line and json.loads(line).get("t", 0) >= cut)
-    settled, refused, why = 0, 0, Counter()
-    try:
-        for line in open(HERE / "logs" / "market-kit.log", encoding="utf-8", errors="ignore"):
-            if "[acp] settled" in line:
-                settled += 1
-            elif "[acp] settle refused" in line or "[acp] checkout refused" in line:
-                refused += 1
-                why[re.sub(r"u-[0-9a-f]+", "u-…", line.split("refused", 1)[1].strip())[:80]] += 1
+    lines = []
+    try:                                            # the log rotates (~every 6-12 h): read the last archive too
+        import gzip
+        arch = sorted((HERE / "logs" / "archive").glob("market-kit-*.log.gz"))
+        if arch:
+            lines = gzip.open(arch[-1], "rt", encoding="utf-8", errors="ignore").read().splitlines()
     except OSError:
         pass
-    return {"window_h": hours, "seller_deals": deals, "kit_log_settled": settled, "kit_log_refused": refused,
-            "refusal_reasons": dict(why.most_common(5)),
-            "note": "kit log counts cover the log since its last rotation; compare the ratio, not the totals"}
+    try:
+        lines += (HERE / "logs" / "market-kit.log").read_text(encoding="utf-8", errors="ignore").splitlines()
+    except OSError:
+        pass
+    day0 = time.time() - time.time() % 86400
+    settled, refused, why, last_restart = 0, 0, Counter(), None
+    prev, day = None, day0
+    for line in reversed(lines):
+        m = re.match(r"(\d\d):(\d\d):(\d\d) ", line)
+        if not m:
+            continue
+        sec = int(m[1]) * 3600 + int(m[2]) * 60 + int(m[3])
+        if prev is not None and sec > prev + 3600:       # walked back past midnight
+            day -= 86400
+        prev = sec
+        t = day + sec
+        if t > time.time() + 60:                          # the last lines can belong to 'yesterday' right after 00:00
+            day -= 86400; t -= 86400
+        if t < cut:
+            break
+        if "[kit] market_kit" in line and last_restart is None:
+            last_restart = time.strftime("%H:%M UTC", time.gmtime(t))
+        if "[acp] settled" in line:
+            settled += 1
+        elif "[acp] settle refused" in line or "[acp] checkout refused" in line:
+            refused += 1
+            why[re.sub(r"u-[0-9a-f]+", "u-…", line.split("refused", 1)[1].strip())[:80]] += 1
+    return {"window_h": hours, "seller_deals": deals, "market_settled": settled, "refused": refused,
+            "refusal_reasons": dict(why.most_common(5)), "last_kit_restart": last_restart,
+            "note": "the 8760 h warranty was refused at settle until 11-08 01:03 UTC (72 h since); refusals from "
+                    "before that are history, not a live fault"}
 
 
 DECIDE = """You are the strategist of an agent shop and buyer (yms979) in a course market. Your job: read the

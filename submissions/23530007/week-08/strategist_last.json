@@ -1,75 +1,67 @@
 {
- "t": 1794017702.9242074,
+ "t": 1794129302.4599614,
  "mode": "apply",
  "answer": {
-  "market_read": "Curator digest: rank 4 at 1.586. The gap to Lee-sungsoo (0.063) sits entirely in the buyer part. Our shop part is 0.935 and shop ALL is 0.942 against inextro's 0.949. Book is rank 1 at 742.7M vs inextro's 703.3M, a 39M lead. The briefing says to protect book and leave the buyer to close the gap, and I agree with both. Market flow is flat: sofas -1%, beds -1%, bedding -1%. Nothing structural changed since 01:46. Our top sellers all have cover above 1h: Mate 40 units at ~7.7/h (~5h), NAMU 43 at ~16/h (~2.7h), pad G75f11c19 21 at 7/h (~3h), goose duvet 38 at ~5.8/h (~6.5h), Riposo 25 at ~2.8/h (~9h). No top seller is starved. Apple is at 0, but its surge is now 1.06, back under SURGE_MAX 1.15 and under the 1.12 resume level. Restock should refill it on its own at cover 1.0, so no apple move is needed. Several reads fall due in the next ~4h: meal sauce, Lumi SS ask 0.9 (~03:15), pillow (~03:46), mesh chair and curtain cover 1.5, Jasmine 0.90 (~06:30), and the apple supply stop. Under L58 that means hold every knob; a neighbouring move would reshuffle restock's line ranking and blur those reads. The aged piles have no working lever this run. Ace (41, oldest 25.9h), Sweet (32, 23.2h), Ward (32, 21.2h) and Lumi SS (31, 34.9h) all sit above restock's target, so a cover cut does not bite (L56/L17). Ask writes on these SKUs have not persisted (F41), so an ask move there would be an unreadable prediction. Lacloud is one open question: 12 sold in 6h vs a 24h pace of ~38 per 6h, even at ask 0.9 and with the market rate holding. I ask whether that 0.9 is actually applied before acting. Holding is the right call: book leads, cash is 203M, no top seller is under 1h, and many reads are pending.",
+  "market_read": "No rule change in the digest. We are class 1st at 1.652, ahead of Lee by +0.026 and dragonash22 by +0.031. Shop race: ours 0.955 vs inextro 0.934. The book lead grew 145M -> 152M, and the cause is on inextro's side: its book fell ~5M while it sells warranted beds and sofas at x0.662, 99% warranted, 976 deals/6h. Ours sells at x0.703. Revenue gap 2.15B (we are 2nd of 57), stars 4.60 vs 4.71 (we are 23rd of 57). Stars are the part where our percentile can still rise most. The warranty read on stars is due by 14:00, so warranty and ask_share stay put until then. The total rivals' shops show no jump: Lee 0.744, dragonash22 0.747 and Kiro729 0.798 all slipped 0.003-0.004, and their stars sit at 4.39-4.48. I was woken by apple surge 1.088, just past my 1.08 trigger. Margin was ~4.3k/unit (15%) over 24h, and the extra ~9% cost leaves ~10%, still positive. Apple refills every window (hold 0.6h, 127/6h, 30 sold-out asks). My earlier trim on apple at surge 1.204 missed badly: predicted <=25, it sold 172. The 2.0 cover was set only 30 min ago to cut the empty visits that may cost stars. A trim now would blur that read for a ~1.5k/unit cost gain, so I hold and move the trigger to 1.12. Restock itself stops at 1.15. One open diagnosis: several bed/chair SKUs fell under 15% of their 24h rate at unchanged knobs: Greentea Q 1 sold/6h vs 53/24h, Lilo 0 vs 22, Cloud Lux 1 vs 25, Ace 1 vs 18. Over the same 6h, market beds are +15%, so demand is not the cause. Plumbing is also ruled out for goods: the 20 refusals are 'not in stock' and the ~360 settles with no fate are food-side. That leaves a common price cause per L106 (inextro or others undercutting at ~0.62-0.66). These piles are small at cost (~40M together), and the per-SKU ask step 0.00625 cannot reach the band. A global intel_undercut move would also cut margin on Mate, which sells 88/6h at a 203k margin. So I ask for the competitor asks before moving. The play is book, which is protected (L1/L29), while stars are read at 14:00. Holding is right this run.",
   "moves": [],
   "lessons": [
    {
     "op": "add",
-    "id": "L59",
-    "text": "Before an ask move on a SKU, check that knobs_now shows a previous ask write held on it. Where earlier ask writes vanished (Ward G47788edd, Sweet Gb5d0dde7, Ace G8095ddd6, Plana 4 G24f5f979, per F41), do not make ask moves; their outcomes cannot be read. Hold, or use cover only where restock's target is above stock (L56).",
-    "why": "Four recent ask misses on these SKUs (predicted 6-9 sold, got 0-2) coincide with the knob store showing no ask. The miss came from the write being lost, not from the price logic."
+    "id": "L107",
+    "text": "A surge watch that fires just past its trigger (within ~0.02) on a perishable that refills every window (avg_hold <= 0.6h), shortly after a cover change: hold unless margin per unit is computed under ~8%. Cover trims there do not bite (apple cover 0.5 at surge 1.204 still sold 172 vs <=25 predicted). Re-arm the watch higher instead, below restock's SURGE_MAX 1.15.",
+    "why": "11-08 09:15: apple fired at 1.088 with ~10% margin left, 30 min after cover 2.0. Flipping would erase the read on no-stock asks and stars."
    }
   ],
   "requests": [
    {
-    "kind": "knobs",
-    "sku": "G03d0199f"
+    "kind": "sku_prices",
+    "sku": "G0667d440"
    },
    {
     "kind": "sku_prices",
-    "sku": "G03d0199f"
+    "sku": "G429bd69e"
    },
    {
-    "kind": "sku_prices",
-    "sku": "Gef4d3036"
-   },
-   {
-    "kind": "question",
-    "text": "Why do ask writes on Ward G47788edd, Sweet Gb5d0dde7, Ace G8095ddd6 and Plana 4 G24f5f979 disappear from the knob store while cover writes persist? Does seller_r3 read the per-SKU ask factor for SKUs that have no previous entry, and does anything overwrite or expire them?"
+    "kind": "shop",
+    "name": "inextro"
    },
    {
     "kind": "question",
-    "text": "Our goods breaks by grade over the last 24h (A/B/C counts, list value), and how many bed/sofa walk-aways had a rival offering warranty. This would size a warranty policy for the human."
+    "text": "For goods SKUs past slow_hours (24h) and clear_window_hours (48h), e.g. Ace G8095ddd6 56h and Ward G47788edd 52h: what ask does seller_r3 actually post now, as a fraction of list, and does clear_ask_min 0.6 ever apply? I need it to tell whether slow_hours/slow_ask_cut can reach the 0.62-0.66 settle band."
+   },
+   {
+    "kind": "question",
+    "text": "Per-SKU in the last 6h: Greentea Q, Lilo, Cloud Lux S Q, Ace BMA. How many buyers asked us, what was our first ask/list, and what was the lowest competitor ask they saw? This tests whether a common undercut (L106) explains their drop from 24h rates."
    }
   ],
   "watch": [
-   {
-    "metric": "our_stock",
-    "sku": "G021aae64",
-    "op": "<=",
-    "value": 12,
-    "why": "NAMU sells ~16/h with 43 units and cover 0.5. At 12 units it has under 1h of cover; check whether restock's target is under stock before any cover step (L56)."
-   },
-   {
-    "metric": "our_stock",
-    "sku": "G75f11c19",
-    "op": "<=",
-    "value": 6,
-    "why": "Mattress pad sells ~7/h with 21 units at cover 0.5, surge 1.066. If it drains under 1h, weigh a cover step while surge stays under 1.08."
-   },
    {
     "metric": "surge",
     "sku": "Gef4d3036",
     "op": ">=",
     "value": 1.12,
-    "why": "Apple surge has fallen back to 1.06 and restock should resume at cover 1.0. If surge climbs past 1.12 again, recheck the cover (L7)."
+    "why": "Apple at cover 2.0. Past 1.12 the margin is ~6% or less; then trim to 1.5 (L7/L107). Held at 1.088."
    },
    {
     "metric": "our_stock",
     "sku": "G8ec51935",
     "op": "<=",
-    "value": 10,
-    "why": "Mate 4-seat is the largest value seller (~7.7/h, 40 units, cover 0.5). Under ~1.3h of cover, check restock's target before raising cover."
+    "value": 12,
+    "why": "Mate is the top margin earner (88 sold/6h). Under ~1h of cover, check for a cut restock line."
+   },
+   {
+    "metric": "class_rank",
+    "sku": "",
+    "op": ">=",
+    "value": 2,
+    "why": "Lead is 0.026. If we lose 1st, re-check the shop parts against the rival who passed."
    }
   ],
   "notes_for_buyer": [
-   "Shop holds every knob this run, so none of the buyer's pending reads (psyoung82 cap at 06:00, olstjr at ~05:00) are disturbed from the shop side.",
-   "Apple surge fell to 1.06; our apple restock should resume, which restores a cheap food line choo-chu and others buy from us. No shop price change on food.",
-   "Shop does not see an 'unpaid: not paying' pattern it can fix with knobs; if the buyer's prefix-match probe shows it at specific shops, it is a kit accept-filter issue for the human.",
-   "Our goods stay at 0% warranty. The warranty question is queued with the curator as a human call and does not affect the buyer's shop choice for our shop."
+   "Book lead is 152M and growing (inextro book -5M in the last read). It is far above your 90M line, so inextro +0.03 is fine from the shop side.",
+   "Settle health: 1549 seller closes vs 1167 settles/6h. 20 refusals were 'unit not in stock'; the rest have no fate and are food-side. Of your 409 / unpaid checkouts, if any landed at our shop, a double-sold unit is the likely cause; please pass the shop and time.",
+   "I hold all shop prices until the 14:00 stars read. Our goods sit at x0.703, so we are not a cheap source for your goods bar 0.30; that is expected."
   ]
  },
- "raw": "8/h (~6.5h), Riposo 25 at ~2.8/h (~9h). No top seller is starved. Apple is at 0, but its surge is now 1.06, back under SURGE_MAX 1.15 and under the 1.12 resume level. Restock should refill it on its own at cover 1.0, so no apple move is needed. Several reads fall due in the next ~4h: meal sauce, Lumi SS ask 0.9 (~03:15), pillow (~03:46), mesh chair and curtain cover 1.5, Jasmine 0.90 (~06:30), and the apple supply stop. Under L58 that means hold every knob; a neighbouring move would reshuffle restock's line ranking and blur those reads. The aged piles have no working lever this run. Ace (41, oldest 25.9h), Sweet (32, 23.2h), Ward (32, 21.2h) and Lumi SS (31, 34.9h) all sit above restock's target, so a cover cut does not bite (L56/L17). Ask writes on these SKUs have not persisted (F41), so an ask move there would be an unreadable prediction. Lacloud is one open question: 12 sold in 6h vs a 24h pace of ~38 per 6h, even at ask 0.9 and with the market rate holding. I ask whether that 0.9 is actually applied before acting. Holding is the right call: book leads, cash is 203M, no top seller is under 1h, and many reads are pending.\",\n \"moves\": [],\n \"lessons\": [\n  {\"op\": \"add\", \"id\": \"L59\", \"text\": \"Before an ask move on a SKU, check that knobs_now shows a previous ask write held on it. Where earlier ask writes vanished (Ward G47788edd, Sweet Gb5d0dde7, Ace G8095ddd6, Plana 4 G24f5f979, per F41), do not make ask moves; their outcomes cannot be read. Hold, or use cover only where restock's target is above stock (L56).\", \"why\": \"Four recent ask misses on these SKUs (predicted 6-9 sold, got 0-2) coincide with the knob store showing no ask. The miss came from the write being lost, not from the price logic.\"}\n ],\n \"requests\": [\n  {\"kind\": \"knobs\", \"sku\": \"G03d0199f\"},\n  {\"kind\": \"sku_prices\", \"sku\": \"G03d0199f\"},\n  {\"kind\": \"sku_prices\", \"sku\": \"Gef4d3036\"},\n  {\"kind\": \"question\", \"text\": \"Why do ask writes on Ward G47788edd, Sweet Gb5d0dde7, Ace G8095ddd6 and Plana 4 G24f5f979 disappear from the knob store while cover writes persist? Does seller_r3 read the per-SKU ask factor for SKUs that have no previous entry, and does anything overwrite or expire them?\"},\n  {\"kind\": \"question\", \"text\": \"Our goods breaks by grade over the last 24h (A/B/C counts, list value), and how many bed/sofa walk-aways had a rival offering warranty. This would size a warranty policy for the human.\"}\n ],\n \"watch\": [\n  {\"metric\": \"our_stock\", \"sku\": \"G021aae64\", \"op\": \"<=\", \"value\": 12, \"why\": \"NAMU sells ~16/h with 43 units and cover 0.5. At 12 units it has under 1h of cover; check whether restock's target is under stock before any cover step (L56).\"},\n  {\"metric\": \"our_stock\", \"sku\": \"G75f11c19\", \"op\": \"<=\", \"value\": 6, \"why\": \"Mattress pad sells ~7/h with 21 units at cover 0.5, surge 1.066. If it drains under 1h, weigh a cover step while surge stays under 1.08.\"},\n  {\"metric\": \"surge\", \"sku\": \"Gef4d3036\", \"op\": \">=\", \"value\": 1.12, \"why\": \"Apple surge has fallen back to 1.06 and restock should resume at cover 1.0. If surge climbs past 1.12 again, recheck the cover (L7).\"},\n  {\"metric\": \"our_stock\", \"sku\": \"G8ec51935\", \"op\": \"<=\", \"value\": 10, \"why\": \"Mate 4-seat is the largest value seller (~7.7/h, 40 units, cover 0.5). Under ~1.3h of cover, check restock's target before raising cover.\"}\n ],\n \"notes_for_buyer\": [\n  \"Shop holds every knob this run, so none of the buyer's pending reads (psyoung82 cap at 06:00, olstjr at ~05:00) are disturbed from the shop side.\",\n  \"Apple surge fell to 1.06; our apple restock should resume, which restores a cheap food line choo-chu and others buy from us. No shop price change on food.\",\n  \"Shop does not see an 'unpaid: not paying' pattern it can fix with knobs; if the buyer's prefix-match probe shows it at specific shops, it is a kit accept-filter issue for the human.\",\n  \"Our goods stay at 0% warranty. The warranty question is queued with the curator as a human call and does not affect the buyer's shop choice for our shop.\"\n ]}\n```"
+ "raw": " is due by 14:00, so warranty and ask_share stay put until then. The total rivals' shops show no jump: Lee 0.744, dragonash22 0.747 and Kiro729 0.798 all slipped 0.003-0.004, and their stars sit at 4.39-4.48. I was woken by apple surge 1.088, just past my 1.08 trigger. Margin was ~4.3k/unit (15%) over 24h, and the extra ~9% cost leaves ~10%, still positive. Apple refills every window (hold 0.6h, 127/6h, 30 sold-out asks). My earlier trim on apple at surge 1.204 missed badly: predicted <=25, it sold 172. The 2.0 cover was set only 30 min ago to cut the empty visits that may cost stars. A trim now would blur that read for a ~1.5k/unit cost gain, so I hold and move the trigger to 1.12. Restock itself stops at 1.15. One open diagnosis: several bed/chair SKUs fell under 15% of their 24h rate at unchanged knobs: Greentea Q 1 sold/6h vs 53/24h, Lilo 0 vs 22, Cloud Lux 1 vs 25, Ace 1 vs 18. Over the same 6h, market beds are +15%, so demand is not the cause. Plumbing is also ruled out for goods: the 20 refusals are 'not in stock' and the ~360 settles with no fate are food-side. That leaves a common price cause per L106 (inextro or others undercutting at ~0.62-0.66). These piles are small at cost (~40M together), and the per-SKU ask step 0.00625 cannot reach the band. A global intel_undercut move would also cut margin on Mate, which sells 88/6h at a 203k margin. So I ask for the competitor asks before moving. The play is book, which is protected (L1/L29), while stars are read at 14:00. Holding is right this run.\",\n \"moves\": [],\n \"lessons\": [{\"op\": \"add\", \"id\": \"L107\", \"text\": \"A surge watch that fires just past its trigger (within ~0.02) on a perishable that refills every window (avg_hold <= 0.6h), shortly after a cover change: hold unless margin per unit is computed under ~8%. Cover trims there do not bite (apple cover 0.5 at surge 1.204 still sold 172 vs <=25 predicted). Re-arm the watch higher instead, below restock's SURGE_MAX 1.15.\", \"why\": \"11-08 09:15: apple fired at 1.088 with ~10% margin left, 30 min after cover 2.0. Flipping would erase the read on no-stock asks and stars.\"}],\n \"requests\": [{\"kind\": \"sku_prices\", \"sku\": \"G0667d440\"},\n  {\"kind\": \"sku_prices\", \"sku\": \"G429bd69e\"},\n  {\"kind\": \"shop\", \"name\": \"inextro\"},\n  {\"kind\": \"question\", \"text\": \"For goods SKUs past slow_hours (24h) and clear_window_hours (48h), e.g. Ace G8095ddd6 56h and Ward G47788edd 52h: what ask does seller_r3 actually post now, as a fraction of list, and does clear_ask_min 0.6 ever apply? I need it to tell whether slow_hours/slow_ask_cut can reach the 0.62-0.66 settle band.\"},\n  {\"kind\": \"question\", \"text\": \"Per-SKU in the last 6h: Greentea Q, Lilo, Cloud Lux S Q, Ace BMA. How many buyers asked us, what was our first ask/list, and what was the lowest competitor ask they saw? This tests whether a common undercut (L106) explains their drop from 24h rates.\"}],\n \"watch\": [{\"metric\": \"surge\", \"sku\": \"Gef4d3036\", \"op\": \">=\", \"value\": 1.12, \"why\": \"Apple at cover 2.0. Past 1.12 the margin is ~6% or less; then trim to 1.5 (L7/L107). Held at 1.088.\"},\n  {\"metric\": \"our_stock\", \"sku\": \"G8ec51935\", \"op\": \"<=\", \"value\": 12, \"why\": \"Mate is the top margin earner (88 sold/6h). Under ~1h of cover, check for a cut restock line.\"},\n  {\"metric\": \"class_rank\", \"sku\": \"\", \"op\": \">=\", \"value\": 2, \"why\": \"Lead is 0.026. If we lose 1st, re-check the shop parts against the rival who passed.\"}],\n \"notes_for_buyer\": [\"Book lead is 152M and growing (inextro book -5M in the last read). It is far above your 90M line, so inextro +0.03 is fine from the shop side.\",\n  \"Settle health: 1549 seller closes vs 1167 settles/6h. 20 refusals were 'unit not in stock'; the rest have no fate and are food-side. Of your 409 / unpaid checkouts, if any landed at our shop, a double-sold unit is the likely cause; please pass the shop and time.\",\n  \"I hold all shop prices until the 14:00 stars read. Our goods sit at x0.703, so we are not a cheap source for your goods bar 0.30; that is expected.\"]}\n```"
 }

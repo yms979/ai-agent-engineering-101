@@ -4,7 +4,12 @@
   "food_extra_hours": 1,
   "max_shops": 6,
   "skip_below": 0.24,
-  "cap_margin": 0.05
+  "cap_margin": 0.05,
+  "open_offset": 0.03,
+  "skip_below_goods": 0.3,
+  "cheapgoods_share": 0.0,
+  "wpen_share": 0.0,
+  "skubest_share": 0.7
  },
  "category": {
   "침구": {},
@@ -19,17 +24,17 @@
   },
   "반찬/젓갈": {}
  },
- "t": 1794016803.4995325,
+ "t": 1794128403.3186958,
  "shop": {
   "25620027": {},
   "nocha12": {
    "shop_bias": 0.0
   },
   "jiseokkk": {
-   "shop_bias": 0.03
+   "shop_bias": 0.0
   },
   "mjforge": {
-   "shop_bias": -0.03
+   "shop_bias": -0.06
   },
   "buzllightyear": {
    "shop_bias": -0.03
@@ -39,13 +44,23 @@
   },
   "Kiro729": {},
   "dae-yangkim": {
+   "shop_bias": -0.06
+  },
+  "olstjr": {},
+  "psyoung82": {
+   "shop_cap": 0.0
+  },
+  "sergiobuilds": {
    "shop_bias": -0.03
   },
-  "olstjr": {
+  "inextro": {
    "shop_bias": 0.03
   },
-  "psyoung82": {
-   "shop_cap": -0.02
+  "kimauve": {
+   "shop_bias": -0.03
+  },
+  "choo-chu": {
+   "shop_bias": -0.06
   }
  }
 }

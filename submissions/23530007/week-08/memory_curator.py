@@ -110,7 +110,8 @@ Write (one JSON object, keys exactly as in the template at the end):
    higher is better: since_last_move vs before_6h), what the ranking buyers do that ours does not, and what the shop
    strategist found that concerns it. Shop: item 0 the race (user 11-08: a dominant first place, a gap over the
    2nd and 3rd shops that grows): from WATCH.shop_race and WATCH.rivals (their 6 h profiles: what they sell, x,
-   volume, warranty, stock), our class shop score against the 2nd and 3rd, the gap on each part
+   volume, warranty, stock), and WATCH.total_rivals_shop (the shops of the class-TOTAL 2nd-4th: a jump in their
+   stars, book or warranty is a threat to first place even when their shop ranks low), our class shop score against the 2nd and 3rd, the gap on each part
    (book, revenue, stars) and how it moved since the last run, what the rivals do (prices x, volume, warranty) and
    which part needs an answer; then cover of its top sellers, its prices vs the market's p50_x in those
    categories, what buyers asked for and it lacked, what the ranking shops do, and anything that could hurt the
@@ -293,7 +294,20 @@ def watch(rules_changed):
         try:
             import market_picture as mpic
             names = [((p.get("shop") or {}).get("name")) for p in stud[:4] if p["player"] != "yms979"][:2]
+            # 11-08 (user: their shops can climb too): the class-TOTAL rivals' shops as well (Lee-sungsoo,
+            # dragonash22: buyers near the cap, shops mid-class with stars at #34/#40, so their shop is where they
+            # can still gain fast, e.g. a warranty lifting stars)
+            tot = sorted((p for p in fb["players"] if p.get("student")), key=lambda p: -(p.get("student_total") or 0))
+            for p in [p for p in tot if p["player"] != "yms979"][:3]:
+                nm = (p.get("shop") or {}).get("name")
+                if nm and nm not in names:
+                    names.append(nm)
             out["rivals"] = {n: mpic.profile_shop(n) for n in names if n}
+            out["total_rivals_shop"] = [{"player": p["player"], "class_total": p.get("student_total"),
+                                         "class_shop": p.get("student_shop"), "class_buyer": p.get("student_buyer"),
+                                         **{k: (byname.get((p.get("shop") or {}).get("name")) or {}).get(k)
+                                            for k in ("book", "revenue", "stars", "refunds")}}
+                                        for p in [p for p in tot if p["player"] != "yms979"][:3]]
         except Exception as e:
             out["rivals"] = {"error": repr(e)}
     except Exception as e:

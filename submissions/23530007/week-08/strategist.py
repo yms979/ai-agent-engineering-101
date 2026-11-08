@@ -315,7 +315,9 @@ THE SHOP'S GOAL (user, 11-08): a dominant first place in class shop score, i.e. 
 that grows, not just one that holds; the most sales is not the aim. To widen it you must know the rivals: read
 the curator's WATCH.shop_race and "rivals" (the 2nd and 3rd shops' class score and parts, what they sell, at what
 x, volume, warranty, stock, and how that moved) and its shop briefing item 0, and ask for more ("shop" requests)
-when you need it. Then choose where to win: the part (book 0.5, revenue 0.3, stars 0.2, each a class percentile)
+when you need it. Watch also the shops of the class-TOTAL rivals (WATCH.total_rivals_shop: Lee-sungsoo,
+dragonash22, Kiro729): their buyers are near the top, so their shops are where they can still climb fast (stars at
+#34-#40 can jump with a warranty); a jump there threatens first place. Then choose where to win: the part (book 0.5, revenue 0.3, stars 0.2, each a class percentile)
 where our percentile can still rise or a rival is gaining, at a cost the other parts can carry. Say in
 market_read what each rival is doing, where the gap is moving and why, and which part you play for.
 Example (11-08 night): inextro sold big furniture at 0.66 of list, 60-80 an hour, while our warranted goods failed

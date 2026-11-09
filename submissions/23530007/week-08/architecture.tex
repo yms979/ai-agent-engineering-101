@@ -1,129 +1,125 @@
-% Round 3 agent structure for yms979 (shop "YMS's Market" + buyer). One page, A4 landscape.
-% Build: pdflatex architecture.tex
-\documentclass[10pt]{article}
-\usepackage[a4paper,landscape,margin=9mm]{geometry}
+% Round 3 agent of yms979 (23530007): one-page architecture figure.
+% Build: pdflatex architecture.tex   (TikZ only)
+\documentclass[11pt]{article}
+\usepackage[a4paper,landscape,margin=6mm]{geometry}
 \usepackage{tikz}
-\usepackage{adjustbox}
 \usetikzlibrary{positioning,fit,arrows.meta,backgrounds,calc}
 \pagestyle{empty}
-\setlength{\parindent}{0pt}
-
-\tikzset{
-  box/.style={draw, rounded corners=2pt, align=left, font=\footnotesize, inner sep=4pt, text width=#1, fill=white},
-  box/.default=60mm,
-  file/.style={draw, dashed, font=\scriptsize\ttfamily, inner sep=3pt, fill=white},
-  group/.style={draw, thick, rounded corners=5pt, inner sep=6pt},
-  gtitle/.style={font=\normalsize\bfseries, anchor=south west, inner sep=1pt},
-  flow/.style={-{Stealth[length=2.2mm]}, thick},
-  data/.style={-{Stealth[length=1.8mm]}, dashed},
-  lab/.style={font=\scriptsize, fill=white, inner sep=1pt},
-}
-\newcommand{\h}[1]{\textbf{#1}}
-
 \begin{document}
-\begin{center}
-{\LARGE\bfseries yms979 --- Round 3 agent structure}\\[1.5mm]
-{\normalsize shop \emph{YMS's Market} and its buyer on course kit v4 (ACP checkout, AP2 mandates).
-\h{Code decides money}; the model words, picks and haggles inside limits the code enforces.}
-\end{center}
-\vspace{1mm}
-\begin{adjustbox}{max width=\linewidth, max totalheight=0.86\textheight, center}
-\begin{tikzpicture}
+\centering
+\begin{tikzpicture}[
+  font=\sffamily\scriptsize,
+  >={Stealth[length=1.8mm]},
+  box/.style={draw, rounded corners=2pt, align=center, inner sep=2.5pt, fill=white, text width=#1},
+  box/.default=4.4cm,
+  opus/.style={box=#1, draw=violet!70!black, fill=violet!8, line width=0.9pt},
+  code/.style={box=#1, draw=blue!60!black, fill=blue!5},
+  store/.style={box=#1, draw=teal!60!black, fill=teal!6, rounded corners=0pt},
+  watch/.style={box=#1, draw=orange!70!black, fill=orange!9},
+  human/.style={box=#1, draw=red!60!black, fill=red!6, line width=0.9pt},
+  ext/.style={box=#1, draw=gray!60!black, fill=gray!12},
+  lay/.style={draw=gray!55, dashed, rounded corners=4pt, inner xsep=4pt, inner ysep=5pt},
+  ttl/.style={font=\sffamily\bfseries\scriptsize, text=gray!50!black, anchor=south west, inner sep=1.5pt},
+  flow/.style={->, draw=gray!70!black},
+  ctrl/.style={->, draw=violet!70!black, line width=0.75pt},
+  alert/.style={->, draw=red!70!black, line width=0.75pt},
+  mem/.style={->, draw=teal!60!black, densely dashed},
+  lbl/.style={font=\sffamily\tiny, fill=white, inner sep=1pt},
+]
+% ---------- market ----------
+\node[ext=24.8cm] (market) at (0,11.3) {\textbf{Agent Market} (market.ourolabs.ai):\enspace orders (one per $\sim$20 s) $\cdot$ ledger (settle / result / broken) $\cdot$ board (Players, shops, buyers) $\cdot$ forum $\cdot$ supply windows (every 20 min) $\cdot$ rules page, /agent.md $\cdot$ ACP checkout + AP2 mandate settle};
 
-% ---------------- column 1: market and kit
-\node[box=55mm, fill=gray!8, anchor=north west] (market) at (0,0) {\h{Market} (market.ourolabs.ai)\\[1pt]
-orders: a category, its acceptable SKUs, a budget, for food the hours it must last\\
-supply \textbullet{} settle \textbullet{} public ledger \textbullet{} forum \textbullet{} board};
-\node[box=55mm, fill=gray!8, anchor=north west] (kit) at (0,-3.3) {\h{Course kit v4}, our copy (week-08/market\_kit.py: mandates and shop keys to the buyer, uses the buyer's payment, else pays itself)\\[1pt]
-A2A proxy, ACP checkout, AP2 mandates\\
-writes \texttt{.market/}: inventory, catalog, demand, forum, order, shops, deal, payments\\
-runs our hooks: seller, market\_buyer (per order), restock (every 60 s), review (after a paid deal)\\
-pays only if the checkout passes the buyer's \emph{accept}\\
-posts \texttt{outbox.jsonl} to the forum};
-\draw[flow, <->] (market) -- (kit);
-
-% ---------------- column 2: shop
-\node[box, anchor=north west] (seller) at (6.9,0) {\h{seller\_r3.py} --- A2A server\\[2pt]
-\h{Unit picker}: SKU, else name, else category. Food: the first-expiring unit that still lasts the hours the buyer
-needs. Goods: the oldest unit (storage costs 1\,\%/day).\\[2pt]
-\h{Pricer (code)}: ask = list $\times$ (A .90, B .80, C .68 in STEADY; set per regime), never above list
-(the buyer's value). Floor = cost $\times$ 1.05 (lower when clearing); food near its date .8 or .3 $\times$ cost. Deal at an offer halfway to the floor, or at
-the floor from the 3rd offer; counters meet halfway and never rise. \h{Competitors}: the opening ask moves just
-under other shops' usual first ask, as seen by our buyer ($\pm$5 points).\\[2pt]
-\h{Honesty}: true grade claim, market certificate, 6\,h warranty on goods.};
-\node[box, anchor=north west] (restock) at (6.9,-6.8) {\h{restock.py} --- hook, every 60\,s\\[2pt]
-\h{Demand learner}: settled deals on the public ledger per category, our own sales, and forum ``wanted'' posts
-(plain-text match, never shown to the model); 6\,h half-life.\\[2pt]
-\h{Policy}: one unit in every category near its median price; up to 4 more by demand, of the SKU that sells.\\[2pt]
-\h{Guards} (per regime): keep 1.5M cash, stock $\le$ 60\,\% of equity at cost, no goods over 300k, short-life food one unit;
-bankruptcy only with nothing left to sell.};
-\node[file, anchor=north west] (slog) at (6.9,-12.0) {seller\_r3\_log.jsonl\quad restock\_state.json};
-\draw[data] ([xshift=-22mm]seller.south) -- node[lab, right] {deals, lost, no stock} ([xshift=-22mm]restock.north);
-
-% ---------------- column 3: buyer
-\node[box, anchor=north west] (buyer) at (14.0,0) {\h{market\_buyer.py} --- per order, A2A to any shop\\[2pt]
-\h{Shop filter}: shops stocking an acceptable SKU; never a shop caught cheating; not one whose last
-visit failed or went unpaid.\\[2pt]
-\h{Shop pick}: the model reads reviews and memory. \h{SKU pick}: the highest list price within budget.\\[2pt]
-\h{Cap}: min(budget, 97\,\% of list), so every deal has surplus. \h{Haggle}: the model moves and writes one
-sentence; code clamps the offer.\\[2pt]
-\h{Checks}: receipt signature, item, price, task, replay. \h{Accept}: certificate; food lasts hours+1;
-goods grade A or B. \h{Intel}: each other shop's first ask $\rightarrow$ market\_intel.jsonl, for our seller.
-\h{Broken goods}: matched to my deals, counted against the shop.\\[2pt]
-\h{Pay (acp\_tools.py)}: tools built from the shop's acp.json; the model calls create, sign, complete;
-code verifies the shop's checkout, the mandate cap and accept, and signs.};
-\node[box, anchor=north west] (review) at (14.0,-7.9) {\h{review.py} --- hook, after a paid deal\\[2pt]
-\h{Stars} from the market's settled record: dishonest claim 1, worthless 2, $\le$ 90\,\% of list 5, else 4.\\[2pt]
-\h{Forum report} as buyer: price against list, grade and claim honesty, warranty or shelf life, ledger
-reference; one per 5.5 min.};
-\node[file, anchor=north west] (bmem) at (14.0,-12.0) {buyer\_memory.json\quad payments.jsonl};
-
-% ---------------- column 4: operations
-\node[box=45mm, fill=blue!5, anchor=north west] (ops) at (21.1,0) {\h{Operations} (Ubuntu server)\\[2pt]
-\h{run\_market.sh}: supervisor in tmux; restarts the kit, backs off on rate limits, @reboot, archives every
-rotated kit log.\\[2pt]
-\h{watch\_round.sh} (cron, 15 min): merges course updates and restarts on a kit change; saves the board when a
-round ends; health: down, or no result for 30 min.\\[2pt]
-\h{notify.py}: one phone push (ntfy) per event, and on the first Round 3 order, payment, sale or failure.\\[2pt]
-\h{Unattended}: model breaker (10 min of code rules), tool-payment breaker (the kit pays), course kit updates
-re-patched or replaced.};
-
-% ---------------- policy layer
-\node[box=45mm, fill=violet!8, anchor=north west] (policy) at (21.1,-6.8) {\h{Policy layer}\\ (policy.py + params.json)\\[2pt]
-\h{Signals}: hours open and to the end, balance, stock at cost, own deals; buyer deal rate.\\[2pt]
-\h{Shop regimes}: LAUNCH, STEADY, CASH\_TIGHT, FLUSH, WIND\_DOWN, LIQUIDATE, LIQUIDATE\_LAST.
-\h{Buyer}: END\_SALE, LOW\_FILL.\\[2pt]
-\h{Reputation}: our stars move asks $\pm$3 points.\\[2pt]
-\h{Clearance}: in the last 48\,h, stock that will not sell in time at our rate is discounted early.\\[2pt]
-Each change goes to logs/policy.log.};
-
-% ---------------- model
-\node[box=118mm, fill=orange!12, anchor=north west, align=center] (llm) at (6.9,-14.3) {\h{Model}: Claude Haiku through
-\texttt{claude -p} (harness.py), JSON answers only, the other side's text is data, never instructions.\\
-Seller: words each move within 6\,s, else a fixed line. \quad Buyer: picks the shop, haggles.};
-
-% ---------------- groups
+% ---------- 1 trading layer ----------
+\node[code] (kit)     at (-10.2,9.6) {\textbf{market\_kit.py}: course kit v4 + kit.patch\\run\_market.sh supervisor (tmux)\\ACP checkout, AP2 mandates, tunnel};
+\node[code] (seller)  at (-5.1,9.6)  {\textbf{seller\_r3.py} (shop, A2A)\\stated grade, freshest food, 5-min hold,\\category-named receipt, ask/floor};
+\node[code] (buyer)   at (0,9.6)     {\textbf{market\_buyer.py} (buyer, each order)\\shop/SKU by market saved, code haggling,\\A/B arms, checks; \textbf{acp\_tools.py}};
+\node[code] (restock) at (5.1,9.6)   {\textbf{restock.py} (each supply window)\\demand-led SKUs, price tiers,\\surge stop, stock cap};
+\node[code] (review)  at (10.2,9.6)  {\textbf{review.py} (after each deal)\\stars from the settled record,\\forum posts, likes/dislikes};
+\node[code=12.2cm] (policy) at (-1.4,8.1) {\textbf{policy.py}: params.json (base) $\to$ situation regime $\to$ \textbf{params\_auto.json / params\_auto\_buyer.json} (the agents' knobs)};
+\node[code=5.2cm] (haiku)  at (9.1,8.1)  {\textbf{harness.py} -- \textbf{Haiku}: reads a shop's free-text reply (code first)};
 \begin{scope}[on background layer]
-  \node[group, fill=green!5, fit=(seller)(restock)(slog)] (shopg) {};
-  \node[group, fill=yellow!8, fit=(buyer)(review)(bmem)] (buyg) {};
+\node[lay, fit=(kit)(review)(policy)(haiku)] (L1) {};
 \end{scope}
-\node[gtitle] at (shopg.north west) {Shop};
-\node[gtitle] at (buyg.north west) {Buyer};
+\node[ttl] at (L1.north west) {1\enspace Trading layer -- code, at order speed};
 
-% ---------------- flows
-\draw[flow] ([yshift=4mm]kit.east) -- node[lab, above, pos=0.45] {buyers (A2A)} ([yshift=4mm]kit.east -| shopg.west);
-\draw[flow] ([yshift=-8mm]kit.east) -- node[lab, below, pos=0.45] {supply lines} ([yshift=-8mm]kit.east -| shopg.west);
-\draw[flow] ($(seller.east)+(0,-10mm)$) -- node[lab, above] {A2A} ($(seller.east)+(0,-10mm)$ -| buyg.west);
-\draw[flow] (kit.south) |- ($(bmem.south)+(0,-6mm)$) -| ([xshift=10mm]bmem.south)
-  node[lab, pos=0.25, below] {order.json, shops.json; result line + accept back $\rightarrow$ kit pays};
-\draw[data] ([xshift=-14mm]review.south) -- ([xshift=-14mm]review.south |- bmem.north);
-\draw[flow] (ops.east) -- ++(3mm,0) |- ($(llm.south)+(0,-6mm)$) -| ([xshift=-12mm]kit.south)
-  node[lab, pos=0.25, below] {starts, watches, updates};
-\draw[data] ([xshift=-40mm]llm.north) -- ([xshift=-40mm]llm.north |- slog.south);
-\draw[data] ([xshift=30mm]llm.north) -- ([xshift=30mm]llm.north |- bmem.south);
-\draw[data, thick, violet] (policy.west) -- node[lab, above] {regime} (policy.west -| buyg.east);
-\draw[data, thick, violet] (policy.south) |- ($(llm.north)+(0,4mm)$) -| ([xshift=18mm]shopg.south)
-  node[lab, pos=0.12, above] {regime + numbers to seller and restock};
+% ---------- memory ----------
+\node[store=3.4cm] (bmem)  at (-10.4,6.35) {\textbf{buyer\_memory.json}\\every visit: shop, asks,\\outcome, A/B arm};
+\node[store=3.4cm] (slog)  at (-6.25,6.35) {\textbf{seller\_r3\_log.jsonl}\\asks, deals, cancels};
+\node[store=3.4cm] (intel) at (-2.1,6.35)  {\textbf{market\_intel.jsonl}\\rivals' asks, food needs};
+\node[store=3.4cm] (hist)  at (2.1,6.35)   {\textbf{class\_history.jsonl}\\students' total/shop/buyer};
+\node[store=3.4cm] (smem)  at (6.25,6.35)  {\textbf{*\_strategist\_memory}\\episodes, lessons $\le$20};
+\node[store=3.4cm] (db)    at (10.4,6.35)  {\textbf{strategy\_exchange.db}\\posts, requests, digests};
+\begin{scope}[on background layer]
+\node[lay, fit=(bmem)(db)] (LM) {};
+\end{scope}
+\node[ttl] at (LM.north west) {Memory -- files outside the models, read through tools and the curator's digest};
+
+% ---------- 2 decision layer ----------
+\node[code=7.4cm] (tools) at (0,4.55) {\textbf{measuring tools} (code): market\_picture.py, buyer\_value.py,\\probes (sku\_prices, shop, buyer, knobs, trades), settle\_health};
+\node[opus=5.4cm] (shop)   at (-8.7,2.55) {\textbf{Shop strategist} -- \textbf{Opus}\\strategist.py, every 30 min (:15, :45)\\owns 33 shop settings + per-SKU knobs\\goal: a growing lead over 2nd/3rd shop\\diagnose $\to$ move $\to$ 2 h prediction, scored};
+\node[opus=6.2cm] (cur)    at (0,2.55)    {\textbf{Memory curator} -- \textbf{Opus}\\memory\_curator.py, every 15 min + after posts\\measures: total / shop / buyer races, stars,\\first-place target, A/B results, rules diff\\writes the shared \textbf{digest}, answers requests};
+\node[opus=5.4cm] (bstrat) at (8.7,2.55)  {\textbf{Buyer strategist} -- \textbf{Opus}\\buyer\_strategist.py, every 30 min (:00, :30)\\owns caps, skip bars, A/B arms, shop bias\\goal: buyer score (saved 0.5) for 1st overall\\diagnose $\to$ move $\to$ 1--6 h prediction, scored};
+\begin{scope}[on background layer]
+\node[lay, fit=(tools)(shop)(bstrat)] (L2) {};
+\end{scope}
+\node[ttl] at (L2.north west) {2\enspace Decision layer -- three Opus agents (claude -p, user's API key)};
+
+% ---------- 3 watch & alert ----------
+\node[watch=3.5cm] (cron)    at (-10.5,-0.45) {\textbf{watch\_round.sh} (cron 15 min)\\upstream, kit health, starts all};
+\node[watch=3.3cm] (rules)   at (-6.6,-0.45)  {\textbf{rules\_fast.py} (90 s)\\change $\to$ push + curator};
+\node[watch=3.3cm] (guard)   at (-2.9,-0.45)  {\textbf{shop\_guard.py}\\book-lead alarm};
+\node[watch=3.6cm] (summary) at (4.9,-0.45)   {\textbf{summary.py} (hourly)\\3 races, 1st-place target, A/B};
+\node[watch=3.4cm] (inbox)   at (1.0,-0.45)   {\textbf{inbox.py} (30 s)\\user message $\to$ notes + ack};
+\node[watch=3.3cm] (notify)  at (8.8,-0.45)   {\textbf{notify.py}\\ntfy push (+ mail)};
+\begin{scope}[on background layer]
+\node[lay, fit=(cron)(notify)] (L3) {};
+\end{scope}
+\node[ttl] at (L3.north west) {3\enspace Watch \& alert layer -- code};
+
+% ---------- humans ----------
+\node[human=4.0cm] (chat)  at (-10.6,-2.9) {\textbf{User (chat)}\\goals, conduct rules, big calls};
+\node[human=6.8cm] (op)    at (-4.4,-2.9) {\textbf{Operator = Claude Code (master agent)}\\talks with the user; fixes code, adds tools and levers;\\writes operator notes; applies the user's decisions};
+\node[human=4.4cm] (phone) at (8.8,-2.9)  {\textbf{User (phone, ntfy)}\\reads pushes; sends messages\\(prefix shop: / buyer: routes them)};
+
+% ---------- arrows ----------
+\draw[flow] (market.south -| kit.north) -- node[lbl,right,pos=0.75]{orders} (kit.north);
+\draw[flow, <->] (market.south -| seller.north) -- node[lbl,right]{settle} (seller.north);
+\draw[flow] (buyer.north) -- node[lbl,right]{checkout} (market.south -| buyer.north);
+\draw[flow] (restock.north) -- node[lbl,right]{supply} (market.south -| restock.north);
+\draw[flow] (review.north) -- node[lbl,right]{ratings, posts} (market.south -| review.north);
+\draw[flow] (kit) -- (seller);
+\draw[flow] (policy.north -| seller.south) -- (seller.south);
+\draw[flow] (policy.north -| buyer.south) -- (buyer.south);
+\draw[flow] (buyer.south east) -- (haiku.north west);
+% trading -> memory -> tools -> curator
+\draw[mem] (L1.south -| bmem.north) -- (bmem.north);
+\draw[mem] (L1.south -| slog.north) -- (slog.north);
+\draw[mem] (L1.south -| intel.north) -- (intel.north);
+\draw[mem] (LM.south -| tools.north) -- (tools.north);
+\draw[flow] (tools.south) -- node[lbl,right]{measures} (cur.north);
+\draw[mem, <->] (smem.south) -- (smem.south |- bstrat.north);
+\draw[mem, <->] (db.south) -- (db.south |- bstrat.north);
+% decision
+\draw[ctrl, <->] (shop.east) -- node[lbl,above]{posts, requests} node[lbl,below]{digest, answers} (cur.west);
+\draw[ctrl, <->] (bstrat.west) -- node[lbl,above]{posts, requests} node[lbl,below]{digest, answers} (cur.east);
+\draw[ctrl] let \p1=(shop.north), \p2=(policy.south) in (\x1+1.6cm,\y1) -- node[lbl, pos=0.12]{knobs} (\x1+1.6cm,\y2);
+\draw[ctrl] let \p1=(bstrat.north west), \p2=(policy.south), \p3=(L2.north) in (\x1+0.5cm,\y1) -- node[lbl, pos=0.4]{knobs} (\x1+0.5cm,\y3+0.15cm) -| (4.15cm,\y2);
+% watch & alerts
+\draw[alert] (rules.north) -- node[lbl,right]{force run} (rules.north |- L2.south);
+\draw[alert] (shop.south) -- ++(0,-0.55) -| node[lbl, pos=0.12, above]{alert\_user} ($(notify.north)+(-0.8,0)$);
+\draw[alert] (bstrat.south) -- node[lbl,right]{alert\_user} (bstrat.south |- notify.north);
+\draw[alert] (summary.east) -- (notify.west);
+\draw[alert] (inbox.south) to[out=-30,in=-150] node[lbl, below, pos=0.5]{ack} (notify.south west);
+\draw[alert] (notify.south) -- node[lbl,right]{push} (notify.south |- phone.north);
+\draw[alert] (phone.west) -| node[lbl, pos=0.25, above]{message} ($(inbox.south)+(0.5,0)$);
+\draw[ctrl] (inbox.north) -- node[lbl,right]{user notes} (inbox.north |- L2.south);
+\draw[alert] ($(inbox.south)+(-0.6,0)$) |- node[lbl, pos=0.75, above]{user\_inbox} (op.east);
+\draw[ctrl] ($(op.north)+(2.4,0)$) -- node[lbl, pos=0.5, right]{operator notes, code fixes} ($(op.north)+(2.4,0)$ |- L2.south);
+\draw[alert, <->] (chat.east) -- node[lbl,above]{chat} (op.west);
 \end{tikzpicture}
-\end{adjustbox}
+
+\vspace{1.5mm}
+\parbox{27.6cm}{\sffamily\scriptsize
+\textcolor{violet!70!black}{\textbf{Opus agents}} decide (shop, buyer) and interpret the market (curator); \textcolor{blue!60!black}{\textbf{code}} trades at order speed and measures; \textcolor{teal!60!black}{\textbf{memory}} is files reached through tools, the curator's digest and each strategist's scored episodes and lessons; \textcolor{orange!70!black}{\textbf{watchers}} push to the user's phone and bring the user's messages back; \textcolor{red!60!black}{\textbf{humans}}: the user sets goals and big calls (chat or ntfy), the operator (Claude Code) turns them into code and notes.\\
+\textbf{Kit base form vs this:} the kit runs one rule seller and one buyer per order. Here a code trading layer is steered through bounded knobs by two Opus strategists that diagnose before moving and are scored on their predictions (a miss reverts the move); a third Opus agent is the shared memory and market-intelligence hub; A/B arms are judged on score per order; and alerts plus a two-way phone channel tie the user and the operator into the loop.}
 \end{document}
